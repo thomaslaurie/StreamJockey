@@ -37997,20 +37997,20 @@ class Toggle extends Command {
 }
 _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].constant(Toggle.prototype, {
   isIdenticalTo(otherCommand) {
-    return Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_3__["superPrototype"])(Toggle).isIdenticalTo.call(this, otherCommand) && otherCommand.isPlaying === this.isPlaying;
+    return Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_3__["getSuperPrototypeOf"])(Toggle).isIdenticalTo.call(this, otherCommand) && otherCommand.isPlaying === this.isPlaying;
   },
 
   //! Toggle doesn't have a unique collapsesInto because the otherCommand is either identical (and collapses by default) or is opposite and annihilates.
   annihilates(otherCommand) {
-    return Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_3__["superPrototype"])(Toggle).annihilates.call(this, otherCommand) || // Same source, inverse isPlaying, both are sj.Toggle (ie. don't annihilate pauses with starts).
-    Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_3__["superPrototype"])(Toggle).isIdenticalTo.call(this, otherCommand) && otherCommand.isPlaying === !this.isPlaying && otherCommand.constructor === this.constructor;
+    return Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_3__["getSuperPrototypeOf"])(Toggle).annihilates.call(this, otherCommand) || // Same source, inverse isPlaying, both are sj.Toggle (ie. don't annihilate pauses with starts).
+    Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_3__["getSuperPrototypeOf"])(Toggle).isIdenticalTo.call(this, otherCommand) && otherCommand.isPlaying === !this.isPlaying && otherCommand.constructor === this.constructor;
   },
 
   trigger(context) {
     var _this2 = this;
 
     return _asyncToGenerator(function* () {
-      yield Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_3__["superPrototype"])(Toggle).trigger.call(_this2, context);
+      yield Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_3__["getSuperPrototypeOf"])(Toggle).trigger.call(_this2, context);
       yield Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["asyncMap"])(_this2.sourceInstances, /*#__PURE__*/function () {
         var _ref = _asyncToGenerator(function* (source) {
           if (_this2.isPlaying && source === _this2.source) {
@@ -38046,18 +38046,18 @@ class Seek extends Command {
 }
 _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].constant(Seek.prototype, {
   collapsesInto(otherCommand) {
-    return Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_3__["superPrototype"])(Seek).collapsesInto.call(this, otherCommand) || otherCommand.constructor === Seek;
+    return Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_3__["getSuperPrototypeOf"])(Seek).collapsesInto.call(this, otherCommand) || otherCommand.constructor === Seek;
   },
 
   isIdenticalTo(otherCommand) {
-    return Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_3__["superPrototype"])(Seek).isIdenticalTo.call(this, otherCommand) && otherCommand.progress === this.progress;
+    return Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_3__["getSuperPrototypeOf"])(Seek).isIdenticalTo.call(this, otherCommand) && otherCommand.progress === this.progress;
   },
 
   trigger(context) {
     var _this3 = this;
 
     return _asyncToGenerator(function* () {
-      yield Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_3__["superPrototype"])(Seek).trigger.call(_this3, context);
+      yield Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_3__["getSuperPrototypeOf"])(Seek).trigger.call(_this3, context);
       yield context.dispatch("".concat(_this3.source.name, "/seek"), _this3.progress);
     })();
   }
@@ -38079,18 +38079,18 @@ class Volume extends Command {
 }
 _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].constant(Volume.prototype, {
   collapsesInto(otherCommand) {
-    return Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_3__["superPrototype"])(Volume).collapsesInto.call(this, otherCommand) || otherCommand.constructor === Volume;
+    return Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_3__["getSuperPrototypeOf"])(Volume).collapsesInto.call(this, otherCommand) || otherCommand.constructor === Volume;
   },
 
   isIdenticalTo(otherCommand) {
-    return Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_3__["superPrototype"])(Volume).isIdenticalTo.call(this, otherCommand) && otherCommand.volume === this.volume;
+    return Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_3__["getSuperPrototypeOf"])(Volume).isIdenticalTo.call(this, otherCommand) && otherCommand.volume === this.volume;
   },
 
   trigger(context) {
     var _this4 = this;
 
     return _asyncToGenerator(function* () {
-      yield Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_3__["superPrototype"])(Volume).trigger.call(_this4, context); // Adjust volume on all sources.
+      yield Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_3__["getSuperPrototypeOf"])(Volume).trigger.call(_this4, context); // Adjust volume on all sources.
 
       yield Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["asyncMap"])(_this4.sourceInstances, /*#__PURE__*/function () {
         var _ref2 = _asyncToGenerator(function* (source) {
@@ -38143,11 +38143,11 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].constant(Start.p
   collapsesInto(otherCommand) {
     // Collapses parent condition, any Start, Toggle, or Seek.
     //TODO //? Tight coupling?
-    return Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_3__["superPrototype"])(Start).collapsesInto.call(this, otherCommand) || otherCommand.constructor === Start || otherCommand.constructor === Toggle || otherCommand.constructor === Seek;
+    return Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_3__["getSuperPrototypeOf"])(Start).collapsesInto.call(this, otherCommand) || otherCommand.constructor === Start || otherCommand.constructor === Toggle || otherCommand.constructor === Seek;
   },
 
   isIdenticalTo(otherCommand) {
-    return Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_3__["superPrototype"])(Start).isIdenticalTo.call(this, otherCommand) // Catch non-Tracks.
+    return Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_3__["getSuperPrototypeOf"])(Start).isIdenticalTo.call(this, otherCommand) // Catch non-Tracks.
     && otherCommand.track instanceof _entities_index_js__WEBPACK_IMPORTED_MODULE_0__["Track"] //! Compare tracks by their sourceId not by their reference.
     && otherCommand.track.sourceId === this.track.sourceId && otherCommand.isPlaying === this.isPlaying && otherCommand.progress === this.progress;
   },
@@ -38156,7 +38156,7 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].constant(Start.p
     var _this5 = this;
 
     return _asyncToGenerator(function* () {
-      yield Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_3__["superPrototype"])(Start).trigger.call(_this5, context); // Pause all.
+      yield Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_3__["getSuperPrototypeOf"])(Start).trigger.call(_this5, context); // Pause all.
 
       yield Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["asyncMap"])(_this5.sourceInstances, /*#__PURE__*/function () {
         var _ref3 = _asyncToGenerator(function* (source) {
@@ -38426,7 +38426,7 @@ class Track extends _entity_js__WEBPACK_IMPORTED_MODULE_0__["default"] {
     _shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_1__["trackParts"].instance(this, ...args);
     var [{
       source
-    }] = args;
+    } = {}] = args;
     Object(_shared_entityParts_track_js__WEBPACK_IMPORTED_MODULE_2__["validateSource"])({
       instance: this,
       SourceClass: _source_js__WEBPACK_IMPORTED_MODULE_3__["default"],
@@ -62197,7 +62197,7 @@ function clamp(input) {
 /*!**********************************************!*\
   !*** ./source/shared/utility/class-parts.js ***!
   \**********************************************/
-/*! exports provided: default, initPrototype, initStatic, superPrototype, superStatic */
+/*! exports provided: default, initPrototype, initStatic, getSuperPrototypeOf, getSuperClassOf */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -62205,8 +62205,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return ClassParts; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "initPrototype", function() { return initPrototype; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "initStatic", function() { return initStatic; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "superPrototype", function() { return superPrototype; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "superStatic", function() { return superStatic; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getSuperPrototypeOf", function() { return getSuperPrototypeOf; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getSuperClassOf", function() { return getSuperClassOf; });
 /* harmony import */ var _object_define_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./object/define.js */ "./source/shared/utility/object/define.js");
 /* harmony import */ var _validation_interface_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./validation/interface.js */ "./source/shared/utility/validation/interface.js");
 /* harmony import */ var _validation_index_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./validation/index.js */ "./source/shared/utility/validation/index.js");
@@ -62303,11 +62303,13 @@ function initStatic(Class, initializer) {
   return wrapStatic(initializer)(Class);
 } // Replacements for the 'super' keyword inside prototype and static methods.
 //R Intercept and instance parts not included because super is different in the constructor and should be called separately from these parts.
+//G //! Methods will have to be used with .call() because super methods' this will refer to the prototype.
+//TODO This is a significant limitation.
 
-function superPrototype(Class) {
+function getSuperPrototypeOf(Class) {
   return Object.getPrototypeOf(Class.prototype);
 }
-function superStatic(Class) {
+function getSuperClassOf(Class) {
   return Object.getPrototypeOf(Class);
 } // EXAMPLE
 
@@ -62643,7 +62645,7 @@ __webpack_require__.r(__webpack_exports__);
 /*!****************************************!*\
   !*** ./source/shared/utility/index.js ***!
   \****************************************/
-/*! exports provided: any, asyncMap, dynamicSort, one, stableSort, copyProperty, deepCompare, define, forKeysOf, getKeysOf, forOwnKeysOf, getOwnKeysOf, pick, capitalizeFirstCharacter, escapeRegExp, spaceIndented, tabIndented, replaceAll, setTimer, wait, appendQueryParameters, encodeProperties, decodeProperties, encodeList, decodeList, rules, flexTest, Interface, SymbolInterface, Rule, boolCatch, clamp, ClassParts, combinations, Deferred, Enum, formatMs, constants, keyCode, keyify, reference, repeat */
+/*! exports provided: any, asyncMap, dynamicSort, one, stableSort, copyProperty, deepCompare, define, forKeysOf, getKeysOf, forSimpleKeysOf, getSimpleKeysOf, forOwnKeysOf, getOwnKeysOf, pick, capitalizeFirstCharacter, escapeRegExp, spaceIndented, tabIndented, replaceAll, setTimer, wait, appendQueryParameters, encodeProperties, decodeProperties, encodeList, decodeList, rules, flexTest, Interface, SymbolInterface, Rule, boolCatch, clamp, ClassParts, combinations, Deferred, Enum, formatMs, constants, keyCode, keyify, reference, repeat */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -62669,6 +62671,10 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "forKeysOf", function() { return _object_index_js__WEBPACK_IMPORTED_MODULE_1__["forKeysOf"]; });
 
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "getKeysOf", function() { return _object_index_js__WEBPACK_IMPORTED_MODULE_1__["getKeysOf"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "forSimpleKeysOf", function() { return _object_index_js__WEBPACK_IMPORTED_MODULE_1__["forSimpleKeysOf"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "getSimpleKeysOf", function() { return _object_index_js__WEBPACK_IMPORTED_MODULE_1__["getSimpleKeysOf"]; });
 
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "forOwnKeysOf", function() { return _object_index_js__WEBPACK_IMPORTED_MODULE_1__["forOwnKeysOf"]; });
 
@@ -63371,7 +63377,7 @@ var ownKeys = function ownKeys(object) {
 /*!***********************************************!*\
   !*** ./source/shared/utility/object/index.js ***!
   \***********************************************/
-/*! exports provided: copyProperty, deepCompare, define, forKeysOf, getKeysOf, forOwnKeysOf, getOwnKeysOf, pick */
+/*! exports provided: copyProperty, deepCompare, define, forKeysOf, getKeysOf, forSimpleKeysOf, getSimpleKeysOf, forOwnKeysOf, getOwnKeysOf, pick */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -63389,6 +63395,10 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "forKeysOf", function() { return _keys_of_js__WEBPACK_IMPORTED_MODULE_3__["forKeysOf"]; });
 
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "getKeysOf", function() { return _keys_of_js__WEBPACK_IMPORTED_MODULE_3__["getKeysOf"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "forSimpleKeysOf", function() { return _keys_of_js__WEBPACK_IMPORTED_MODULE_3__["forSimpleKeysOf"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "getSimpleKeysOf", function() { return _keys_of_js__WEBPACK_IMPORTED_MODULE_3__["getSimpleKeysOf"]; });
 
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "forOwnKeysOf", function() { return _keys_of_js__WEBPACK_IMPORTED_MODULE_3__["forOwnKeysOf"]; });
 
@@ -63409,13 +63419,15 @@ __webpack_require__.r(__webpack_exports__);
 /*!*************************************************!*\
   !*** ./source/shared/utility/object/keys-of.js ***!
   \*************************************************/
-/*! exports provided: forKeysOf, getKeysOf, forOwnKeysOf, getOwnKeysOf */
+/*! exports provided: forKeysOf, getKeysOf, forSimpleKeysOf, getSimpleKeysOf, forOwnKeysOf, getOwnKeysOf */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "forKeysOf", function() { return forKeysOf; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getKeysOf", function() { return getKeysOf; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "forSimpleKeysOf", function() { return forSimpleKeysOf; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getSimpleKeysOf", function() { return getSimpleKeysOf; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "forOwnKeysOf", function() { return forOwnKeysOf; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getOwnKeysOf", function() { return getOwnKeysOf; });
 /* harmony import */ var _validation_flex_test_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../validation/flex-test.js */ "./source/shared/utility/validation/flex-test.js");
@@ -63444,6 +63456,24 @@ function _objectWithoutPropertiesLoose(source, excluded) { if (source == null) r
 var rules = {
   object: _validation_rules_objects_object_js__WEBPACK_IMPORTED_MODULE_1__["default"],
   func: _validation_rules_functions_js__WEBPACK_IMPORTED_MODULE_2__["func"]
+}; // Configurations
+
+var simple = {
+  // Equivalent to Object.keys
+  own: true,
+  named: true,
+  enumerable: true,
+  inherited: false,
+  symbol: false,
+  nonEnumerable: false
+};
+var own = {
+  own: true,
+  named: true,
+  symbol: true,
+  enumerable: true,
+  nonEnumerable: true,
+  inherited: false
 };
 function forKeysOf(object) {
   var optionsOrCallback = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
@@ -63454,12 +63484,12 @@ function forKeysOf(object) {
   rules.object.validate(object);
   rules.object.validate(options);
   var {
-    own = true,
-    inherited = false,
-    named = true,
-    symbol = false,
-    enumerable = true,
-    nonEnumerable = false,
+    own = simple.own,
+    inherited = simple.inherited,
+    named = simple.named,
+    symbol = simple.symbol,
+    enumerable = simple.enumerable,
+    nonEnumerable = simple.nonEnumerable,
     callback = () => {}
   } = options;
   rules.func.validate(callback); // OWN / INHERITED
@@ -63527,25 +63557,20 @@ function getKeysOf(object) {
 
   }, rest));
   return keys;
-}
-var own = {
-  own: true,
-  named: true,
-  symbol: true,
-  enumerable: true,
-  nonEnumerable: true,
-  inherited: false
-};
-function forOwnKeysOf(object, callback) {
-  return forKeysOf(object, _objectSpread({}, own, {
-    callback
-  }));
-}
-function getOwnKeysOf(object, filter) {
-  return getKeysOf(object, _objectSpread({}, own, {
-    filter
-  }));
-}
+} // Same as the default, but explicit.
+
+var forSimpleKeysOf = (object, callback) => forKeysOf(object, _objectSpread({}, simple, {
+  callback
+}));
+var getSimpleKeysOf = (object, filter) => getKeysOf(object, _objectSpread({}, simple, {
+  filter
+}));
+var forOwnKeysOf = (object, callback) => forKeysOf(object, _objectSpread({}, own, {
+  callback
+}));
+var getOwnKeysOf = (object, filter) => getKeysOf(object, _objectSpread({}, own, {
+  filter
+}));
 
 /***/ }),
 

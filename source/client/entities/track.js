@@ -9,7 +9,7 @@ export default class Track extends Entity {
 		super(...args);
 		trackParts.instance(this, ...args);
 
-		const [{source}] = args;
+		const [{source} = {}] = args;
 		validateSource({
 			instance: this,
 			SourceClass: Source,

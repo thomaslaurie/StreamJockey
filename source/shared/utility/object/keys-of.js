@@ -12,6 +12,27 @@ import object from '../validation/rules/objects/object.js';
 import {func}   from '../validation/rules/functions.js';
 const rules = {object, func};
 
+// Configurations
+const simple = {
+	// Equivalent to Object.keys
+	own:           true,
+	named:         true,
+	enumerable:    true,
+
+	inherited:     false,
+	symbol:        false,
+	nonEnumerable: false,
+};
+const own = {
+	own:           true,
+	named:         true,
+	symbol:        true,
+	enumerable:    true,
+	nonEnumerable: true,
+
+	inherited:     false,
+};
+
 export function forKeysOf(object, optionsOrCallback = {}) {
 	// OPTIONS / VALIDATION
 	const options = (
@@ -24,14 +45,12 @@ export function forKeysOf(object, optionsOrCallback = {}) {
 	rules.object.validate(options);
 
 	const {
-		own = true,
-		inherited = false,
-
-		named = true,
-		symbol = false,
-
-		enumerable = true,
-		nonEnumerable = false,
+		own           = simple.own,
+		inherited     = simple.inherited,
+		named         = simple.named,
+		symbol        = simple.symbol,
+		enumerable    = simple.enumerable,
+		nonEnumerable = simple.nonEnumerable,
 
 		callback = () => {},
 	} = options;
@@ -112,18 +131,9 @@ export function getKeysOf(object, optionsOrFilter = {}) {
 	return keys;
 }
 
-const own = {
-	own:           true,
-	named:         true,
-	symbol:        true,
-	enumerable:    true,
-	nonEnumerable: true,
+// Same as the default, but explicit.
+export const forSimpleKeysOf = (object, callback) => forKeysOf(object, {...simple, callback});
+export const getSimpleKeysOf = (object, filter)   => getKeysOf(object, {...simple, filter});
 
-	inherited:     false,
-};
-export function forOwnKeysOf(object, callback) {
-	return forKeysOf(object, {...own, callback});
-}
-export function getOwnKeysOf(object, filter) {
-	return getKeysOf(object, {...own, filter});
-}
+export const forOwnKeysOf = (object, callback) => forKeysOf(object, {...own, callback});
+export const getOwnKeysOf = (object, filter)   => getKeysOf(object, {...own, filter});

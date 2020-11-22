@@ -4690,7 +4690,7 @@ function clamp(input, min = -Infinity, max = Infinity) {
 /*!**********************************************!*\
   !*** ./source/shared/utility/class-parts.js ***!
   \**********************************************/
-/*! exports provided: default, initPrototype, initStatic, superPrototype, superStatic */
+/*! exports provided: default, initPrototype, initStatic, getSuperPrototypeOf, getSuperClassOf */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -4698,8 +4698,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return ClassParts; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "initPrototype", function() { return initPrototype; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "initStatic", function() { return initStatic; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "superPrototype", function() { return superPrototype; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "superStatic", function() { return superStatic; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getSuperPrototypeOf", function() { return getSuperPrototypeOf; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getSuperClassOf", function() { return getSuperClassOf; });
 /* harmony import */ var _object_define_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./object/define.js */ "./source/shared/utility/object/define.js");
 /* harmony import */ var _validation_interface_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./validation/interface.js */ "./source/shared/utility/validation/interface.js");
 /* harmony import */ var _validation_index_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./validation/index.js */ "./source/shared/utility/validation/index.js");
@@ -4786,11 +4786,13 @@ function initStatic(Class, initializer) {
   return wrapStatic(initializer)(Class);
 } // Replacements for the 'super' keyword inside prototype and static methods.
 //R Intercept and instance parts not included because super is different in the constructor and should be called separately from these parts.
+//G //! Methods will have to be used with .call() because super methods' this will refer to the prototype.
+//TODO This is a significant limitation.
 
-function superPrototype(Class) {
+function getSuperPrototypeOf(Class) {
   return Object.getPrototypeOf(Class.prototype);
 }
-function superStatic(Class) {
+function getSuperClassOf(Class) {
   return Object.getPrototypeOf(Class);
 } // EXAMPLE
 
@@ -5114,7 +5116,7 @@ __webpack_require__.r(__webpack_exports__);
 /*!****************************************!*\
   !*** ./source/shared/utility/index.js ***!
   \****************************************/
-/*! exports provided: any, asyncMap, dynamicSort, one, stableSort, copyProperty, deepCompare, define, forKeysOf, getKeysOf, forOwnKeysOf, getOwnKeysOf, pick, capitalizeFirstCharacter, escapeRegExp, spaceIndented, tabIndented, replaceAll, setTimer, wait, appendQueryParameters, encodeProperties, decodeProperties, encodeList, decodeList, rules, flexTest, Interface, SymbolInterface, Rule, boolCatch, clamp, ClassParts, combinations, Deferred, Enum, formatMs, constants, keyCode, keyify, reference, repeat */
+/*! exports provided: any, asyncMap, dynamicSort, one, stableSort, copyProperty, deepCompare, define, forKeysOf, getKeysOf, forSimpleKeysOf, getSimpleKeysOf, forOwnKeysOf, getOwnKeysOf, pick, capitalizeFirstCharacter, escapeRegExp, spaceIndented, tabIndented, replaceAll, setTimer, wait, appendQueryParameters, encodeProperties, decodeProperties, encodeList, decodeList, rules, flexTest, Interface, SymbolInterface, Rule, boolCatch, clamp, ClassParts, combinations, Deferred, Enum, formatMs, constants, keyCode, keyify, reference, repeat */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -5140,6 +5142,10 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "forKeysOf", function() { return _object_index_js__WEBPACK_IMPORTED_MODULE_1__["forKeysOf"]; });
 
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "getKeysOf", function() { return _object_index_js__WEBPACK_IMPORTED_MODULE_1__["getKeysOf"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "forSimpleKeysOf", function() { return _object_index_js__WEBPACK_IMPORTED_MODULE_1__["forSimpleKeysOf"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "getSimpleKeysOf", function() { return _object_index_js__WEBPACK_IMPORTED_MODULE_1__["getSimpleKeysOf"]; });
 
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "forOwnKeysOf", function() { return _object_index_js__WEBPACK_IMPORTED_MODULE_1__["forOwnKeysOf"]; });
 
@@ -5820,7 +5826,7 @@ const ownKeys = function (object) {
 /*!***********************************************!*\
   !*** ./source/shared/utility/object/index.js ***!
   \***********************************************/
-/*! exports provided: copyProperty, deepCompare, define, forKeysOf, getKeysOf, forOwnKeysOf, getOwnKeysOf, pick */
+/*! exports provided: copyProperty, deepCompare, define, forKeysOf, getKeysOf, forSimpleKeysOf, getSimpleKeysOf, forOwnKeysOf, getOwnKeysOf, pick */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -5838,6 +5844,10 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "forKeysOf", function() { return _keys_of_js__WEBPACK_IMPORTED_MODULE_3__["forKeysOf"]; });
 
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "getKeysOf", function() { return _keys_of_js__WEBPACK_IMPORTED_MODULE_3__["getKeysOf"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "forSimpleKeysOf", function() { return _keys_of_js__WEBPACK_IMPORTED_MODULE_3__["forSimpleKeysOf"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "getSimpleKeysOf", function() { return _keys_of_js__WEBPACK_IMPORTED_MODULE_3__["getSimpleKeysOf"]; });
 
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "forOwnKeysOf", function() { return _keys_of_js__WEBPACK_IMPORTED_MODULE_3__["forOwnKeysOf"]; });
 
@@ -5858,13 +5868,15 @@ __webpack_require__.r(__webpack_exports__);
 /*!*************************************************!*\
   !*** ./source/shared/utility/object/keys-of.js ***!
   \*************************************************/
-/*! exports provided: forKeysOf, getKeysOf, forOwnKeysOf, getOwnKeysOf */
+/*! exports provided: forKeysOf, getKeysOf, forSimpleKeysOf, getSimpleKeysOf, forOwnKeysOf, getOwnKeysOf */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "forKeysOf", function() { return forKeysOf; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getKeysOf", function() { return getKeysOf; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "forSimpleKeysOf", function() { return forSimpleKeysOf; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getSimpleKeysOf", function() { return getSimpleKeysOf; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "forOwnKeysOf", function() { return forOwnKeysOf; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getOwnKeysOf", function() { return getOwnKeysOf; });
 /* harmony import */ var _validation_flex_test_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../validation/flex-test.js */ "./source/shared/utility/validation/flex-test.js");
@@ -5883,6 +5895,24 @@ __webpack_require__.r(__webpack_exports__);
 const rules = {
   object: _validation_rules_objects_object_js__WEBPACK_IMPORTED_MODULE_1__["default"],
   func: _validation_rules_functions_js__WEBPACK_IMPORTED_MODULE_2__["func"]
+}; // Configurations
+
+const simple = {
+  // Equivalent to Object.keys
+  own: true,
+  named: true,
+  enumerable: true,
+  inherited: false,
+  symbol: false,
+  nonEnumerable: false
+};
+const own = {
+  own: true,
+  named: true,
+  symbol: true,
+  enumerable: true,
+  nonEnumerable: true,
+  inherited: false
 };
 function forKeysOf(object, optionsOrCallback = {}) {
   // OPTIONS / VALIDATION
@@ -5892,12 +5922,12 @@ function forKeysOf(object, optionsOrCallback = {}) {
   rules.object.validate(object);
   rules.object.validate(options);
   const {
-    own = true,
-    inherited = false,
-    named = true,
-    symbol = false,
-    enumerable = true,
-    nonEnumerable = false,
+    own = simple.own,
+    inherited = simple.inherited,
+    named = simple.named,
+    symbol = simple.symbol,
+    enumerable = simple.enumerable,
+    nonEnumerable = simple.nonEnumerable,
     callback = () => {}
   } = options;
   rules.func.validate(callback); // OWN / INHERITED
@@ -5963,25 +5993,20 @@ function getKeysOf(object, optionsOrFilter = {}) {
     ...rest
   });
   return keys;
-}
-const own = {
-  own: true,
-  named: true,
-  symbol: true,
-  enumerable: true,
-  nonEnumerable: true,
-  inherited: false
-};
-function forOwnKeysOf(object, callback) {
-  return forKeysOf(object, { ...own,
-    callback
-  });
-}
-function getOwnKeysOf(object, filter) {
-  return getKeysOf(object, { ...own,
-    filter
-  });
-}
+} // Same as the default, but explicit.
+
+const forSimpleKeysOf = (object, callback) => forKeysOf(object, { ...simple,
+  callback
+});
+const getSimpleKeysOf = (object, filter) => getKeysOf(object, { ...simple,
+  filter
+});
+const forOwnKeysOf = (object, callback) => forKeysOf(object, { ...own,
+  callback
+});
+const getOwnKeysOf = (object, filter) => getKeysOf(object, { ...own,
+  filter
+});
 
 /***/ }),
 

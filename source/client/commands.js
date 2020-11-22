@@ -36,7 +36,7 @@ import {
 	MultipleErrors, CustomError,
 } from '../shared/errors/index.js';
 import {
-	superPrototype,
+	getSuperPrototypeOf,
 } from '../shared/utility/class-parts.js';
 
 class Command {
@@ -131,24 +131,24 @@ export class Toggle extends Command {
 define.constant(Toggle.prototype, {
 	isIdenticalTo(otherCommand) {
 		return (
-			   superPrototype(Toggle).isIdenticalTo.call(this, otherCommand)
+			   getSuperPrototypeOf(Toggle).isIdenticalTo.call(this, otherCommand)
 			&& otherCommand.isPlaying === this.isPlaying
 		);
 	},
 	//! Toggle doesn't have a unique collapsesInto because the otherCommand is either identical (and collapses by default) or is opposite and annihilates.
 	annihilates(otherCommand) {
 		return (
-			superPrototype(Toggle).annihilates.call(this, otherCommand)
+			getSuperPrototypeOf(Toggle).annihilates.call(this, otherCommand)
 			|| (
 				// Same source, inverse isPlaying, both are sj.Toggle (ie. don't annihilate pauses with starts).
-				superPrototype(Toggle).isIdenticalTo.call(this, otherCommand)
+				getSuperPrototypeOf(Toggle).isIdenticalTo.call(this, otherCommand)
 				&& otherCommand.isPlaying === !this.isPlaying
 				&& otherCommand.constructor === this.constructor
 			)
 		);
 	},
 	async trigger(context) {
-		await superPrototype(Toggle).trigger.call(this, context);
+		await getSuperPrototypeOf(Toggle).trigger.call(this, context);
 
 		await asyncMap(this.sourceInstances, async (source) => {
 			if (this.isPlaying && source === this.source) {
@@ -175,15 +175,15 @@ export class Seek extends Command {
 }
 define.constant(Seek.prototype, {
 	collapsesInto(otherCommand) {
-		return superPrototype(Seek).collapsesInto.call(this, otherCommand)
+		return getSuperPrototypeOf(Seek).collapsesInto.call(this, otherCommand)
 			|| otherCommand.constructor === Seek;
 	},
 	isIdenticalTo(otherCommand) {
-		return superPrototype(Seek).isIdenticalTo.call(this, otherCommand)
+		return getSuperPrototypeOf(Seek).isIdenticalTo.call(this, otherCommand)
 			&& otherCommand.progress === this.progress;
 	},
 	async trigger(context) {
-		await superPrototype(Seek).trigger.call(this, context);
+		await getSuperPrototypeOf(Seek).trigger.call(this, context);
 
 		await context.dispatch(`${this.source.name}/seek`, this.progress);
 	},
@@ -202,15 +202,15 @@ export class Volume extends Command {
 }
 define.constant(Volume.prototype, {
 	collapsesInto(otherCommand) {
-		return superPrototype(Volume).collapsesInto.call(this, otherCommand)
+		return getSuperPrototypeOf(Volume).collapsesInto.call(this, otherCommand)
 			|| otherCommand.constructor === Volume;
 	},
 	isIdenticalTo(otherCommand) {
-		return superPrototype(Volume).isIdenticalTo.call(this, otherCommand)
+		return getSuperPrototypeOf(Volume).isIdenticalTo.call(this, otherCommand)
 			&& otherCommand.volume === this.volume;
 	},
 	async trigger(context) {
-		await superPrototype(Volume).trigger.call(this, context);
+		await getSuperPrototypeOf(Volume).trigger.call(this, context);
 
 		// Adjust volume on all sources.
 		await asyncMap(this.sourceInstances, async (source) => {
@@ -256,14 +256,14 @@ define.constant(Start.prototype, {
 	collapsesInto(otherCommand) {
 		// Collapses parent condition, any Start, Toggle, or Seek.
 		//TODO //? Tight coupling?
-		return superPrototype(Start).collapsesInto.call(this, otherCommand)
+		return getSuperPrototypeOf(Start).collapsesInto.call(this, otherCommand)
 			|| otherCommand.constructor === Start
 			|| otherCommand.constructor === Toggle
 			|| otherCommand.constructor === Seek;
 	},
 	isIdenticalTo(otherCommand) {
 		return (
-			superPrototype(Start).isIdenticalTo.call(this, otherCommand)
+			getSuperPrototypeOf(Start).isIdenticalTo.call(this, otherCommand)
 			// Catch non-Tracks.
 			&& (otherCommand.track instanceof Track)
 			//! Compare tracks by their sourceId not by their reference.
@@ -273,7 +273,7 @@ define.constant(Start.prototype, {
 		);
 	},
 	async trigger(context) {
-		await superPrototype(Start).trigger.call(this, context);
+		await getSuperPrototypeOf(Start).trigger.call(this, context);
 
 		// Pause all.
 		await asyncMap(this.sourceInstances, async (source) => {
