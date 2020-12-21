@@ -1,6 +1,12 @@
+//! //TODO Consider specified source for resume and unspecified source for pause, is the interaction right?
+// I believe a 'match all' value is required here, because a source-less pause wouldn't overwrite a sourced resume, which it should.
+// Simply setting an exception for source in toggle wont work because then sourced pauses would overwrite source-less pauses, which is incorrect as then not all sources would be paused.
+
 //TODO Should not be testing the outcome because that is entirely dependant on the trigger and the sendNextCommand function.
 //TODO Should only be testing the order of resolution and which triggers get called.
 //TODO May have a second set of tests that test outcomes based on mock inputs.
+
+//TODO Test interactions with current state. CommandQueue was erroring when immediately resolving a command.
 
 import test from 'ava';
 import {Deferred} from '../shared/utility/index.js';
@@ -11,7 +17,7 @@ import {
 	Volume,
 	Start,
 	CommandQueue,
-} from './commands2.js';
+} from './commands.js';
 import Track from './entities/track.js';
 
 /*
@@ -252,7 +258,7 @@ test.beforeEach((t) => {
 				*/
 				await null;
 
-				console.log('   triggered', id);
+				// console.log('   triggered', id);
 				order.push([id, triggered]);
 
 				if (r === reject) {
@@ -260,10 +266,10 @@ test.beforeEach((t) => {
 				}
 			}
 			return action(trigger, value).then(() => {
-				console.log('   fulfilled', id);
+				// console.log('   fulfilled', id);
 				order.push([id, fulfilled]);
 			}, () => {
-				console.log('   rejected', id);
+				// console.log('   rejected', id);
 				order.push([id, rejected]);
 			});
 		});
@@ -757,4 +763,28 @@ test('compacted command does not trigger or fulfill before sent command', async 
 		'sent fulfilled',
 		'queued fulfilled',
 	]);
+});
+
+test('desired state properly represents queue', async (t) => {
+	const trigger = () => Promise.resolve();
+	const trackA = new Track();
+	const trackB = new Track();
+
+	t.context.start(trigger, trackA);
+	t.context.pause(trigger);
+	t.context.seek(trigger, 0.1);
+	t.context.volume(trigger, 0.2);
+
+	t.context.start(trigger, trackB);
+	t.context.resume(trigger);
+	t.context.seek(trigger, 0.3);
+	t.context.volume(trigger, 0.4);
+
+	t.deepEqual(t.context.commandQueue.getDesiredState(), new PlaybackState({
+		source: t.context.source,
+		track: trackB,
+		isPlaying: true,
+		progress: 0.3,
+		volume: 0.4,
+	}));
 });

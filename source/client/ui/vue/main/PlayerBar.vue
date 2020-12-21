@@ -25,7 +25,7 @@ export default {
 	},
 	computed: {
 		currentTrack() {
-			return this.$store.getters['player/desiredTrack'];
+			return this.$store.getters['player/commandQueue']?.getDesiredState().track;
 		},
 		playlistId() {
 			//TODO replace with playlistId rule
@@ -38,25 +38,14 @@ export default {
 				? this.$store.getters.getLiveData(this.playlistTracksSubscription)
 				: null;
 		},
+		//TODO These might be unused.
 		prevTrack() {
-			return (
-				(this.currentTrack instanceof Track)			// currentTrack exists
-					&& rules.array.test(this.playlistTracks)				    // playlistTrack exists
-					&& this.currentTrack.position > 0 							// C//! currentTrack is after first track
-					&& this.currentTrack.position < this.playlistTracks.length		// currentTrack is not above bounds
-					? this.playlistTracks[this.currentTrack.position - 1] //!
-					: null
-			);
+			const prevIndex = this.currentTrack?.position - 1;
+			return this.playlistTracks?.[prevIndex] ?? null;
 		},
 		nextTrack() {
-			return (
-				(this.currentTrack instanceof Track)			// currentTrack exists
-					&& rules.array.test(this.playlistTracks)				// playlistTrack exists
-					&& this.currentTrack.position >= 0 							// currentTrack is not below bounds
-					&& this.currentTrack.position < this.playlistTracks.length - 1	// C//! currentTrack is before last track
-					? this.playlistTracks[this.currentTrack.position + 1] //!
-					: null
-			);
+			const nextIndex = this.currentTrack?.position + 1;
+			return this.playlistTracks?.[nextIndex] ?? null;
 		},
 
 		sliderProgress() {
@@ -101,11 +90,17 @@ export default {
 		async toggle() {
 			await this.$store.dispatch('player/toggle');
 		},
-		async prev(track) {
-			await this.$store.dispatch('player/start', this.prevTrack);
+
+		//TODO //? How does the PlayerBar know that the desired track isn't part of some other playlist?
+		//TODO //? How is a null track handled?
+		async prev() {
+			// Cloning array so that it doesn't mutate before the action is dispatched.
+			const tracks = [...(this.playlistTracks ?? [])];
+			await this.$store.dispatch('player/prev', tracks);
 		},
-		async next(track) {
-			await this.$store.dispatch('player/start', this.nextTrack);
+		async next() {
+			const tracks = [...(this.playlistTracks ?? [])];
+			await this.$store.dispatch('player/next', tracks);
 		},
 
 		// SLIDER

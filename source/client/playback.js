@@ -2,6 +2,8 @@
 	behavior: playing in spotify manually, then start up app, previewing a song updates the playback to the current already playing song not the clicked preview song
 
 	sj.Toggle: toggle or resume & pause or both? they all deal with one playback property but toggle out of all the commands is the only one that is dependant on an existing state - how to classify this? when do resume & pause merge into toggle - source, command, or playback level?
+
+	Not sure if the redundancy in the pause/resume actions is necessary? (They both pause all other sources.)
 */
 
 import {
@@ -11,8 +13,8 @@ import {
 	Subscription,
 } from '../shared/live-data.js';
 import {
+	asyncMap,
 	clamp,
-	capitalizeFirstCharacter,
 	wait,
 	one,
 	repeat,
@@ -20,11 +22,14 @@ import {
 	define,
 } from '../shared/utility/index.js';
 import {
+	CommandQueue,
+	PlaybackState,
 	Start,
 	Toggle,
 	Seek,
 	Volume,
 } from './commands.js';
+import {MultipleErrors} from '../shared/errors/index.js';
 
 export default class Playback {
 	constructor(options = {}) {
@@ -181,6 +186,8 @@ define.constant(Playback, {
 	},
 
 	universalState: sourceInstances => ({
+		commandQueue: null,
+
 		// CLOCK
 		// Basically a reactive Date.now(), so far just used for updating playback progress.
 		clock: Date.now(),
@@ -213,8 +220,6 @@ define.constant(Playback, {
 				// 			if success: repeat...
 				// 			if failure: change pendingCommand to false, trigger manual-retry process which basically sends a completely new request...
 		*/
-		commandQueue: [],
-		sentCommand: null,
 
 		// PLAYBACK STATE
 		// Source is used to select the proper playback state for actualPlayback.
@@ -227,172 +232,216 @@ define.constant(Playback, {
 		startingTrackSubscription: null,
 	}),
 	universalActions:   () => ({
-		// CLOCK
-		async startClock(context) {
-			await context.dispatch('stopClock');
-			const clockRefreshRate = 100;
-			const id = setInterval(() => context.commit('updateClock'), clockRefreshRate);
-			context.commit('setClockIntervalId', id);
-		},
-		async stopClock(context) {
-			clearInterval(context.state.clockIntervalId);
-			context.commit('setClockIntervalId', null);
-		},
+		//G //! As a whole, playback actions should be synchronous. The promise they return indicates if their underlying command has been achieved or failed.
+		//G Their triggers may be asynchronous.
 
-		// QUEUE
-		//TODO there seems to be a bug in the command queue where eventually an command will stall until (either it or something ahead of it, im not sure which) times out, upon which the command in question will be fulfilled
-		async pushCommand(context, command) {
-			// Attempts to push a new command the current command queue. Will collapse and/or annihilate commands ahead of it in the queue if conditions are met. Command will not be pushed if it annihilates or if it is identical to the sent command or if there is no sent command and it is identical to the current playback state.
-			//? Why doesn't the command collapse into the sent command or the current playback state?
+		pushCommand(context, command) {
+			/* //! This action should be synchronous and be used synchronously.
+				//R
+				This is partly because the push action is synchronous. (The promise returned instead indicates when the command has completed.)
+				This is partly because if two actions are called synchronously where the second depends on the queued command of the first. If the underlying pushCommand action is called asynchronously, it will be executed after the second action, resulting in both actions using the same original state.
+				//? Not even sure if converting the CommandQueue to Vuex would solve this. It seems to be an issue with JavaScript's order of execution for synchronous vs asynchronous nested functions.
+				Even if the pushCommand function was refactored to return a promise when the command is pushed so that each push itself could be awaited. This would not be compatible with event-listeners (which require a synchronously nested handler) and would require another queue 'above' the asynchronous layer.
+				Moving the queue above the Vuex store isn't a good idea because this 'desired' state is heavily depended upon.
+			*/
 
-			let push = true;
-
-			// Remove redundant commands if necessary.
-			const compact = function (i) {
-				if (i >= 0) {
-					//R Collapse is required to use the new command rather than just using the existing command because Start collapses different commands than itself.
-					const otherCommand = context.state.commandQueue[i];
-					if (command.collapsesInto(otherCommand)) {
-						// If last otherCommand collapses, this command gets pushed.
-						push = true;
-						// Store otherCommand on this command.
-						command.collapsedCommands.unshift(otherCommand);
-						// Remove otherCommand.
-						context.commit('removeQueuedCommand', i);
-						// Analyze next otherCommand.
-						compact(i - 1);
-					} else if (command.annihilates(otherCommand)) {
-						// If last otherCommand annihilates, this command doesn't get pushed.
-						push = false;
-						command.collapsedCommands.unshift(otherCommand);
-						context.commit('removeQueuedCommand', i);
-						compact(i - 1);
-					}
-					// If otherCommand does not collapse or annihilate, escape.
-				}
-			};
-			compact(context.state.commandQueue.length - 1);
-
-			if (( // If there is a sent command and identical to the sent command,
-				context.state.sentCommand !== null
-				&& command.isIdenticalTo(context.state.sentCommand)
-			) || ( // or if there isn't a sent command and identical to the actual playback.
-				context.state.sentCommand === null
-				&& command.isIdenticalTo(context.getters.actualPlayback)
-			)) {
-				// Don't push.
-				push = false;
+			// Initialize the command queue if it isn't.
+			if (!(context.state.commandQueue instanceof CommandQueue)) {
+				context.commit('setCommandQueue', new CommandQueue({
+					getCurrentState: () => new PlaybackState(context.getters.actualPlayback),
+				}));
 			}
 
-			// Route command resolve/reject to this result promise.
-			const resultPromise = new Promise((resolve, reject) => {
-				command.resolve = resolve;
-				command.reject = reject;
-			});
-
-			// Push command to the queue or resolve it (because it has been collapsed).
-			if (push) {
-				context.commit('pushQueuedCommand', command);
-			} else {
-				command.fullResolve();
-			}
-
-			// Send next command.
-			//! Do not await because the next command might not be this command, this just ensures that the nextCommand cycle is running every time a new command is pushed.
-			context.dispatch('nextCommand');
-
-			// Await for the command to resolve.
-			return resultPromise;
-		},
-		async nextCommand(context) {
-			// Don't do anything if another command is still processing or if no queued commands exist.
-			if (context.state.sentCommand !== null || context.state.commandQueue.length <= 0) return;
-
-			// Move the command from the queue to sent.
-			context.commit('setSentCommand', context.state.commandQueue[0]);
-			context.commit('removeQueuedCommand', 0);
-
-			// Trigger and resolve the command.
-			await context.state.sentCommand.trigger(context).then(
-				resolved => context.state.sentCommand.fullResolve(resolved),
-				rejected => context.state.sentCommand.fullReject(rejected),
-			);
-
-			// Mark the sent command as finished.
-			context.commit('removeSentCommand');
-			// Send next command //! do not await, this just restarts the nextCommand cycle.
-			context.dispatch('nextCommand');
+			return context.state.commandQueue.pushCommand(command);
 		},
 
 		// PLAYBACK FUNCTIONS
 		//G the main playback module's commands, in addition to mappings for basic playback functions, should store all the higher-level, behavioral playback functions (like toggle)
+		async initPlayer(context, source) {
+			// Load the player if not loaded.
+			if (context.state[source.name].player === null) {
+				await context.dispatch(`${source.name}/loadPlayer`);
+			}
+		},
+
 		// BASIC
-		async start({dispatch, state: {sourceInstances}}, track) {
+		// IDEMPOTENT ?
+		start(context, track) {
+			const {dispatch, state: {sourceInstances}} = context;
 			return dispatch('pushCommand', new Start({
-				source: track.source, //! Uses track's source.
-				sourceInstances,
-				track,
+				state: new PlaybackState({
+					source: track.source,
+					track,
+				}),
+				async trigger() {
+					//TODO Extract this if possible.
+					await dispatch('initPlayer', track.source);
+
+					// Pause all.
+					await asyncMap(sourceInstances, async (source) => {
+						if (context.state[source.name].player !== null) {
+							await context.dispatch(`${source.name}/pause`);
+						}
+					}).catch(MultipleErrors.throw);
+
+					// Change startingTrackSubscription to subscription of the new track.
+					context.commit('setStartingTrackSubscription', await context.dispatch('resubscribe', {
+						subscription: context.state.startingTrackSubscription,
+
+						Entity: Track,
+						query: {id: track.id},
+						options: {}, //TODO //?
+					}, {
+						//L https://vuex.vuejs.org/guide/modules.html#accessing-global-assets-in-namespaced-modules
+						root: true,
+					}));
+
+					// Start target.
+					await context.dispatch(`${track.source.name}/start`, track);
+
+					// Transfer subscription from starting to current.
+					context.commit('setCurrentTrackSubscription', context.state.startingTrackSubscription);
+					context.commit('setStartingTrackSubscription', null);
+
+					// Change source.
+					//R Source is the only playback state property set here because all other properties are internal to their respective source's Vuex store and managed by their own /start action.
+					context.commit('setSource', track.source);
+				},
 			}));
 		},
-		async pause({dispatch, getters: {desiredSource: source}, state: {sourceInstances}}) {
+		pause(context) {
+			const {dispatch, state: {sourceInstances}} = context;
+			const desiredSource = context.state.commandQueue.getDesiredState().source;
 			return dispatch('pushCommand', new Toggle({
-				source, //! other non-start basic playback functions just use the current desiredPlayback source
-				sourceInstances,
-				isPlaying: false,
+				state: new PlaybackState({
+					//TODO //! Create an 'all sources' default for toggle.
+					isPlaying: false,
+				}),
+				async trigger() {
+					await dispatch('initPlayer', desiredSource);
+
+					// Pause all sources if their player is initialized.
+					await asyncMap(sourceInstances, async (otherSource) => {
+						if (context.state[otherSource.name].player !== null) {
+							await context.dispatch(`${otherSource.name}/pause`);
+						}
+					}).catch(MultipleErrors.throw);
+				},
 			}));
 		},
-		async resume({dispatch, getters: {desiredSource: source}, state: {sourceInstances}}) {
+		resume(context) {
+			const {dispatch, state: {sourceInstances}} = context;
+			const desiredSource = context.state.commandQueue.getDesiredState().source;
 			return dispatch('pushCommand', new Toggle({
-				source,
-				sourceInstances,
-				isPlaying: true,
+				state: new PlaybackState({
+					source: desiredSource,
+					isPlaying: true,
+				}),
+				async trigger() {
+					await dispatch('initPlayer', desiredSource);
+
+					await asyncMap(sourceInstances, async (otherSource) => {
+						if (otherSource === desiredSource) {
+							// Resume target if resuming.
+							await context.dispatch(`${otherSource.name}/resume`);
+						} else if (context.state[otherSource.name].player !== null) {
+							// Pause the rest.
+							await context.dispatch(`${otherSource.name}/pause`);
+						}
+					}).catch(MultipleErrors.throw);
+				},
 			}));
 		},
-		async seek({dispatch, getters: {desiredSource: source}, state: {sourceInstances}}, progress) {
+		seek(context, progress) {
+			const {dispatch} = context;
+			const desiredSource = context.state.commandQueue.getDesiredState().source;
 			return dispatch('pushCommand', new Seek({
-				source,
-				sourceInstances,
-				progress,
+				state: new PlaybackState({
+					source: desiredSource,
+					progress,
+				}),
+				async trigger() {
+					await dispatch('initPlayer', desiredSource);
+
+					await context.dispatch(`${desiredSource.name}/seek`, progress);
+				},
 			}));
 		},
-		async volume({dispatch, getters: {desiredSource: source}, state: {sourceInstances}}, volume) {
-			//TODO Volume should change volume on all sources.
+		volume(context, volume) {
+			const {dispatch, state: {sourceInstances}} = context;
+			const desiredSource = context.state.commandQueue.getDesiredState().source;
 			return dispatch('pushCommand', new Volume({
-				source,
-				sourceInstances,
-				volume,
+				state: new PlaybackState({
+					source: desiredSource,
+					volume,
+				}),
+				async trigger() {
+					await dispatch('initPlayer', desiredSource);
+
+					// Adjust volume on all sources.
+					await asyncMap(sourceInstances, async (otherSource) => {
+						if (context.state[otherSource.name].player !== null) {
+							await context.dispatch(`${otherSource.name}/volume`, volume);
+						}
+					}).catch(MultipleErrors.throw);
+				},
 			}));
 		},
+
 		// HIGHER LEVEL
-		async toggle({dispatch, getters: {desiredSource: source, desiredIsPlaying: isPlaying}, state: {sourceInstances}}) {
-			return dispatch('pushCommand', new Toggle({
-				source,
-				sourceInstances,
-				isPlaying: !isPlaying,
-			}));
+		// NON-IDEMPOTENT
+		toggle(context) {
+			//! //R Desired state cannot be accessed by a Vuex getter because its non-reactive data and isn't visible to Vuex.
+			const desiredIsPlaying = context.state.commandQueue.getDesiredState().isPlaying;
+			return desiredIsPlaying
+				? context.dispatch('pause')
+				: context.dispatch('resume');
+		},
+		// The playback module has no knowledge of 'playlists', anything that depends on that should pass that info in or handled externally.
+		startOffset(context, [offset, playlistTracks]) {
+			rules.integer.validate(offset);
+			const tracks = playlistTracks ?? []; // Null may be passed here.
+
+			const desiredTrack = context.state.commandQueue.getDesiredState().track;
+			const desiredIndex = tracks.findIndex(track => track.id === desiredTrack?.id);
+
+			// Defaults to null if desired track or desired offset track aren't found.
+			const offsetDesiredTrack = (desiredIndex === -1)
+				? null
+				: (tracks[desiredIndex + offset] ?? null);
+
+			return context.dispatch('start', offsetDesiredTrack);
+		},
+		next(context, playlistTracks) {
+			return context.dispatch('startOffset', [1, playlistTracks]);
+		},
+		prev(context, playlistTracks) {
+			return context.dispatch('startOffset', [-1, playlistTracks]);
+		},
+
+		// CLOCK
+		startClock(context) {
+			context.dispatch('stopClock');
+			const clockRefreshRate = 100;
+			const id = setInterval(() => context.commit('updateClock'), clockRefreshRate);
+			context.commit('setClockIntervalId', id);
+		},
+		stopClock(context) {
+			clearInterval(context.state.clockIntervalId);
+			context.commit('setClockIntervalId', null);
 		},
 	}),
 	universalMutations: () => ({
+		setCommandQueue(state, commandQueue) {
+			state.commandQueue = commandQueue;
+		},
+
 		// CLOCK
 		updateClock(state) {
 			state.clock = Date.now();
 		},
 		setClockIntervalId(state, id) {
 			state.clockIntervalId = id;
-		},
-
-		// QUEUE
-		pushQueuedCommand(state, command) {
-			state.commandQueue.push(command);
-		},
-		removeQueuedCommand(state, index) {
-			state.commandQueue.splice(index, 1);
-		},
-		setSentCommand(state, command) {
-			state.sentCommand = command;
-		},
-		removeSentCommand(state) {
-			state.sentCommand = null;
 		},
 
 		// PLAYBACK STATE
@@ -436,6 +485,8 @@ define.constant(Playback, {
 				return Object.assign({}, actualPlayback, sentCommand, ...commandQueue);
 			},
 		*/
+
+		commandQueue: state => state.commandQueue,
 
 		// ACTUAL
 		sourceOrBase: state => (key) => {
@@ -483,38 +534,6 @@ define.constant(Playback, {
 			progress:	getters.actualProgress,
 			volume:		getters.actualVolume,
 		}),
-
-
-		// DESIRED
-		flattenPlayback: (state, getters) => (key) => {
-			// Value starts as the actualValue.
-			let value = getters[`actual${capitalizeFirstCharacter(key)}`];
-			// Then if defined, sentCommand.
-			if (rules.object.test(state.sentCommand) && state.sentCommand[key] !== undefined) {
-				value = state.sentCommand[key];
-			}
-			// Then if defined, each queuedCommand.
-			for (const queuedCommand of state.commandQueue) {
-				if (queuedCommand[key] !== undefined) value = queuedCommand[key];
-			}
-
-			return value;
-		},
-
-		desiredSource:    (state, getters) => getters.flattenPlayback('source'),
-		desiredTrack:     (state, getters) => getters.flattenPlayback('track'),
-		desiredIsPlaying: (state, getters) => getters.flattenPlayback('isPlaying'),
-		desiredProgress:  (state, getters) => getters.flattenPlayback('progress'),
-		desiredVolume:    (state, getters) => getters.flattenPlayback('volume'),
-
-		desiredPlayback: (state, getters) => ({
-			source:		getters.actualSource,
-			track:		getters.desiredTrack,
-			isPlaying:	getters.desiredIsPlaying,
-			progress:	getters.desiredProgress,
-			volume:		getters.desiredVolume,
-		}),
-
 
 		// LOCAL TRACKS
 		currentTrack:  (state, getters, rootState, rootGetters) => {

@@ -32,6 +32,15 @@ const own = {
 
 	inherited:     false,
 };
+const spreadable = {
+	own:           true,
+	named:         true,
+	symbol:        true,
+	enumerable:    true,
+
+	inherited:     false,
+	nonEnumerable: false,
+};
 
 export function forKeysOf(object, optionsOrCallback = {}) {
 	// OPTIONS / VALIDATION
@@ -132,8 +141,11 @@ export function getKeysOf(object, optionsOrFilter = {}) {
 }
 
 // Same as the default, but explicit.
-export const forSimpleKeysOf = (object, callback) => forKeysOf(object, {...simple, callback});
-export const getSimpleKeysOf = (object, filter)   => getKeysOf(object, {...simple, filter});
+export const forSimpleKeysOf     = (object, callback) => forKeysOf(object, {...simple,     callback});
+export const getSimpleKeysOf     = (object, filter)   => getKeysOf(object, {...simple,     filter});
 
-export const forOwnKeysOf = (object, callback) => forKeysOf(object, {...own, callback});
-export const getOwnKeysOf = (object, filter)   => getKeysOf(object, {...own, filter});
+export const forOwnKeysOf        = (object, callback) => forKeysOf(object, {...own,        callback});
+export const getOwnKeysOf        = (object, filter)   => getKeysOf(object, {...own,        filter});
+
+export const forSpreadableKeysOf = (object, callback) => forKeysOf(object, {...spreadable, callback});
+export const getSpreadableKeysOf = (object, filter)   => getKeysOf(object, {...spreadable, filter});

@@ -1,4 +1,4 @@
-import Rule from '../rule.js';
+import Rule from '../../rule.js';
 
 export default new Rule({
 	validator(value) {

@@ -959,7 +959,9 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 
   computed: {
     currentTrack() {
-      return this.$store.getters['player/desiredTrack'];
+      var _this$$store$getters$;
+
+      return (_this$$store$getters$ = this.$store.getters['player/commandQueue']) === null || _this$$store$getters$ === void 0 ? void 0 : _this$$store$getters$.getDesiredState().track;
     },
 
     playlistId() {
@@ -971,22 +973,19 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
       return this.playlistTracksSubscription instanceof _shared_live_data_js__WEBPACK_IMPORTED_MODULE_2__["Subscription"] ? this.$store.getters.getLiveData(this.playlistTracksSubscription) : null;
     },
 
+    //TODO These might be unused.
     prevTrack() {
-      return this.currentTrack instanceof _entities_index_js__WEBPACK_IMPORTED_MODULE_1__["Track"] && // currentTrack exists
-      _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].array.test(this.playlistTracks) // playlistTrack exists
-      && this.currentTrack.position > 0 // C//! currentTrack is after first track
-      && this.currentTrack.position < this.playlistTracks.length // currentTrack is not above bounds
-      ? this.playlistTracks[this.currentTrack.position - 1] //!
-      : null;
+      var _this$currentTrack, _this$playlistTracks$, _this$playlistTracks;
+
+      var prevIndex = ((_this$currentTrack = this.currentTrack) === null || _this$currentTrack === void 0 ? void 0 : _this$currentTrack.position) - 1;
+      return (_this$playlistTracks$ = (_this$playlistTracks = this.playlistTracks) === null || _this$playlistTracks === void 0 ? void 0 : _this$playlistTracks[prevIndex]) !== null && _this$playlistTracks$ !== void 0 ? _this$playlistTracks$ : null;
     },
 
     nextTrack() {
-      return this.currentTrack instanceof _entities_index_js__WEBPACK_IMPORTED_MODULE_1__["Track"] && // currentTrack exists
-      _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].array.test(this.playlistTracks) // playlistTrack exists
-      && this.currentTrack.position >= 0 // currentTrack is not below bounds
-      && this.currentTrack.position < this.playlistTracks.length - 1 // C//! currentTrack is before last track
-      ? this.playlistTracks[this.currentTrack.position + 1] //!
-      : null;
+      var _this$currentTrack2, _this$playlistTracks$2, _this$playlistTracks2;
+
+      var nextIndex = ((_this$currentTrack2 = this.currentTrack) === null || _this$currentTrack2 === void 0 ? void 0 : _this$currentTrack2.position) + 1;
+      return (_this$playlistTracks$2 = (_this$playlistTracks2 = this.playlistTracks) === null || _this$playlistTracks2 === void 0 ? void 0 : _this$playlistTracks2[nextIndex]) !== null && _this$playlistTracks$2 !== void 0 ? _this$playlistTracks$2 : null;
     },
 
     sliderProgress() {
@@ -1048,19 +1047,28 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
       })();
     },
 
-    prev(track) {
+    //TODO //? How does the PlayerBar know that the desired track isn't part of some other playlist?
+    //TODO //? How is a null track handled?
+    prev() {
       var _this4 = this;
 
       return _asyncToGenerator(function* () {
-        yield _this4.$store.dispatch('player/start', _this4.prevTrack);
+        var _this4$playlistTracks;
+
+        // Cloning array so that it doesn't mutate before the action is dispatched.
+        var tracks = [...((_this4$playlistTracks = _this4.playlistTracks) !== null && _this4$playlistTracks !== void 0 ? _this4$playlistTracks : [])];
+        yield _this4.$store.dispatch('player/prev', tracks);
       })();
     },
 
-    next(track) {
+    next() {
       var _this5 = this;
 
       return _asyncToGenerator(function* () {
-        yield _this5.$store.dispatch('player/start', _this5.nextTrack);
+        var _this5$playlistTracks;
+
+        var tracks = [...((_this5$playlistTracks = _this5.playlistTracks) !== null && _this5$playlistTracks !== void 0 ? _this5$playlistTracks : [])];
+        yield _this5.$store.dispatch('player/next', tracks);
       })();
     },
 
@@ -37849,84 +37857,225 @@ function _runHTMLScript() {
 /*!***********************************!*\
   !*** ./source/client/commands.js ***!
   \***********************************/
-/*! exports provided: Toggle, Seek, Volume, Start */
+/*! exports provided: PlaybackState, Toggle, Seek, Volume, Start, CommandQueue */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "PlaybackState", function() { return PlaybackState; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Toggle", function() { return Toggle; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Seek", function() { return Seek; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Volume", function() { return Volume; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Start", function() { return Start; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "CommandQueue", function() { return CommandQueue; });
 /* harmony import */ var _entities_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./entities/index.js */ "./source/client/entities/index.js");
 /* harmony import */ var _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../shared/utility/index.js */ "./source/shared/utility/index.js");
 /* harmony import */ var _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../shared/errors/index.js */ "./source/shared/errors/index.js");
-/* harmony import */ var _shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../shared/utility/class-parts.js */ "./source/shared/utility/class-parts.js");
 function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
 
 function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
 
-//TODO Review these classes, ensure that references to .prototype and .constructor don't break if a sub-class is created.
-// COMMANDS
-//R commands are separate from the playback module commands because they are supposed to be instanced, queued packets of trigger functionality and frozen state
-//G sj.Commands have their own playback state properties so that they can be queued and then collapsed/annihilated if redundant based on these properties
-//G they trigger basic playback functions from all the sources while ensuring these playbacks don't collide (ie. play at the same time)
-//G tightly integrated with VueX
-//TODO consider a stop command? it would stop all sources and set the current source back to null
-//TODO im not sure that the null check for sources should go in these commands, also they're inconsistent between the target source and other sources
+function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
 
-/* //R
+function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+//TODO Consider converting this into a Vuex store. That way it will integrate better with its parent store. Another benefit is that getter values are cached until a dependency changes, dependencies being anything that Vuex can detect changes for. One issue with converting might be testing.
+//R The problems are more to do with maintaining order of actions. This can be done in Vuex because actions that are synchronous throughout the stack will update the state in a synchronous way, even if actions must be async functions.
+
+/* //OLD Flatten playback getter, doesn't use spread. Possibly more efficient, especially if individual state properties are needed to be retrieved.
+	flattenPlayback: (state, getters) => (key) => {
+		//TODO Consider if some object spread thing is possible?
+
+		// Value starts as the actualValue.
+		let value = getters[`actual${capitalizeFirstCharacter(key)}`];
+
+		if (state.commandQueue instanceof CommandQueue) {
+			// If sent command's value is defined, then set it to that.
+			const sentCommandValue = state.commandQueue.sentCommand?.[key];
+			if (sentCommandValue !== undefined) {
+				value = sentCommandValue;
+			}
+
+			// If a queued command's value is defined, then set it to that. Iterate to the last command.
+			for (const queuedCommand of state.commandQueue.queue) {
+				const queuedCommandValue = queuedCommand.state?.[key];
+				if (queuedCommandValue !== undefined) {
+					value = queuedCommandValue;
+				}
+			}
+		}
+
+		return value;
+	},
+*/
+
+/* //OLD Commands notes
+
+	//TODO Review these classes, ensure that references to .prototype and .constructor don't break if a sub-class is created.
+
+	// COMMANDS
+	//R commands are separate from the playback module commands because they are supposed to be instanced, queued packets of trigger functionality and frozen state
+
+	//G sj.Commands have their own playback state properties so that they can be queued and then collapsed/annihilated if redundant based on these properties
+	//G they trigger basic playback functions from all the sources while ensuring these playbacks don't collide (ie. play at the same time)
+	//G tightly integrated with VueX
+	//TODO consider a stop command? it would stop all sources and set the current source back to null
+	//TODO im not sure that the null check for sources should go in these commands, also they're inconsistent between the target source and other sources
+
+	//R
 	I considered instead of updating playback state in each source function upon Success, to do a second and final checkPlayback() once updatePlayback() succeeds (this would require two api calls, but I thought it could be simpler (but would it?)).
 
 	I thought because track info is also needed (in addition to playback state) that a final checkPlayback() would be needed to verify the post-update track info, (this came from not knowing what track was playing when starting one for the first time), however this info should already be known from the fetched and displayed track (object), so all of these functions actually do have the ability to update information when resolved.
 
 	This resolution suggests using track objects everywhere as parameters rather than ids; this should be possible because the user is never going to be blindly playing id strings without the app first searching and tying down its additional metadata.
-*/
 
-/* //R
+	//R
 	I considered that setting knownPlayback.progress upon start() (0) and seek() (ms) may wipeout any official information from checkPlayback() or listeners, as any information that arrives between sending and receiving the request will be wiped out upon resolution (with less valuable, inferred information).
 
 	However unless the information is being sent from a synchronous or local source (which actually is likely), that information should not be sent and received between the time-span it takes for the playback request to be sent and received - therefore it must be sent before and therefore less accurate/valuable than even the inferred progress information.
 
 	Then I realized that any checks to playback state will have the same offset error as the playback requests so it makes no sense to even checkPlayback() to get more accurate information.
+
 */
 
 
 
+/* //!//G
+	While triggers and promise-handlers are guaranteed to execute in order. It is not guaranteed that the promise-handler of a command will execute before the trigger of a subsequent command.
 
+	This is due to how the Microtask Queue works.
 
-class Command {
-  constructor() {
-    var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+	Example:
+		Command 1 Trigger
+		Command 2 Trigger
+		Command 1 Handler
+		Command 2 Handler
+
+	This should not be an issue because a command trigger should not depend on any effects of a previous command's handler.
+		If that is the case then those effects should be in the previous command's trigger and not its handler.
+*/
+
+var playbackStateRule = new _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["Rule"]({
+  validator(options) {
     var {
       source,
-      sourceInstances = []
-    } = options; //TODO Validate source.
+      track,
+      isPlaying,
+      progress,
+      volume
+    } = options; // Both source and track are optional because they aren't required for some commands (volume, toggle).
+    //TODO Validate source.
     //! Non-instance sources are getting passed here (I think).
     //TODO Need to find a proper way to cast or ensure that source is an instance.
+    // Optional Source
+    // if (!(rules.nullish.test(source) || source instanceof Source)) {
+    // 	throw new Error('Source is not undefined or a source.');
+    // }
+    // Source must be exist if track exists.
 
+    if (_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].nullish.test(source) && !_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].nullish.test(track)) {
+      throw new Error('Track has been provided without a source.');
+    } // Optional Track
+
+
+    if (!(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].nullish.test(track) || track instanceof _entities_index_js__WEBPACK_IMPORTED_MODULE_0__["Track"])) {
+      throw new Error('Track is not undefined or a track.');
+    } // Optional IsPlaying
+
+
+    if (!(isPlaying === undefined || _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].boolean.test(isPlaying))) {
+      throw new Error('Value is not undefined or a boolean.');
+    } // Optional Progress
+
+
+    if (!(progress === undefined || _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].unitInterval.test(progress))) {
+      throw new Error('Value is not undefined or a unit interval.');
+    } // Optional Volume
+
+
+    if (!(volume === undefined || _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].unitInterval.test(volume))) {
+      throw new Error('Value is not undefined or a unit interval.');
+    }
+  }
+
+}); // Validated, Immutable Playback State
+
+class PlaybackState {
+  constructor() {
+    var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+    playbackStateRule.validate(options);
+    var {
+      source,
+      track,
+      isPlaying,
+      progress,
+      volume
+    } = options;
     _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].constant(this, {
       source,
-      sourceInstances,
-      // Used to store any collapsed or annihilated commands so that they may be resolved when this command either resolves or is annihilated.
-      collapsedCommands: []
-    }); // Promise resolve & reject functions will be stored on these properties so that the command can act as a deferred promise.
+      track,
+      isPlaying,
+      progress,
+      volume
+    });
+    Object.freeze(this);
+  }
+
+}
+_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].constant(PlaybackState.prototype, {
+  isValueEqual(otherState, key) {
+    var _this$key, _otherState$key;
+
+    return key === 'track' ? ((_this$key = this[key]) === null || _this$key === void 0 ? void 0 : _this$key.sourceId) === ((_otherState$key = otherState[key]) === null || _otherState$key === void 0 ? void 0 : _otherState$key.sourceId) : this[key] === otherState[key];
+  },
+
+  encapsulates(otherState) {
+    for (var _len = arguments.length, exceptions = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+      exceptions[_key - 1] = arguments[_key];
+    }
+
+    // True if all defined values (with exceptions) of the other state are equal to the same values of this state.
+    var keys = Object.keys(otherState).filter(key => !exceptions.includes(key));
+    return !keys.some(key => !(otherState[key] === undefined || otherState.isValueEqual(this, key)));
+  }
+
+});
+
+class Command {
+  constructor(options) {
+    var _options$state;
+
+    var source = options === null || options === void 0 ? void 0 : (_options$state = options.state) === null || _options$state === void 0 ? void 0 : _options$state.source;
+    var trigger = options === null || options === void 0 ? void 0 : options.trigger;
+    _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].func.validate(trigger);
+    _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].writable(this, {
+      state: new PlaybackState({
+        source
+      })
+    });
+    _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].constant(this, {
+      trigger
+    });
+    _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].constant(this, {
+      // Stores dequeued commands so that they may be resolved when this command resolves.
+      dequeuedPrevCommands: [],
+      dequeuedNextCommands: []
+    }); // Resolve and reject functions will be assigned to these properties when they are queued. The command will act as a deferred promise.
+    //! Should only be called by the command's own resolve and reject functions.
 
     _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].validatedVariable(this, {
-      resolve: {
+      resolveDeferred: {
         value() {
-          throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_2__["CustomError"]({
-            message: 'command.resolve called but it has not been given a resolve function'
-          });
+          throw new Error('command.resolveDeferred was called but the command has not been given a resolve function.');
         },
 
         validator: _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].func.validate
       },
-      reject: {
+      rejectDeferred: {
         value() {
-          throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_2__["CustomError"]({
-            message: 'command.reject called but it has not been given a reject function'
-          });
+          throw new Error('command.rejectDeferred was called but the command has not been given a reject function.');
         },
 
         validator: _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].func.validate
@@ -37937,259 +38086,300 @@ class Command {
 }
 
 _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].constant(Command.prototype, {
-  fullResolve(success) {
-    // Resolve collapsed commands.
-    this.collapsedCommands.forEach(collapsedCommand => {
-      collapsedCommand.resolve();
-    }); // Resolve self.
+  resolve() {
+    // Resolve prev commands backwards.
+    for (var i = this.dequeuedPrevCommands.length - 1; i >= 0; i--) {
+      this.dequeuedPrevCommands[i].resolve();
+    } // Resolve self.
 
-    this.resolve(success);
+
+    this.resolveDeferred(); // Resolve next commands forwards.
+
+    for (var _i = 0; _i < this.dequeuedNextCommands.length; _i++) {
+      this.dequeuedNextCommands[_i].resolve();
+    }
   },
 
-  fullReject(error) {
-    //! RESOLVE collapsed commands.
-    this.collapsedCommands.forEach(collapsedCommand => {
-      collapsedCommand.resolve();
-    }); // Reject self.
+  reject() {
+    // Reject prev commands backwards.
+    for (var i = this.dequeuedPrevCommands.length - 1; i >= 0; i--) {
+      this.dequeuedPrevCommands[i].reject();
+    } // Reject self.
 
-    this.reject(error);
+
+    this.rejectDeferred(); // Reject next commands forwards.
+
+    for (var _i2 = 0; _i2 < this.dequeuedNextCommands.length; _i2++) {
+      this.dequeuedNextCommands[_i2].reject();
+    }
   },
 
-  isIdenticalTo(otherCommand) {
-    // otherCommand must be an Command, and have the same playback-state properties.
-    return (otherCommand === null || otherCommand === void 0 ? void 0 : otherCommand.source) === this.source;
+  // Should be overwritten by child classes with encapsulation exceptions.
+  overwrites(otherCommand) {
+    return this.state.encapsulates(otherCommand.state);
   },
 
-  collapsesInto(otherCommand) {
-    // Collapse if identical.
-    return this.isIdenticalTo(otherCommand);
-  },
-
-  annihilates() {
-    return false;
-  },
-
-  trigger(context) {
-    var _this = this;
-
-    return _asyncToGenerator(function* () {
-      // Load the player if not loaded.
-      if (context.state[_this.source.name].player === null) {
-        yield context.dispatch("".concat(_this.source.name, "/loadPlayer"));
-      }
-    })();
+  extendState(properties) {
+    _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].constant(this, {
+      state: new PlaybackState(_objectSpread({
+        source: this.state.source
+      }, properties))
+    });
   }
 
 });
 class Toggle extends Command {
-  constructor() {
-    var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-    var {
-      isPlaying
-    } = options;
+  constructor(options) {
+    var _options$state2;
+
+    var isPlaying = options === null || options === void 0 ? void 0 : (_options$state2 = options.state) === null || _options$state2 === void 0 ? void 0 : _options$state2.isPlaying;
     _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].boolean.validate(isPlaying);
     super(options);
-    _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].constant(this, {
+    this.extendState({
       isPlaying
     });
   }
 
 }
 _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].constant(Toggle.prototype, {
-  isIdenticalTo(otherCommand) {
-    return Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_3__["getSuperPrototypeOf"])(Toggle).isIdenticalTo.call(this, otherCommand) && otherCommand.isPlaying === this.isPlaying;
-  },
-
-  //! Toggle doesn't have a unique collapsesInto because the otherCommand is either identical (and collapses by default) or is opposite and annihilates.
-  annihilates(otherCommand) {
-    return Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_3__["getSuperPrototypeOf"])(Toggle).annihilates.call(this, otherCommand) || // Same source, inverse isPlaying, both are sj.Toggle (ie. don't annihilate pauses with starts).
-    Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_3__["getSuperPrototypeOf"])(Toggle).isIdenticalTo.call(this, otherCommand) && otherCommand.isPlaying === !this.isPlaying && otherCommand.constructor === this.constructor;
-  },
-
-  trigger(context) {
-    var _this2 = this;
-
-    return _asyncToGenerator(function* () {
-      yield Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_3__["getSuperPrototypeOf"])(Toggle).trigger.call(_this2, context);
-      yield Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["asyncMap"])(_this2.sourceInstances, /*#__PURE__*/function () {
-        var _ref = _asyncToGenerator(function* (source) {
-          if (_this2.isPlaying && source === _this2.source) {
-            // Resume target if resuming.
-            yield context.dispatch("".concat(source.name, "/resume"));
-          } else if (context.state[source.name].player !== null) {
-            // Pause all or rest.
-            yield context.dispatch("".concat(source.name, "/pause"));
-          }
-        });
-
-        return function (_x) {
-          return _ref.apply(this, arguments);
-        };
-      }()).catch(_shared_errors_index_js__WEBPACK_IMPORTED_MODULE_2__["MultipleErrors"].throw);
-    })();
+  overwrites(otherCommand) {
+    return this.state.encapsulates(otherCommand.state, 'isPlaying');
   }
 
 });
 class Seek extends Command {
-  constructor() {
-    var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-    var {
-      progress
-    } = options;
+  constructor(options) {
+    var _options$state3;
+
+    var progress = options === null || options === void 0 ? void 0 : (_options$state3 = options.state) === null || _options$state3 === void 0 ? void 0 : _options$state3.progress;
     _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].unitInterval.validate(progress);
     super(options);
-    _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].constant(this, {
+    this.extendState({
       progress
     });
   }
 
 }
 _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].constant(Seek.prototype, {
-  collapsesInto(otherCommand) {
-    return Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_3__["getSuperPrototypeOf"])(Seek).collapsesInto.call(this, otherCommand) || otherCommand.constructor === Seek;
-  },
-
-  isIdenticalTo(otherCommand) {
-    return Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_3__["getSuperPrototypeOf"])(Seek).isIdenticalTo.call(this, otherCommand) && otherCommand.progress === this.progress;
-  },
-
-  trigger(context) {
-    var _this3 = this;
-
-    return _asyncToGenerator(function* () {
-      yield Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_3__["getSuperPrototypeOf"])(Seek).trigger.call(_this3, context);
-      yield context.dispatch("".concat(_this3.source.name, "/seek"), _this3.progress);
-    })();
+  overwrites(otherCommand) {
+    return this.state.encapsulates(otherCommand.state, 'progress');
   }
 
 });
 class Volume extends Command {
-  constructor() {
-    var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-    var {
-      volume
-    } = options;
+  constructor(options) {
+    var _options$state4;
+
+    var volume = options === null || options === void 0 ? void 0 : (_options$state4 = options.state) === null || _options$state4 === void 0 ? void 0 : _options$state4.volume;
     _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].unitInterval.validate(volume);
     super(options);
-    _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].constant(this, {
+    this.extendState({
       volume
     });
   }
 
 }
 _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].constant(Volume.prototype, {
-  collapsesInto(otherCommand) {
-    return Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_3__["getSuperPrototypeOf"])(Volume).collapsesInto.call(this, otherCommand) || otherCommand.constructor === Volume;
-  },
-
-  isIdenticalTo(otherCommand) {
-    return Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_3__["getSuperPrototypeOf"])(Volume).isIdenticalTo.call(this, otherCommand) && otherCommand.volume === this.volume;
-  },
-
-  trigger(context) {
-    var _this4 = this;
-
-    return _asyncToGenerator(function* () {
-      yield Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_3__["getSuperPrototypeOf"])(Volume).trigger.call(_this4, context); // Adjust volume on all sources.
-
-      yield Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["asyncMap"])(_this4.sourceInstances, /*#__PURE__*/function () {
-        var _ref2 = _asyncToGenerator(function* (source) {
-          if (context.state[source.name].player !== null) {
-            yield context.dispatch("".concat(source.name, "/volume"), _this4.volume);
-          }
-        });
-
-        return function (_x2) {
-          return _ref2.apply(this, arguments);
-        };
-      }()).catch(_shared_errors_index_js__WEBPACK_IMPORTED_MODULE_2__["MultipleErrors"].throw);
-    })();
+  overwrites(otherCommand) {
+    return this.state.encapsulates(otherCommand.state, 'volume');
   }
 
 });
 class Start extends Command {
-  constructor() {
-    var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-    var {
-      track,
-      isPlaying = true,
-      progress = 0
-    } = options;
+  constructor(options) {
+    var _options$state5, _options$state6, _options$state7;
+
+    var track = options === null || options === void 0 ? void 0 : (_options$state5 = options.state) === null || _options$state5 === void 0 ? void 0 : _options$state5.track;
+    var isPlaying = options === null || options === void 0 ? void 0 : (_options$state6 = options.state) === null || _options$state6 === void 0 ? void 0 : _options$state6.isPlaying;
+    var progress = options === null || options === void 0 ? void 0 : (_options$state7 = options.state) === null || _options$state7 === void 0 ? void 0 : _options$state7.progress; // Not using nullish here because passing null should throw.
+    //TODO If it turns out that null is not a valid value for track, then maybe it would be useful to consider undefined and null the same for commands. This would involve updating the encapsulated function.
+
+    if (isPlaying === undefined) isPlaying = true;
+    if (progress === undefined) progress = 0; //TODO make rule or something
 
     if (!(track instanceof _entities_index_js__WEBPACK_IMPORTED_MODULE_0__["Track"])) {
-      throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_2__["CustomError"]({
-        message: 'sj.Start instance.track must be an Track'
-      });
+      throw new Error('Start track is not a track.');
     }
 
+    _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].boolean.validate(isPlaying);
+    _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].unitInterval.validate(progress);
     super(options);
-    _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].constant(this, {
-      track
-    });
-    _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].validatedVariable(this, {
-      isPlaying: {
-        value: isPlaying,
-        validator: _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].boolean.validate
-      },
-      progress: {
-        value: progress,
-        validator: _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].unitInterval.validate
-      }
+    this.extendState({
+      track,
+      isPlaying,
+      progress
     });
   }
 
 }
 _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].constant(Start.prototype, {
-  collapsesInto(otherCommand) {
-    // Collapses parent condition, any Start, Toggle, or Seek.
-    //TODO //? Tight coupling?
-    return Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_3__["getSuperPrototypeOf"])(Start).collapsesInto.call(this, otherCommand) || otherCommand.constructor === Start || otherCommand.constructor === Toggle || otherCommand.constructor === Seek;
+  overwrites(otherCommand) {
+    return this.state.encapsulates(otherCommand.state, 'track', 'isPlaying', 'progress');
+  }
+
+});
+var nullableCommand = new _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["Rule"]({
+  validator(value) {
+    if (value !== null && !(value instanceof Command)) {
+      throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_2__["InvalidStateError"]({
+        message: 'Sent command is not a Command or null.',
+        state: value
+      });
+    }
+  }
+
+});
+class CommandQueue {
+  constructor() {
+    var {
+      getCurrentState
+    } = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+    //! getCurrentState must be synchronous.
+    _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].func.validate(getCurrentState);
+    _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].constant(this, {
+      getCurrentState,
+      queue: []
+    });
+    _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].validatedVariable(this, {
+      sentCommand: {
+        value: null,
+        validator: nullableCommand.validate
+      }
+    });
+  }
+
+}
+_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].constant(CommandQueue.prototype, {
+  pushCommand(command) {
+    // Validate command.
+    if (!(command instanceof Command)) {
+      throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_2__["InvalidStateError"]({
+        message: 'Pushed command is not a Command.',
+        state: command
+      });
+    } // Give this command its promise handlers.
+
+
+    var deferredPromise = new Promise((resolve, reject) => {
+      command.resolveDeferred = resolve;
+      command.rejectDeferred = reject;
+    });
+    var queue = this.queue;
+    var push = true; // Removes redundant commands if possible.
+
+    (function compact(i) {
+      if (i >= 0) {
+        var prevCommand = queue[i]; // Validate previous command.
+
+        if (!(prevCommand instanceof Command)) {
+          throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_2__["InvalidStateError"]({
+            message: 'Unrecognized value encountered in the command queue.',
+            state: {
+              value: prevCommand,
+              index: i,
+              queue
+            }
+          });
+        } // Check if the previous command can be dequeued into this command.
+
+
+        if (command.overwrites(prevCommand)) {
+          // Remove previous command from queue.
+          queue.splice(i, 1); // Attach it to this command.
+
+          command.dequeuedPrevCommands.push(prevCommand); // Analyze the next previous command.
+
+          compact(i - 1); // Check if this command can be dequeued into the next command.
+        } else if (prevCommand.state.encapsulates(command.state)) {
+          // Attach it to the next command.
+          prevCommand.dequeuedNextCommands.push(command); // End, do not push the command.
+
+          push = false;
+        }
+      }
+    })(queue.length - 1); // If the command is to be pushed to the front of the queue:
+
+
+    if (push && queue.length === 0) {
+      // If there is a sent command.
+      if (this.sentCommand !== null) {
+        // eslint-disable-line no-negated-condition
+        //! Do not check if this command overwrites the sent command. It is already sent and cannot be dequeued.
+        // Check if this command can be dequeued into the sent command.
+        if (this.sentCommand.state.encapsulates(command.state)) {
+          // Attach it to the sent command.
+          this.sentCommand.dequeuedNextCommands.push(command); // Do not push.
+
+          push = false;
+        }
+      } else {
+        var currentState = this.getCurrentState();
+        _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].instanceOf.validate(currentState, PlaybackState); // Check if this command can be dequeued into the current state.
+
+        if (currentState.encapsulates(command.state)) {
+          // Don't queue, resolve immediately.
+          push = false;
+          command.resolve();
+        }
+      }
+    }
+
+    if (push) {
+      queue.push(command);
+    } // Send next command.
+    //! Does not await.
+    //R This must go inside push. Otherwise the caller has no way of knowing when the queue has new commands pushed.
+
+
+    this.sendNextCommand();
+    return deferredPromise;
   },
 
-  isIdenticalTo(otherCommand) {
-    return Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_3__["getSuperPrototypeOf"])(Start).isIdenticalTo.call(this, otherCommand) // Catch non-Tracks.
-    && otherCommand.track instanceof _entities_index_js__WEBPACK_IMPORTED_MODULE_0__["Track"] //! Compare tracks by their sourceId not by their reference.
-    && otherCommand.track.sourceId === this.track.sourceId && otherCommand.isPlaying === this.isPlaying && otherCommand.progress === this.progress;
+  pullCommand() {
+    return this.queue.splice(0, 1)[0];
   },
 
-  trigger(context) {
-    var _this5 = this;
+  sendNextCommand() {
+    var _this = this;
 
     return _asyncToGenerator(function* () {
-      yield Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_3__["getSuperPrototypeOf"])(Start).trigger.call(_this5, context); // Pause all.
+      // Prevents a command from being pulled synchronously.
+      // This allows the first command to be overwritten by a later command when multiple commands are being queued synchronously.
+      yield null; // Don't do anything if there is a sent command or if no commands are in the queue.
 
-      yield Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["asyncMap"])(_this5.sourceInstances, /*#__PURE__*/function () {
-        var _ref3 = _asyncToGenerator(function* (source) {
-          if (context.state[source.name].player !== null) {
-            yield context.dispatch("".concat(source.name, "/pause"));
-          }
-        });
+      if (_this.sentCommand !== null || !(_this.queue.length > 0)) {
+        return;
+      } // Take a command from the top of the queue and set it as the sent command.
 
-        return function (_x3) {
-          return _ref3.apply(this, arguments);
-        };
-      }()).catch(_shared_errors_index_js__WEBPACK_IMPORTED_MODULE_2__["MultipleErrors"].throw); // Change startingTrackSubscription to subscription of the new track.
 
-      context.commit('setStartingTrackSubscription', (yield context.dispatch('resubscribe', {
-        subscription: context.state.startingTrackSubscription,
-        Entity: _entities_index_js__WEBPACK_IMPORTED_MODULE_0__["Track"],
-        query: {
-          id: _this5.track.id
-        },
-        options: {} //TODO //?
+      _this.sentCommand = _this.pullCommand(); // Trigger and attach to the command promise handlers.
 
-      }, {
-        //L https://vuex.vuejs.org/guide/modules.html#accessing-global-assets-in-namespaced-modules
-        root: true
-      }))); // Start target.
+      yield _this.sentCommand.trigger().then(resolved => {
+        _this.sentCommand.resolve(resolved);
+      }, rejected => {
+        _this.sentCommand.reject(rejected);
+      }); // Mark the sent command as finished.
 
-      yield context.dispatch("".concat(_this5.source.name, "/start"), _this5.track); // Transfer subscription from starting to current.
+      _this.sentCommand = null; // eslint-disable-line require-atomic-updates
+      //TODO Verify if this is an actual race condition, try moving the await null after the if statement above. See that that makes sense because the return could be conditionally setting sentCommand based on if this executes in a macroTask or the microTask
+      // Send the next command.
+      //! This does not await, it just restarts the cycle.
 
-      context.commit('setCurrentTrackSubscription', context.state.startingTrackSubscription);
-      context.commit('setStartingTrackSubscription', null); // Change source.
-
-      context.commit('setSource', _this5.source);
+      _this.sendNextCommand();
     })();
+  },
+
+  getDesiredState() {
+    var _this$getCurrentState, _this$sentCommand$sta, _this$sentCommand;
+
+    var currentState = (_this$getCurrentState = this.getCurrentState()) !== null && _this$getCurrentState !== void 0 ? _this$getCurrentState : new PlaybackState();
+    _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].instanceOf.validate(currentState, PlaybackState);
+    var sentState = (_this$sentCommand$sta = (_this$sentCommand = this.sentCommand) === null || _this$sentCommand === void 0 ? void 0 : _this$sentCommand.state) !== null && _this$sentCommand$sta !== void 0 ? _this$sentCommand$sta : new PlaybackState();
+    var states = [currentState, sentState, ...this.queue.map(command => command.state)];
+    var desiredStateProperties = states.reduce((previousStates, state) => {
+      return _objectSpread({}, previousStates, {}, Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["undeclareUndefined"])(state));
+    });
+    return new PlaybackState(desiredStateProperties);
   }
 
 });
@@ -40209,6 +40399,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _shared_live_data_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../shared/live-data.js */ "./source/shared/live-data.js");
 /* harmony import */ var _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../shared/utility/index.js */ "./source/shared/utility/index.js");
 /* harmony import */ var _commands_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./commands.js */ "./source/client/commands.js");
+/* harmony import */ var _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../shared/errors/index.js */ "./source/shared/errors/index.js");
 function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
 
 function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
@@ -40223,7 +40414,10 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
 	behavior: playing in spotify manually, then start up app, previewing a song updates the playback to the current already playing song not the clicked preview song
 
 	sj.Toggle: toggle or resume & pause or both? they all deal with one playback property but toggle out of all the commands is the only one that is dependant on an existing state - how to classify this? when do resume & pause merge into toggle - source, command, or playback level?
+
+	Not sure if the redundancy in the pause/resume actions is necessary? (They both pause all other sources.)
 */
+
 
 
 
@@ -40394,6 +40588,7 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["define"].constant(Playbac
   },
   baseModules: {},
   universalState: sourceInstances => ({
+    commandQueue: null,
     // CLOCK
     // Basically a reactive Date.now(), so far just used for updating playback progress.
     clock: Date.now(),
@@ -40423,8 +40618,6 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["define"].constant(Playbac
     		// 			if success: repeat...
     		// 			if failure: change pendingCommand to false, trigger manual-retry process which basically sends a completely new request...
     */
-    commandQueue: [],
-    sentCommand: null,
     // PLAYBACK STATE
     // Source is used to select the proper playback state for actualPlayback.
     source: null,
@@ -40435,222 +40628,275 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["define"].constant(Playbac
     startingTrackSubscription: null
   }),
   universalActions: () => ({
-    // CLOCK
-    startClock(context) {
-      return _asyncToGenerator(function* () {
-        yield context.dispatch('stopClock');
-        var clockRefreshRate = 100;
-        var id = setInterval(() => context.commit('updateClock'), clockRefreshRate);
-        context.commit('setClockIntervalId', id);
-      })();
-    },
-
-    stopClock(context) {
-      return _asyncToGenerator(function* () {
-        clearInterval(context.state.clockIntervalId);
-        context.commit('setClockIntervalId', null);
-      })();
-    },
-
-    // QUEUE
-    //TODO there seems to be a bug in the command queue where eventually an command will stall until (either it or something ahead of it, im not sure which) times out, upon which the command in question will be fulfilled
+    //G //! As a whole, playback actions should be synchronous. The promise they return indicates if their underlying command has been achieved or failed.
+    //G Their triggers may be asynchronous.
     pushCommand(context, command) {
-      return _asyncToGenerator(function* () {
-        // Attempts to push a new command the current command queue. Will collapse and/or annihilate commands ahead of it in the queue if conditions are met. Command will not be pushed if it annihilates or if it is identical to the sent command or if there is no sent command and it is identical to the current playback state.
-        //? Why doesn't the command collapse into the sent command or the current playback state?
-        var push = true; // Remove redundant commands if necessary.
+      /* //! This action should be synchronous and be used synchronously.
+      	//R
+      	This is partly because the push action is synchronous. (The promise returned instead indicates when the command has completed.)
+      	This is partly because if two actions are called synchronously where the second depends on the queued command of the first. If the underlying pushCommand action is called asynchronously, it will be executed after the second action, resulting in both actions using the same original state.
+      	//? Not even sure if converting the CommandQueue to Vuex would solve this. It seems to be an issue with JavaScript's order of execution for synchronous vs asynchronous nested functions.
+      	Even if the pushCommand function was refactored to return a promise when the command is pushed so that each push itself could be awaited. This would not be compatible with event-listeners (which require a synchronously nested handler) and would require another queue 'above' the asynchronous layer.
+      	Moving the queue above the Vuex store isn't a good idea because this 'desired' state is heavily depended upon.
+      */
+      // Initialize the command queue if it isn't.
+      if (!(context.state.commandQueue instanceof _commands_js__WEBPACK_IMPORTED_MODULE_3__["CommandQueue"])) {
+        context.commit('setCommandQueue', new _commands_js__WEBPACK_IMPORTED_MODULE_3__["CommandQueue"]({
+          getCurrentState: () => new _commands_js__WEBPACK_IMPORTED_MODULE_3__["PlaybackState"](context.getters.actualPlayback)
+        }));
+      }
 
-        var compact = function compact(i) {
-          if (i >= 0) {
-            //R Collapse is required to use the new command rather than just using the existing command because Start collapses different commands than itself.
-            var otherCommand = context.state.commandQueue[i];
-
-            if (command.collapsesInto(otherCommand)) {
-              // If last otherCommand collapses, this command gets pushed.
-              push = true; // Store otherCommand on this command.
-
-              command.collapsedCommands.unshift(otherCommand); // Remove otherCommand.
-
-              context.commit('removeQueuedCommand', i); // Analyze next otherCommand.
-
-              compact(i - 1);
-            } else if (command.annihilates(otherCommand)) {
-              // If last otherCommand annihilates, this command doesn't get pushed.
-              push = false;
-              command.collapsedCommands.unshift(otherCommand);
-              context.commit('removeQueuedCommand', i);
-              compact(i - 1);
-            } // If otherCommand does not collapse or annihilate, escape.
-
-          }
-        };
-
-        compact(context.state.commandQueue.length - 1);
-
-        if ( // If there is a sent command and identical to the sent command,
-        context.state.sentCommand !== null && command.isIdenticalTo(context.state.sentCommand) || // or if there isn't a sent command and identical to the actual playback.
-        context.state.sentCommand === null && command.isIdenticalTo(context.getters.actualPlayback)) {
-          // Don't push.
-          push = false;
-        } // Route command resolve/reject to this result promise.
-
-
-        var resultPromise = new Promise((resolve, reject) => {
-          command.resolve = resolve;
-          command.reject = reject;
-        }); // Push command to the queue or resolve it (because it has been collapsed).
-
-        if (push) {
-          context.commit('pushQueuedCommand', command);
-        } else {
-          command.fullResolve();
-        } // Send next command.
-        //! Do not await because the next command might not be this command, this just ensures that the nextCommand cycle is running every time a new command is pushed.
-
-
-        context.dispatch('nextCommand'); // Await for the command to resolve.
-
-        return resultPromise;
-      })();
-    },
-
-    nextCommand(context) {
-      return _asyncToGenerator(function* () {
-        // Don't do anything if another command is still processing or if no queued commands exist.
-        if (context.state.sentCommand !== null || context.state.commandQueue.length <= 0) return; // Move the command from the queue to sent.
-
-        context.commit('setSentCommand', context.state.commandQueue[0]);
-        context.commit('removeQueuedCommand', 0); // Trigger and resolve the command.
-
-        yield context.state.sentCommand.trigger(context).then(resolved => context.state.sentCommand.fullResolve(resolved), rejected => context.state.sentCommand.fullReject(rejected)); // Mark the sent command as finished.
-
-        context.commit('removeSentCommand'); // Send next command //! do not await, this just restarts the nextCommand cycle.
-
-        context.dispatch('nextCommand');
-      })();
+      return context.state.commandQueue.pushCommand(command);
     },
 
     // PLAYBACK FUNCTIONS
     //G the main playback module's commands, in addition to mappings for basic playback functions, should store all the higher-level, behavioral playback functions (like toggle)
+    initPlayer(context, source) {
+      return _asyncToGenerator(function* () {
+        // Load the player if not loaded.
+        if (context.state[source.name].player === null) {
+          yield context.dispatch("".concat(source.name, "/loadPlayer"));
+        }
+      })();
+    },
+
     // BASIC
-    start(_ref4, track) {
-      return _asyncToGenerator(function* () {
-        var {
-          dispatch,
-          state: {
-            sourceInstances
-          }
-        } = _ref4;
-        return dispatch('pushCommand', new _commands_js__WEBPACK_IMPORTED_MODULE_3__["Start"]({
+    // IDEMPOTENT ?
+    start(context, track) {
+      var {
+        dispatch,
+        state: {
+          sourceInstances
+        }
+      } = context;
+      return dispatch('pushCommand', new _commands_js__WEBPACK_IMPORTED_MODULE_3__["Start"]({
+        state: new _commands_js__WEBPACK_IMPORTED_MODULE_3__["PlaybackState"]({
           source: track.source,
-          //! Uses track's source.
-          sourceInstances,
           track
-        }));
-      })();
+        }),
+
+        trigger() {
+          return _asyncToGenerator(function* () {
+            //TODO Extract this if possible.
+            yield dispatch('initPlayer', track.source); // Pause all.
+
+            yield Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["asyncMap"])(sourceInstances, /*#__PURE__*/function () {
+              var _ref4 = _asyncToGenerator(function* (source) {
+                if (context.state[source.name].player !== null) {
+                  yield context.dispatch("".concat(source.name, "/pause"));
+                }
+              });
+
+              return function (_x) {
+                return _ref4.apply(this, arguments);
+              };
+            }()).catch(_shared_errors_index_js__WEBPACK_IMPORTED_MODULE_4__["MultipleErrors"].throw); // Change startingTrackSubscription to subscription of the new track.
+
+            context.commit('setStartingTrackSubscription', (yield context.dispatch('resubscribe', {
+              subscription: context.state.startingTrackSubscription,
+              Entity: _entities_index_js__WEBPACK_IMPORTED_MODULE_0__["Track"],
+              query: {
+                id: track.id
+              },
+              options: {} //TODO //?
+
+            }, {
+              //L https://vuex.vuejs.org/guide/modules.html#accessing-global-assets-in-namespaced-modules
+              root: true
+            }))); // Start target.
+
+            yield context.dispatch("".concat(track.source.name, "/start"), track); // Transfer subscription from starting to current.
+
+            context.commit('setCurrentTrackSubscription', context.state.startingTrackSubscription);
+            context.commit('setStartingTrackSubscription', null); // Change source.
+            //R Source is the only playback state property set here because all other properties are internal to their respective source's Vuex store and managed by their own /start action.
+
+            context.commit('setSource', track.source);
+          })();
+        }
+
+      }));
     },
 
-    pause(_ref5) {
-      return _asyncToGenerator(function* () {
-        var {
-          dispatch,
-          getters: {
-            desiredSource: source
-          },
-          state: {
-            sourceInstances
-          }
-        } = _ref5;
-        return dispatch('pushCommand', new _commands_js__WEBPACK_IMPORTED_MODULE_3__["Toggle"]({
-          source,
-          //! other non-start basic playback functions just use the current desiredPlayback source
-          sourceInstances,
+    pause(context) {
+      var {
+        dispatch,
+        state: {
+          sourceInstances
+        }
+      } = context;
+      var desiredSource = context.state.commandQueue.getDesiredState().source;
+      return dispatch('pushCommand', new _commands_js__WEBPACK_IMPORTED_MODULE_3__["Toggle"]({
+        state: new _commands_js__WEBPACK_IMPORTED_MODULE_3__["PlaybackState"]({
+          //TODO //! Create an 'all sources' default for toggle.
           isPlaying: false
-        }));
-      })();
+        }),
+
+        trigger() {
+          return _asyncToGenerator(function* () {
+            yield dispatch('initPlayer', desiredSource); // Pause all sources if their player is initialized.
+
+            yield Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["asyncMap"])(sourceInstances, /*#__PURE__*/function () {
+              var _ref5 = _asyncToGenerator(function* (otherSource) {
+                if (context.state[otherSource.name].player !== null) {
+                  yield context.dispatch("".concat(otherSource.name, "/pause"));
+                }
+              });
+
+              return function (_x2) {
+                return _ref5.apply(this, arguments);
+              };
+            }()).catch(_shared_errors_index_js__WEBPACK_IMPORTED_MODULE_4__["MultipleErrors"].throw);
+          })();
+        }
+
+      }));
     },
 
-    resume(_ref6) {
-      return _asyncToGenerator(function* () {
-        var {
-          dispatch,
-          getters: {
-            desiredSource: source
-          },
-          state: {
-            sourceInstances
-          }
-        } = _ref6;
-        return dispatch('pushCommand', new _commands_js__WEBPACK_IMPORTED_MODULE_3__["Toggle"]({
-          source,
-          sourceInstances,
+    resume(context) {
+      var {
+        dispatch,
+        state: {
+          sourceInstances
+        }
+      } = context;
+      var desiredSource = context.state.commandQueue.getDesiredState().source;
+      return dispatch('pushCommand', new _commands_js__WEBPACK_IMPORTED_MODULE_3__["Toggle"]({
+        state: new _commands_js__WEBPACK_IMPORTED_MODULE_3__["PlaybackState"]({
+          source: desiredSource,
           isPlaying: true
-        }));
-      })();
+        }),
+
+        trigger() {
+          return _asyncToGenerator(function* () {
+            yield dispatch('initPlayer', desiredSource);
+            yield Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["asyncMap"])(sourceInstances, /*#__PURE__*/function () {
+              var _ref6 = _asyncToGenerator(function* (otherSource) {
+                if (otherSource === desiredSource) {
+                  // Resume target if resuming.
+                  yield context.dispatch("".concat(otherSource.name, "/resume"));
+                } else if (context.state[otherSource.name].player !== null) {
+                  // Pause the rest.
+                  yield context.dispatch("".concat(otherSource.name, "/pause"));
+                }
+              });
+
+              return function (_x3) {
+                return _ref6.apply(this, arguments);
+              };
+            }()).catch(_shared_errors_index_js__WEBPACK_IMPORTED_MODULE_4__["MultipleErrors"].throw);
+          })();
+        }
+
+      }));
     },
 
-    seek(_ref7, progress) {
-      return _asyncToGenerator(function* () {
-        var {
-          dispatch,
-          getters: {
-            desiredSource: source
-          },
-          state: {
-            sourceInstances
-          }
-        } = _ref7;
-        return dispatch('pushCommand', new _commands_js__WEBPACK_IMPORTED_MODULE_3__["Seek"]({
-          source,
-          sourceInstances,
+    seek(context, progress) {
+      var {
+        dispatch
+      } = context;
+      var desiredSource = context.state.commandQueue.getDesiredState().source;
+      return dispatch('pushCommand', new _commands_js__WEBPACK_IMPORTED_MODULE_3__["Seek"]({
+        state: new _commands_js__WEBPACK_IMPORTED_MODULE_3__["PlaybackState"]({
+          source: desiredSource,
           progress
-        }));
-      })();
+        }),
+
+        trigger() {
+          return _asyncToGenerator(function* () {
+            yield dispatch('initPlayer', desiredSource);
+            yield context.dispatch("".concat(desiredSource.name, "/seek"), progress);
+          })();
+        }
+
+      }));
     },
 
-    volume(_ref8, volume) {
-      return _asyncToGenerator(function* () {
-        var {
-          dispatch,
-          getters: {
-            desiredSource: source
-          },
-          state: {
-            sourceInstances
-          }
-        } = _ref8;
-        //TODO Volume should change volume on all sources.
-        return dispatch('pushCommand', new _commands_js__WEBPACK_IMPORTED_MODULE_3__["Volume"]({
-          source,
-          sourceInstances,
+    volume(context, volume) {
+      var {
+        dispatch,
+        state: {
+          sourceInstances
+        }
+      } = context;
+      var desiredSource = context.state.commandQueue.getDesiredState().source;
+      return dispatch('pushCommand', new _commands_js__WEBPACK_IMPORTED_MODULE_3__["Volume"]({
+        state: new _commands_js__WEBPACK_IMPORTED_MODULE_3__["PlaybackState"]({
+          source: desiredSource,
           volume
-        }));
-      })();
+        }),
+
+        trigger() {
+          return _asyncToGenerator(function* () {
+            yield dispatch('initPlayer', desiredSource); // Adjust volume on all sources.
+
+            yield Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["asyncMap"])(sourceInstances, /*#__PURE__*/function () {
+              var _ref7 = _asyncToGenerator(function* (otherSource) {
+                if (context.state[otherSource.name].player !== null) {
+                  yield context.dispatch("".concat(otherSource.name, "/volume"), volume);
+                }
+              });
+
+              return function (_x4) {
+                return _ref7.apply(this, arguments);
+              };
+            }()).catch(_shared_errors_index_js__WEBPACK_IMPORTED_MODULE_4__["MultipleErrors"].throw);
+          })();
+        }
+
+      }));
     },
 
     // HIGHER LEVEL
-    toggle(_ref9) {
-      return _asyncToGenerator(function* () {
-        var {
-          dispatch,
-          getters: {
-            desiredSource: source,
-            desiredIsPlaying: isPlaying
-          },
-          state: {
-            sourceInstances
-          }
-        } = _ref9;
-        return dispatch('pushCommand', new _commands_js__WEBPACK_IMPORTED_MODULE_3__["Toggle"]({
-          source,
-          sourceInstances,
-          isPlaying: !isPlaying
-        }));
-      })();
+    // NON-IDEMPOTENT
+    toggle(context) {
+      //! //R Desired state cannot be accessed by a Vuex getter because its non-reactive data and isn't visible to Vuex.
+      var desiredIsPlaying = context.state.commandQueue.getDesiredState().isPlaying;
+      return desiredIsPlaying ? context.dispatch('pause') : context.dispatch('resume');
+    },
+
+    // The playback module has no knowledge of 'playlists', anything that depends on that should pass that info in or handled externally.
+    startOffset(context, _ref8) {
+      var _tracks;
+
+      var [offset, playlistTracks] = _ref8;
+      _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["rules"].integer.validate(offset);
+      var tracks = playlistTracks !== null && playlistTracks !== void 0 ? playlistTracks : []; // Null may be passed here.
+
+      var desiredTrack = context.state.commandQueue.getDesiredState().track;
+      var desiredIndex = tracks.findIndex(track => track.id === (desiredTrack === null || desiredTrack === void 0 ? void 0 : desiredTrack.id)); // Defaults to null if desired track or desired offset track aren't found.
+
+      var offsetDesiredTrack = desiredIndex === -1 ? null : (_tracks = tracks[desiredIndex + offset]) !== null && _tracks !== void 0 ? _tracks : null;
+      return context.dispatch('start', offsetDesiredTrack);
+    },
+
+    next(context, playlistTracks) {
+      return context.dispatch('startOffset', [1, playlistTracks]);
+    },
+
+    prev(context, playlistTracks) {
+      return context.dispatch('startOffset', [-1, playlistTracks]);
+    },
+
+    // CLOCK
+    startClock(context) {
+      context.dispatch('stopClock');
+      var clockRefreshRate = 100;
+      var id = setInterval(() => context.commit('updateClock'), clockRefreshRate);
+      context.commit('setClockIntervalId', id);
+    },
+
+    stopClock(context) {
+      clearInterval(context.state.clockIntervalId);
+      context.commit('setClockIntervalId', null);
     }
 
   }),
   universalMutations: () => ({
+    setCommandQueue(state, commandQueue) {
+      state.commandQueue = commandQueue;
+    },
+
     // CLOCK
     updateClock(state) {
       state.clock = Date.now();
@@ -40658,23 +40904,6 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["define"].constant(Playbac
 
     setClockIntervalId(state, id) {
       state.clockIntervalId = id;
-    },
-
-    // QUEUE
-    pushQueuedCommand(state, command) {
-      state.commandQueue.push(command);
-    },
-
-    removeQueuedCommand(state, index) {
-      state.commandQueue.splice(index, 1);
-    },
-
-    setSentCommand(state, command) {
-      state.sentCommand = command;
-    },
-
-    removeSentCommand(state) {
-      state.sentCommand = null;
     },
 
     // PLAYBACK STATE
@@ -40718,6 +40947,7 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["define"].constant(Playbac
     		return Object.assign({}, actualPlayback, sentCommand, ...commandQueue);
     	},
     */
+    commandQueue: state => state.commandQueue,
     // ACTUAL
     sourceOrBase: state => key => {
       if (state.source === null) {
@@ -40769,34 +40999,6 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["define"].constant(Playbac
       isPlaying: getters.actualIsPlaying,
       progress: getters.actualProgress,
       volume: getters.actualVolume
-    }),
-    // DESIRED
-    flattenPlayback: (state, getters) => key => {
-      // Value starts as the actualValue.
-      var value = getters["actual".concat(Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["capitalizeFirstCharacter"])(key))]; // Then if defined, sentCommand.
-
-      if (_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["rules"].object.test(state.sentCommand) && state.sentCommand[key] !== undefined) {
-        value = state.sentCommand[key];
-      } // Then if defined, each queuedCommand.
-
-
-      for (var queuedCommand of state.commandQueue) {
-        if (queuedCommand[key] !== undefined) value = queuedCommand[key];
-      }
-
-      return value;
-    },
-    desiredSource: (state, getters) => getters.flattenPlayback('source'),
-    desiredTrack: (state, getters) => getters.flattenPlayback('track'),
-    desiredIsPlaying: (state, getters) => getters.flattenPlayback('isPlaying'),
-    desiredProgress: (state, getters) => getters.flattenPlayback('progress'),
-    desiredVolume: (state, getters) => getters.flattenPlayback('volume'),
-    desiredPlayback: (state, getters) => ({
-      source: getters.actualSource,
-      track: getters.desiredTrack,
-      isPlaying: getters.desiredIsPlaying,
-      progress: getters.desiredProgress,
-      volume: getters.desiredVolume
     }),
     // LOCAL TRACKS
     currentTrack: (state, getters, rootState, rootGetters) => {
@@ -62645,7 +62847,7 @@ __webpack_require__.r(__webpack_exports__);
 /*!****************************************!*\
   !*** ./source/shared/utility/index.js ***!
   \****************************************/
-/*! exports provided: any, asyncMap, dynamicSort, one, stableSort, copyProperty, deepCompare, define, forKeysOf, getKeysOf, forSimpleKeysOf, getSimpleKeysOf, forOwnKeysOf, getOwnKeysOf, pick, capitalizeFirstCharacter, escapeRegExp, spaceIndented, tabIndented, replaceAll, setTimer, wait, appendQueryParameters, encodeProperties, decodeProperties, encodeList, decodeList, rules, flexTest, Interface, SymbolInterface, Rule, boolCatch, clamp, ClassParts, combinations, Deferred, Enum, formatMs, constants, keyCode, keyify, reference, repeat */
+/*! exports provided: any, asyncMap, dynamicSort, one, stableSort, copyProperty, deepCompare, define, forKeysOf, getKeysOf, forSimpleKeysOf, getSimpleKeysOf, forOwnKeysOf, getOwnKeysOf, forSpreadableKeysOf, getSpreadableKeysOf, pick, undeclareUndefined, capitalizeFirstCharacter, escapeRegExp, spaceIndented, tabIndented, replaceAll, setTimer, wait, appendQueryParameters, encodeProperties, decodeProperties, encodeList, decodeList, rules, flexTest, Interface, SymbolInterface, Rule, boolCatch, clamp, ClassParts, combinations, Deferred, Enum, formatMs, constants, keyCode, keyify, reference, repeat */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -62680,7 +62882,13 @@ __webpack_require__.r(__webpack_exports__);
 
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "getOwnKeysOf", function() { return _object_index_js__WEBPACK_IMPORTED_MODULE_1__["getOwnKeysOf"]; });
 
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "forSpreadableKeysOf", function() { return _object_index_js__WEBPACK_IMPORTED_MODULE_1__["forSpreadableKeysOf"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "getSpreadableKeysOf", function() { return _object_index_js__WEBPACK_IMPORTED_MODULE_1__["getSpreadableKeysOf"]; });
+
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "pick", function() { return _object_index_js__WEBPACK_IMPORTED_MODULE_1__["pick"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "undeclareUndefined", function() { return _object_index_js__WEBPACK_IMPORTED_MODULE_1__["undeclareUndefined"]; });
 
 /* harmony import */ var _string_index_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./string/index.js */ "./source/shared/utility/string/index.js");
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "capitalizeFirstCharacter", function() { return _string_index_js__WEBPACK_IMPORTED_MODULE_2__["capitalizeFirstCharacter"]; });
@@ -63377,7 +63585,7 @@ var ownKeys = function ownKeys(object) {
 /*!***********************************************!*\
   !*** ./source/shared/utility/object/index.js ***!
   \***********************************************/
-/*! exports provided: copyProperty, deepCompare, define, forKeysOf, getKeysOf, forSimpleKeysOf, getSimpleKeysOf, forOwnKeysOf, getOwnKeysOf, pick */
+/*! exports provided: copyProperty, deepCompare, define, forKeysOf, getKeysOf, forSimpleKeysOf, getSimpleKeysOf, forOwnKeysOf, getOwnKeysOf, forSpreadableKeysOf, getSpreadableKeysOf, pick, undeclareUndefined */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -63404,8 +63612,16 @@ __webpack_require__.r(__webpack_exports__);
 
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "getOwnKeysOf", function() { return _keys_of_js__WEBPACK_IMPORTED_MODULE_3__["getOwnKeysOf"]; });
 
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "forSpreadableKeysOf", function() { return _keys_of_js__WEBPACK_IMPORTED_MODULE_3__["forSpreadableKeysOf"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "getSpreadableKeysOf", function() { return _keys_of_js__WEBPACK_IMPORTED_MODULE_3__["getSpreadableKeysOf"]; });
+
 /* harmony import */ var _pick_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./pick.js */ "./source/shared/utility/object/pick.js");
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "pick", function() { return _pick_js__WEBPACK_IMPORTED_MODULE_4__["default"]; });
+
+/* harmony import */ var _undeclare_undefined_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./undeclare-undefined.js */ "./source/shared/utility/object/undeclare-undefined.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "undeclareUndefined", function() { return _undeclare_undefined_js__WEBPACK_IMPORTED_MODULE_5__["default"]; });
+
 
 
 
@@ -63419,7 +63635,7 @@ __webpack_require__.r(__webpack_exports__);
 /*!*************************************************!*\
   !*** ./source/shared/utility/object/keys-of.js ***!
   \*************************************************/
-/*! exports provided: forKeysOf, getKeysOf, forSimpleKeysOf, getSimpleKeysOf, forOwnKeysOf, getOwnKeysOf */
+/*! exports provided: forKeysOf, getKeysOf, forSimpleKeysOf, getSimpleKeysOf, forOwnKeysOf, getOwnKeysOf, forSpreadableKeysOf, getSpreadableKeysOf */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -63430,6 +63646,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getSimpleKeysOf", function() { return getSimpleKeysOf; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "forOwnKeysOf", function() { return forOwnKeysOf; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getOwnKeysOf", function() { return getOwnKeysOf; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "forSpreadableKeysOf", function() { return forSpreadableKeysOf; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getSpreadableKeysOf", function() { return getSpreadableKeysOf; });
 /* harmony import */ var _validation_flex_test_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../validation/flex-test.js */ "./source/shared/utility/validation/flex-test.js");
 /* harmony import */ var _validation_rules_objects_object_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../validation/rules/objects/object.js */ "./source/shared/utility/validation/rules/objects/object.js");
 /* harmony import */ var _validation_rules_functions_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../validation/rules/functions.js */ "./source/shared/utility/validation/rules/functions.js");
@@ -63474,6 +63692,14 @@ var own = {
   enumerable: true,
   nonEnumerable: true,
   inherited: false
+};
+var spreadable = {
+  own: true,
+  named: true,
+  symbol: true,
+  enumerable: true,
+  inherited: false,
+  nonEnumerable: false
 };
 function forKeysOf(object) {
   var optionsOrCallback = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
@@ -63571,6 +63797,12 @@ var forOwnKeysOf = (object, callback) => forKeysOf(object, _objectSpread({}, own
 var getOwnKeysOf = (object, filter) => getKeysOf(object, _objectSpread({}, own, {
   filter
 }));
+var forSpreadableKeysOf = (object, callback) => forKeysOf(object, _objectSpread({}, spreadable, {
+  callback
+}));
+var getSpreadableKeysOf = (object, filter) => getKeysOf(object, _objectSpread({}, spreadable, {
+  filter
+}));
 
 /***/ }),
 
@@ -63605,6 +63837,37 @@ function pick(oldObject, keys) {
     if (value !== undefined) newObject[key] = value;
   }
 
+  return newObject;
+}
+
+/***/ }),
+
+/***/ "./source/shared/utility/object/undeclare-undefined.js":
+/*!*************************************************************!*\
+  !*** ./source/shared/utility/object/undeclare-undefined.js ***!
+  \*************************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return undeclareUndefined; });
+/* harmony import */ var _validation_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../validation/index.js */ "./source/shared/utility/validation/index.js");
+/* harmony import */ var _keys_of_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./keys-of.js */ "./source/shared/utility/object/keys-of.js");
+// Copies spreadable properties of an object to a new object if they are not undefined.
+// Intended for use with object spread where declared-undefined-properties should be treated as undeclared-properties.
+
+
+function undeclareUndefined(object) {
+  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].object.validate(object);
+  var newObject = {};
+  Object(_keys_of_js__WEBPACK_IMPORTED_MODULE_1__["forSpreadableKeysOf"])(object, (obj, key) => {
+    var value = obj[key];
+
+    if (value !== undefined) {
+      newObject[key] = value;
+    }
+  });
   return newObject;
 }
 
@@ -64782,30 +65045,6 @@ __webpack_require__.r(__webpack_exports__);
 
 /***/ }),
 
-/***/ "./source/shared/utility/validation/rules/constructor.js":
-/*!***************************************************************!*\
-  !*** ./source/shared/utility/validation/rules/constructor.js ***!
-  \***************************************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _rule_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../rule.js */ "./source/shared/utility/validation/rule.js");
-
-/* harmony default export */ __webpack_exports__["default"] = (new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
-  validator(value) {
-    try {
-      class Test extends value {}
-    } catch (e) {
-      throw new Error('Value is not a constructor.');
-    }
-  }
-
-}));
-
-/***/ }),
-
 /***/ "./source/shared/utility/validation/rules/functions.js":
 /*!*************************************************************!*\
   !*** ./source/shared/utility/validation/rules/functions.js ***!
@@ -64982,7 +65221,7 @@ __webpack_require__.r(__webpack_exports__);
 /*!*********************************************************!*\
   !*** ./source/shared/utility/validation/rules/index.js ***!
   \*********************************************************/
-/*! exports provided: body, headers, queryParameters, object, emptyObject, populatedObject, array, boolean, constructor, func, key, number, nonNaNNumber, integer, nonNegativeNumber, nonPositiveNumber, positiveNumber, negativeNumber, nonNegativeInteger, nonPositiveInteger, positiveInteger, negativeInteger, unitInterval, string, trimmedString, visibleString, invisibleString, populatedString, symbol */
+/*! exports provided: body, headers, queryParameters, object, constructor, emptyObject, instanceOf, populatedObject, array, boolean, func, key, nullish, number, nonNaNNumber, integer, nonNegativeNumber, nonPositiveNumber, positiveNumber, negativeNumber, nonNegativeInteger, nonPositiveInteger, positiveInteger, negativeInteger, unitInterval, string, trimmedString, visibleString, invisibleString, populatedString, symbol */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -64997,7 +65236,11 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _objects_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./objects/index.js */ "./source/shared/utility/validation/rules/objects/index.js");
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "object", function() { return _objects_index_js__WEBPACK_IMPORTED_MODULE_1__["object"]; });
 
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "constructor", function() { return _objects_index_js__WEBPACK_IMPORTED_MODULE_1__["constructor"]; });
+
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "emptyObject", function() { return _objects_index_js__WEBPACK_IMPORTED_MODULE_1__["emptyObject"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "instanceOf", function() { return _objects_index_js__WEBPACK_IMPORTED_MODULE_1__["instanceOf"]; });
 
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "populatedObject", function() { return _objects_index_js__WEBPACK_IMPORTED_MODULE_1__["populatedObject"]; });
 
@@ -65007,14 +65250,14 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _boolean_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./boolean.js */ "./source/shared/utility/validation/rules/boolean.js");
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "boolean", function() { return _boolean_js__WEBPACK_IMPORTED_MODULE_3__["default"]; });
 
-/* harmony import */ var _constructor_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./constructor.js */ "./source/shared/utility/validation/rules/constructor.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "constructor", function() { return _constructor_js__WEBPACK_IMPORTED_MODULE_4__["default"]; });
+/* harmony import */ var _functions_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./functions.js */ "./source/shared/utility/validation/rules/functions.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "func", function() { return _functions_js__WEBPACK_IMPORTED_MODULE_4__["func"]; });
 
-/* harmony import */ var _functions_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./functions.js */ "./source/shared/utility/validation/rules/functions.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "func", function() { return _functions_js__WEBPACK_IMPORTED_MODULE_5__["func"]; });
+/* harmony import */ var _key_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./key.js */ "./source/shared/utility/validation/rules/key.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "key", function() { return _key_js__WEBPACK_IMPORTED_MODULE_5__["default"]; });
 
-/* harmony import */ var _key_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./key.js */ "./source/shared/utility/validation/rules/key.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "key", function() { return _key_js__WEBPACK_IMPORTED_MODULE_6__["default"]; });
+/* harmony import */ var _nullish_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./nullish.js */ "./source/shared/utility/validation/rules/nullish.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "nullish", function() { return _nullish_js__WEBPACK_IMPORTED_MODULE_6__["default"]; });
 
 /* harmony import */ var _numbers_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./numbers.js */ "./source/shared/utility/validation/rules/numbers.js");
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "number", function() { return _numbers_js__WEBPACK_IMPORTED_MODULE_7__["number"]; });
@@ -65096,6 +65339,28 @@ __webpack_require__.r(__webpack_exports__);
 
   caster(reference) {
     reference.value = Object(_keyify_js__WEBPACK_IMPORTED_MODULE_1__["default"])(reference.value);
+  }
+
+}));
+
+/***/ }),
+
+/***/ "./source/shared/utility/validation/rules/nullish.js":
+/*!***********************************************************!*\
+  !*** ./source/shared/utility/validation/rules/nullish.js ***!
+  \***********************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _rule_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../rule.js */ "./source/shared/utility/validation/rule.js");
+
+/* harmony default export */ __webpack_exports__["default"] = (new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
+  validator(value) {
+    if (value !== undefined && value !== null) {
+      throw new Error('Value is not nullish.');
+    }
   }
 
 }));
@@ -65274,6 +65539,30 @@ var unitInterval = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
 
 /***/ }),
 
+/***/ "./source/shared/utility/validation/rules/objects/constructor.js":
+/*!***********************************************************************!*\
+  !*** ./source/shared/utility/validation/rules/objects/constructor.js ***!
+  \***********************************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _rule_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../rule.js */ "./source/shared/utility/validation/rule.js");
+
+/* harmony default export */ __webpack_exports__["default"] = (new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
+  validator(value) {
+    try {
+      class Test extends value {}
+    } catch (e) {
+      throw new Error('Value is not a constructor.');
+    }
+  }
+
+}));
+
+/***/ }),
+
 /***/ "./source/shared/utility/validation/rules/objects/empty-object.js":
 /*!************************************************************************!*\
   !*** ./source/shared/utility/validation/rules/objects/empty-object.js ***!
@@ -65313,7 +65602,7 @@ __webpack_require__.r(__webpack_exports__);
 /*!*****************************************************************!*\
   !*** ./source/shared/utility/validation/rules/objects/index.js ***!
   \*****************************************************************/
-/*! exports provided: object, emptyObject, populatedObject */
+/*! exports provided: object, constructor, emptyObject, instanceOf, populatedObject */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -65321,15 +65610,49 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _object_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./object.js */ "./source/shared/utility/validation/rules/objects/object.js");
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "object", function() { return _object_js__WEBPACK_IMPORTED_MODULE_0__["default"]; });
 
-/* harmony import */ var _empty_object_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./empty-object.js */ "./source/shared/utility/validation/rules/objects/empty-object.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "emptyObject", function() { return _empty_object_js__WEBPACK_IMPORTED_MODULE_1__["default"]; });
+/* harmony import */ var _constructor_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./constructor.js */ "./source/shared/utility/validation/rules/objects/constructor.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "constructor", function() { return _constructor_js__WEBPACK_IMPORTED_MODULE_1__["default"]; });
 
-/* harmony import */ var _populated_object_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./populated-object.js */ "./source/shared/utility/validation/rules/objects/populated-object.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "populatedObject", function() { return _populated_object_js__WEBPACK_IMPORTED_MODULE_2__["default"]; });
+/* harmony import */ var _empty_object_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./empty-object.js */ "./source/shared/utility/validation/rules/objects/empty-object.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "emptyObject", function() { return _empty_object_js__WEBPACK_IMPORTED_MODULE_2__["default"]; });
+
+/* harmony import */ var _instance_of_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./instance-of.js */ "./source/shared/utility/validation/rules/objects/instance-of.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "instanceOf", function() { return _instance_of_js__WEBPACK_IMPORTED_MODULE_3__["default"]; });
+
+/* harmony import */ var _populated_object_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./populated-object.js */ "./source/shared/utility/validation/rules/objects/populated-object.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "populatedObject", function() { return _populated_object_js__WEBPACK_IMPORTED_MODULE_4__["default"]; });
 
 
 
 
+
+
+
+/***/ }),
+
+/***/ "./source/shared/utility/validation/rules/objects/instance-of.js":
+/*!***********************************************************************!*\
+  !*** ./source/shared/utility/validation/rules/objects/instance-of.js ***!
+  \***********************************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _rule_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../rule.js */ "./source/shared/utility/validation/rule.js");
+/* harmony import */ var _constructor_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./constructor.js */ "./source/shared/utility/validation/rules/objects/constructor.js");
+
+
+/* harmony default export */ __webpack_exports__["default"] = (new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
+  validator(value, Class) {
+    _constructor_js__WEBPACK_IMPORTED_MODULE_1__["default"].validate(Class);
+
+    if (!(value instanceof Class)) {
+      throw new Error("Value is not an instance of ".concat(Class.name));
+    }
+  }
+
+}));
 
 /***/ }),
 

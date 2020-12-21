@@ -1,78 +1,205 @@
-//TODO Review these classes, ensure that references to .prototype and .constructor don't break if a sub-class is created.
+//TODO Consider converting this into a Vuex store. That way it will integrate better with its parent store. Another benefit is that getter values are cached until a dependency changes, dependencies being anything that Vuex can detect changes for. One issue with converting might be testing.
+//R The problems are more to do with maintaining order of actions. This can be done in Vuex because actions that are synchronous throughout the stack will update the state in a synchronous way, even if actions must be async functions.
 
-// COMMANDS
-//R commands are separate from the playback module commands because they are supposed to be instanced, queued packets of trigger functionality and frozen state
+/* //OLD Flatten playback getter, doesn't use spread. Possibly more efficient, especially if individual state properties are needed to be retrieved.
+	flattenPlayback: (state, getters) => (key) => {
+		//TODO Consider if some object spread thing is possible?
 
-//G sj.Commands have their own playback state properties so that they can be queued and then collapsed/annihilated if redundant based on these properties
-//G they trigger basic playback functions from all the sources while ensuring these playbacks don't collide (ie. play at the same time)
-//G tightly integrated with VueX
-//TODO consider a stop command? it would stop all sources and set the current source back to null
-//TODO im not sure that the null check for sources should go in these commands, also they're inconsistent between the target source and other sources
+		// Value starts as the actualValue.
+		let value = getters[`actual${capitalizeFirstCharacter(key)}`];
 
-/* //R
+		if (state.commandQueue instanceof CommandQueue) {
+			// If sent command's value is defined, then set it to that.
+			const sentCommandValue = state.commandQueue.sentCommand?.[key];
+			if (sentCommandValue !== undefined) {
+				value = sentCommandValue;
+			}
+
+			// If a queued command's value is defined, then set it to that. Iterate to the last command.
+			for (const queuedCommand of state.commandQueue.queue) {
+				const queuedCommandValue = queuedCommand.state?.[key];
+				if (queuedCommandValue !== undefined) {
+					value = queuedCommandValue;
+				}
+			}
+		}
+
+		return value;
+	},
+*/
+
+/* //OLD Commands notes
+
+	//TODO Review these classes, ensure that references to .prototype and .constructor don't break if a sub-class is created.
+
+	// COMMANDS
+	//R commands are separate from the playback module commands because they are supposed to be instanced, queued packets of trigger functionality and frozen state
+
+	//G sj.Commands have their own playback state properties so that they can be queued and then collapsed/annihilated if redundant based on these properties
+	//G they trigger basic playback functions from all the sources while ensuring these playbacks don't collide (ie. play at the same time)
+	//G tightly integrated with VueX
+	//TODO consider a stop command? it would stop all sources and set the current source back to null
+	//TODO im not sure that the null check for sources should go in these commands, also they're inconsistent between the target source and other sources
+
+	//R
 	I considered instead of updating playback state in each source function upon Success, to do a second and final checkPlayback() once updatePlayback() succeeds (this would require two api calls, but I thought it could be simpler (but would it?)).
 
 	I thought because track info is also needed (in addition to playback state) that a final checkPlayback() would be needed to verify the post-update track info, (this came from not knowing what track was playing when starting one for the first time), however this info should already be known from the fetched and displayed track (object), so all of these functions actually do have the ability to update information when resolved.
 
 	This resolution suggests using track objects everywhere as parameters rather than ids; this should be possible because the user is never going to be blindly playing id strings without the app first searching and tying down its additional metadata.
-*/
-/* //R
+
+	//R
 	I considered that setting knownPlayback.progress upon start() (0) and seek() (ms) may wipeout any official information from checkPlayback() or listeners, as any information that arrives between sending and receiving the request will be wiped out upon resolution (with less valuable, inferred information).
 
 	However unless the information is being sent from a synchronous or local source (which actually is likely), that information should not be sent and received between the time-span it takes for the playback request to be sent and received - therefore it must be sent before and therefore less accurate/valuable than even the inferred progress information.
 
 	Then I realized that any checks to playback state will have the same offset error as the playback requests so it makes no sense to even checkPlayback() to get more accurate information.
+
 */
 
 import {
 	Track,
 } from './entities/index.js';
 import {
-	asyncMap,
 	define,
+	Rule,
 	rules,
+	undeclareUndefined,
 } from '../shared/utility/index.js';
 import {
-	MultipleErrors, CustomError,
+	InvalidStateError,
 } from '../shared/errors/index.js';
-import {
-	getSuperPrototypeOf,
-} from '../shared/utility/class-parts.js';
 
-class Command {
-	constructor(options = {}) {
+/* //!//G
+	While triggers and promise-handlers are guaranteed to execute in order. It is not guaranteed that the promise-handler of a command will execute before the trigger of a subsequent command.
+
+	This is due to how the Microtask Queue works.
+
+	Example:
+		Command 1 Trigger
+		Command 2 Trigger
+		Command 1 Handler
+		Command 2 Handler
+
+	This should not be an issue because a command trigger should not depend on any effects of a previous command's handler.
+		If that is the case then those effects should be in the previous command's trigger and not its handler.
+*/
+
+const playbackStateRule = new Rule({
+	validator(options) {
 		const {
 			source,
-			sourceInstances = [],
+			track,
+			isPlaying,
+			progress,
+			volume,
 		} = options;
+
+		// Both source and track are optional because they aren't required for some commands (volume, toggle).
 
 		//TODO Validate source.
 		//! Non-instance sources are getting passed here (I think).
 		//TODO Need to find a proper way to cast or ensure that source is an instance.
 
+		// Optional Source
+		// if (!(rules.nullish.test(source) || source instanceof Source)) {
+		// 	throw new Error('Source is not undefined or a source.');
+		// }
+		// Source must be exist if track exists.
+		if (rules.nullish.test(source) && !rules.nullish.test(track)) {
+			throw new Error('Track has been provided without a source.');
+		}
+		// Optional Track
+		if (!(rules.nullish.test(track) || track instanceof Track)) {
+			throw new Error('Track is not undefined or a track.');
+		}
+		// Optional IsPlaying
+		if (!(isPlaying === undefined || rules.boolean.test(isPlaying))) {
+			throw new Error('Value is not undefined or a boolean.');
+		}
+		// Optional Progress
+		if (!(progress === undefined || rules.unitInterval.test(progress))) {
+			throw new Error('Value is not undefined or a unit interval.');
+		}
+		// Optional Volume
+		if (!(volume === undefined || rules.unitInterval.test(volume))) {
+			throw new Error('Value is not undefined or a unit interval.');
+		}
+	},
+});
+
+// Validated, Immutable Playback State
+export class PlaybackState {
+	constructor(options = {}) {
+		playbackStateRule.validate(options);
+
+		const {
+			source,
+			track,
+			isPlaying,
+			progress,
+			volume,
+		} = options;
+
 		define.constant(this, {
 			source,
-			sourceInstances,
-
-			// Used to store any collapsed or annihilated commands so that they may be resolved when this command either resolves or is annihilated.
-			collapsedCommands: [],
+			track,
+			isPlaying,
+			progress,
+			volume,
 		});
 
-		// Promise resolve & reject functions will be stored on these properties so that the command can act as a deferred promise.
+		Object.freeze(this);
+	}
+}
+define.constant(PlaybackState.prototype, {
+	isValueEqual(otherState, key) {
+		return (key === 'track')
+			? this[key]?.sourceId === otherState[key]?.sourceId
+			: this[key]           === otherState[key];
+	},
+	encapsulates(otherState, ...exceptions) {
+		// True if all defined values (with exceptions) of the other state are equal to the same values of this state.
+		const keys = Object.keys(otherState).filter(key => !exceptions.includes(key));
+		return !keys.some(key => !(
+			otherState[key] === undefined
+			|| otherState.isValueEqual(this, key)
+		));
+	},
+});
+
+class Command {
+	constructor(options) {
+		const source = options?.state?.source;
+		const trigger = options?.trigger;
+
+		rules.func.validate(trigger);
+
+		define.writable(this, {
+			state: new PlaybackState({source}),
+		});
+		define.constant(this, {trigger});
+
+
+		define.constant(this, {
+			// Stores dequeued commands so that they may be resolved when this command resolves.
+			dequeuedPrevCommands: [],
+			dequeuedNextCommands: [],
+		});
+
+
+		// Resolve and reject functions will be assigned to these properties when they are queued. The command will act as a deferred promise.
+		//! Should only be called by the command's own resolve and reject functions.
 		define.validatedVariable(this, {
-			resolve: {
+			resolveDeferred: {
 				value() {
-					throw new CustomError({
-						message: 'command.resolve called but it has not been given a resolve function',
-					});
+					throw new Error('command.resolveDeferred was called but the command has not been given a resolve function.');
 				},
 				validator: rules.func.validate,
 			},
-			reject: {
+			rejectDeferred: {
 				value() {
-					throw new CustomError({
-						message: 'command.reject called but it has not been given a reject function',
-					});
+					throw new Error('command.rejectDeferred was called but the command has not been given a reject function.');
 				},
 				validator: rules.func.validate,
 			},
@@ -80,228 +207,282 @@ class Command {
 	}
 }
 define.constant(Command.prototype, {
-	fullResolve(success) {
-		// Resolve collapsed commands.
-		this.collapsedCommands.forEach((collapsedCommand) => {
-			collapsedCommand.resolve();
-		});
-		// Resolve self.
-		this.resolve(success);
-	},
-	fullReject(error) {
-		//! RESOLVE collapsed commands.
-		this.collapsedCommands.forEach((collapsedCommand) => {
-			collapsedCommand.resolve();
-		});
-		// Reject self.
-		this.reject(error);
-	},
-
-	isIdenticalTo(otherCommand) {
-		// otherCommand must be an Command, and have the same playback-state properties.
-		return otherCommand?.source === this.source;
-	},
-	collapsesInto(otherCommand) {
-		// Collapse if identical.
-		return this.isIdenticalTo(otherCommand);
-	},
-	annihilates()  {
-		return false;
-	},
-
-	async trigger(context) {
-		// Load the player if not loaded.
-		if (context.state[this.source.name].player === null) {
-			await context.dispatch(`${this.source.name}/loadPlayer`);
+	resolve() {
+		// Resolve prev commands backwards.
+		for (let i = this.dequeuedPrevCommands.length - 1; i >= 0; i--) {
+			this.dequeuedPrevCommands[i].resolve();
 		}
+		// Resolve self.
+		this.resolveDeferred();
+		// Resolve next commands forwards.
+		for (let i = 0; i < this.dequeuedNextCommands.length; i++) {
+			this.dequeuedNextCommands[i].resolve();
+		}
+	},
+	reject() {
+		// Reject prev commands backwards.
+		for (let i = this.dequeuedPrevCommands.length - 1; i >= 0; i--) {
+			this.dequeuedPrevCommands[i].reject();
+		}
+		// Reject self.
+		this.rejectDeferred();
+		// Reject next commands forwards.
+		for (let i = 0; i < this.dequeuedNextCommands.length; i++) {
+			this.dequeuedNextCommands[i].reject();
+		}
+	},
+
+	// Should be overwritten by child classes with encapsulation exceptions.
+	overwrites(otherCommand) {
+		return this.state.encapsulates(otherCommand.state);
+	},
+
+	extendState(properties) {
+		define.constant(this, {
+			state: new PlaybackState({
+				source: this.state.source,
+				...properties,
+			}),
+		});
 	},
 });
 
 export class Toggle extends Command {
-	constructor(options = {}) {
-		const {isPlaying} = options;
-
+	constructor(options) {
+		const isPlaying = options?.state?.isPlaying;
 		rules.boolean.validate(isPlaying);
-
 		super(options);
-
-		define.constant(this, {isPlaying});
+		this.extendState({isPlaying});
 	}
 }
 define.constant(Toggle.prototype, {
-	isIdenticalTo(otherCommand) {
-		return (
-			   getSuperPrototypeOf(Toggle).isIdenticalTo.call(this, otherCommand)
-			&& otherCommand.isPlaying === this.isPlaying
-		);
-	},
-	//! Toggle doesn't have a unique collapsesInto because the otherCommand is either identical (and collapses by default) or is opposite and annihilates.
-	annihilates(otherCommand) {
-		return (
-			getSuperPrototypeOf(Toggle).annihilates.call(this, otherCommand)
-			|| (
-				// Same source, inverse isPlaying, both are sj.Toggle (ie. don't annihilate pauses with starts).
-				getSuperPrototypeOf(Toggle).isIdenticalTo.call(this, otherCommand)
-				&& otherCommand.isPlaying === !this.isPlaying
-				&& otherCommand.constructor === this.constructor
-			)
-		);
-	},
-	async trigger(context) {
-		await getSuperPrototypeOf(Toggle).trigger.call(this, context);
-
-		await asyncMap(this.sourceInstances, async (source) => {
-			if (this.isPlaying && source === this.source) {
-				// Resume target if resuming.
-				await context.dispatch(`${source.name}/resume`);
-			} else if (context.state[source.name].player !== null) {
-				// Pause all or rest.
-				await context.dispatch(`${source.name}/pause`);
-			}
-		}).catch(MultipleErrors.throw);
+	overwrites(otherCommand) {
+		return this.state.encapsulates(otherCommand.state, 'isPlaying');
 	},
 });
-
 export class Seek extends Command {
-	constructor(options = {}) {
-		const {progress} = options;
-
+	constructor(options) {
+		const progress = options?.state?.progress;
 		rules.unitInterval.validate(progress);
-
 		super(options);
-
-		define.constant(this, {progress});
+		this.extendState({progress});
 	}
 }
 define.constant(Seek.prototype, {
-	collapsesInto(otherCommand) {
-		return getSuperPrototypeOf(Seek).collapsesInto.call(this, otherCommand)
-			|| otherCommand.constructor === Seek;
-	},
-	isIdenticalTo(otherCommand) {
-		return getSuperPrototypeOf(Seek).isIdenticalTo.call(this, otherCommand)
-			&& otherCommand.progress === this.progress;
-	},
-	async trigger(context) {
-		await getSuperPrototypeOf(Seek).trigger.call(this, context);
-
-		await context.dispatch(`${this.source.name}/seek`, this.progress);
+	overwrites(otherCommand) {
+		return this.state.encapsulates(otherCommand.state, 'progress');
 	},
 });
-
 export class Volume extends Command {
-	constructor(options = {}) {
-		const {volume} = options;
-
+	constructor(options) {
+		const volume = options?.state?.volume;
 		rules.unitInterval.validate(volume);
-
 		super(options);
-
-		define.constant(this, {volume});
+		this.extendState({volume});
 	}
 }
 define.constant(Volume.prototype, {
-	collapsesInto(otherCommand) {
-		return getSuperPrototypeOf(Volume).collapsesInto.call(this, otherCommand)
-			|| otherCommand.constructor === Volume;
-	},
-	isIdenticalTo(otherCommand) {
-		return getSuperPrototypeOf(Volume).isIdenticalTo.call(this, otherCommand)
-			&& otherCommand.volume === this.volume;
-	},
-	async trigger(context) {
-		await getSuperPrototypeOf(Volume).trigger.call(this, context);
-
-		// Adjust volume on all sources.
-		await asyncMap(this.sourceInstances, async (source) => {
-			if (context.state[source.name].player !== null) {
-				await context.dispatch(`${source.name}/volume`, this.volume);
-			}
-		}).catch(MultipleErrors.throw);
+	overwrites(otherCommand) {
+		return this.state.encapsulates(otherCommand.state, 'volume');
 	},
 });
-
 export class Start extends Command {
-	constructor(options = {}) {
-		const {
-			track,
-			isPlaying = true,
-			progress = 0,
-		} = options;
+	constructor(options) {
+		const track   = options?.state?.track;
+		let isPlaying = options?.state?.isPlaying;
+		let progress  = options?.state?.progress;
 
+		// Not using nullish here because passing null should throw.
+		//TODO If it turns out that null is not a valid value for track, then maybe it would be useful to consider undefined and null the same for commands. This would involve updating the encapsulated function.
+		if (isPlaying === undefined) isPlaying = true;
+		if (progress  === undefined) progress  = 0;
+
+		//TODO make rule or something
 		if (!(track instanceof Track)) {
-			throw new CustomError({
-				message: 'sj.Start instance.track must be an Track',
-			});
+			throw new Error('Start track is not a track.');
 		}
+		rules.boolean.validate(isPlaying);
+		rules.unitInterval.validate(progress);
 
 		super(options);
-
-		define.constant(this, {
+		this.extendState({
 			track,
-		});
-		define.validatedVariable(this, {
-			isPlaying: {
-				value: isPlaying,
-				validator: rules.boolean.validate,
-			},
-			progress: {
-				value: progress,
-				validator: rules.unitInterval.validate,
-			},
+			isPlaying,
+			progress,
 		});
 	}
 }
 define.constant(Start.prototype, {
-	collapsesInto(otherCommand) {
-		// Collapses parent condition, any Start, Toggle, or Seek.
-		//TODO //? Tight coupling?
-		return getSuperPrototypeOf(Start).collapsesInto.call(this, otherCommand)
-			|| otherCommand.constructor === Start
-			|| otherCommand.constructor === Toggle
-			|| otherCommand.constructor === Seek;
+	overwrites(otherCommand) {
+		return this.state.encapsulates(otherCommand.state, 'track', 'isPlaying', 'progress');
 	},
-	isIdenticalTo(otherCommand) {
-		return (
-			getSuperPrototypeOf(Start).isIdenticalTo.call(this, otherCommand)
-			// Catch non-Tracks.
-			&& (otherCommand.track instanceof Track)
-			//! Compare tracks by their sourceId not by their reference.
-			&& otherCommand.track.sourceId === this.track.sourceId
-			&& otherCommand.isPlaying === this.isPlaying
-			&& otherCommand.progress === this.progress
-		);
-	},
-	async trigger(context) {
-		await getSuperPrototypeOf(Start).trigger.call(this, context);
+});
 
-		// Pause all.
-		await asyncMap(this.sourceInstances, async (source) => {
-			if (context.state[source.name].player !== null) {
-				await context.dispatch(`${source.name}/pause`);
+const nullableCommand = new Rule({
+	validator(value) {
+		if (value !== null && !(value instanceof Command)) {
+			throw new InvalidStateError({
+				message: 'Sent command is not a Command or null.',
+				state: value,
+			});
+		}
+	},
+});
+
+export class CommandQueue {
+	constructor({getCurrentState} = {}) {
+		//! getCurrentState must be synchronous.
+		rules.func.validate(getCurrentState);
+		define.constant(this, {
+			getCurrentState,
+			queue: [],
+		});
+		define.validatedVariable(this, {
+			sentCommand: {
+				value: null,
+				validator: nullableCommand.validate,
+			},
+		});
+	}
+}
+define.constant(CommandQueue.prototype, {
+	pushCommand(command) {
+		// Validate command.
+		if (!(command instanceof Command)) {
+			throw new InvalidStateError({
+				message: 'Pushed command is not a Command.',
+				state: command,
+			});
+		}
+
+		// Give this command its promise handlers.
+		const deferredPromise = new Promise((resolve, reject) => {
+			command.resolveDeferred = resolve;
+			command.rejectDeferred = reject;
+		});
+
+		const queue = this.queue;
+		let push = true;
+
+		// Removes redundant commands if possible.
+		(function compact(i) {
+			if (i >= 0) {
+				const prevCommand = queue[i];
+
+				// Validate previous command.
+				if (!(prevCommand instanceof Command)) {
+					throw new InvalidStateError({
+						message: 'Unrecognized value encountered in the command queue.',
+						state: {
+							value: prevCommand,
+							index: i,
+							queue,
+						},
+					});
+				}
+
+				// Check if the previous command can be dequeued into this command.
+				if (command.overwrites(prevCommand)) {
+					// Remove previous command from queue.
+					queue.splice(i, 1);
+					// Attach it to this command.
+					command.dequeuedPrevCommands.push(prevCommand);
+					// Analyze the next previous command.
+					compact(i - 1);
+				// Check if this command can be dequeued into the next command.
+				} else if (prevCommand.state.encapsulates(command.state)) {
+					// Attach it to the next command.
+					prevCommand.dequeuedNextCommands.push(command);
+					// End, do not push the command.
+					push = false;
+				}
 			}
-		}).catch(MultipleErrors.throw);
+		})(queue.length - 1);
 
-		// Change startingTrackSubscription to subscription of the new track.
-		context.commit('setStartingTrackSubscription', await context.dispatch('resubscribe', {
-			subscription: context.state.startingTrackSubscription,
+		// If the command is to be pushed to the front of the queue:
+		if (push && queue.length === 0) {
+			// If there is a sent command.
+			if (this.sentCommand !== null) { // eslint-disable-line no-negated-condition
+				//! Do not check if this command overwrites the sent command. It is already sent and cannot be dequeued.
 
-			Entity: Track,
-			query: {id: this.track.id},
-			options: {}, //TODO //?
-		}, {
-			//L https://vuex.vuejs.org/guide/modules.html#accessing-global-assets-in-namespaced-modules
-			root: true,
-		}));
+				// Check if this command can be dequeued into the sent command.
+				if (this.sentCommand.state.encapsulates(command.state)) {
+					// Attach it to the sent command.
+					this.sentCommand.dequeuedNextCommands.push(command);
+					// Do not push.
+					push = false;
+				}
+			} else {
+				const currentState = this.getCurrentState();
+				rules.instanceOf.validate(currentState, PlaybackState);
 
-		// Start target.
-		await context.dispatch(`${this.source.name}/start`, this.track);
+				// Check if this command can be dequeued into the current state.
+				if (currentState.encapsulates(command.state)) {
+					// Don't queue, resolve immediately.
+					push = false;
 
-		// Transfer subscription from starting to current.
-		context.commit('setCurrentTrackSubscription', context.state.startingTrackSubscription);
-		context.commit('setStartingTrackSubscription', null);
+					command.resolve();
+				}
+			}
+		}
 
-		// Change source.
-		context.commit('setSource', this.source);
+		if (push) {
+			queue.push(command);
+		}
+
+		// Send next command.
+		//! Does not await.
+		//R This must go inside push. Otherwise the caller has no way of knowing when the queue has new commands pushed.
+		this.sendNextCommand();
+
+		return deferredPromise;
+	},
+	pullCommand() {
+		return this.queue.splice(0, 1)[0];
+	},
+	async sendNextCommand() {
+		// Prevents a command from being pulled synchronously.
+		// This allows the first command to be overwritten by a later command when multiple commands are being queued synchronously.
+		await null;
+
+		// Don't do anything if there is a sent command or if no commands are in the queue.
+		if (this.sentCommand !== null || !(this.queue.length > 0)) {
+			return;
+		}
+
+		// Take a command from the top of the queue and set it as the sent command.
+		this.sentCommand = this.pullCommand();
+
+		// Trigger and attach to the command promise handlers.
+		await this.sentCommand.trigger().then((resolved) => {
+			this.sentCommand.resolve(resolved);
+		}, (rejected) => {
+			this.sentCommand.reject(rejected);
+		});
+
+		// Mark the sent command as finished.
+		this.sentCommand = null; // eslint-disable-line require-atomic-updates
+		//TODO Verify if this is an actual race condition, try moving the await null after the if statement above. See that that makes sense because the return could be conditionally setting sentCommand based on if this executes in a macroTask or the microTask
+
+		// Send the next command.
+		//! This does not await, it just restarts the cycle.
+		this.sendNextCommand();
+	},
+	getDesiredState() {
+		const currentState = this.getCurrentState() ?? new PlaybackState();
+		rules.instanceOf.validate(currentState, PlaybackState);
+
+		const sentState = this.sentCommand?.state ?? new PlaybackState();
+
+		const states = [currentState, sentState, ...this.queue.map(command => command.state)];
+
+		const desiredStateProperties = states.reduce((previousStates, state) => {
+			return {
+				...previousStates,
+				...undeclareUndefined(state),
+			};
+		});
+
+		return new PlaybackState(desiredStateProperties);
 	},
 });
