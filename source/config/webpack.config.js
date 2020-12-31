@@ -57,6 +57,7 @@ import HtmlWebpackPlugin from 'html-webpack-plugin';
 import VLP from 'vue-loader/dist/plugin.js';
 const {default: VueLoaderPlugin} = VLP; //? Not sure why this can't be imported as default.
 import nodeExternals from 'webpack-node-externals';
+import Dotenv from 'dotenv-webpack';
 
 // INTERNAL
 import {
@@ -66,6 +67,7 @@ import {
 	clientMainFile,
 	UIMainFile,
 	CSSDirectory,
+	dotEnvFile,
 } from './project-paths.js';
 
 
@@ -155,7 +157,7 @@ export const clientOptions = (env, argv) => ({
 						loader: 'sass-loader',
 						options: {
 							//! Apparently breaks sass source-maps.
-							prependData: `@import 'global.scss';`,
+							additionalData: `@import 'global.scss';`,
 							sassOptions: {
 								includePaths: [CSSDirectory],
 							},
@@ -199,6 +201,9 @@ export const serverOptions = (env, argv) => ({
 	},
 	plugins: [
 		...common.plugins(env, argv),
+		new Dotenv({
+			path: dotEnvFile,
+		}),
 		new webpack.SourceMapDevToolPlugin({
 			//R Webpack creates sourcemaps with the source content embedded in the files themselves, rather than pointing to the actual source files. This doesn't appear to be compatible with the idea of clicking URL directly from console-logged stack-traces, as the URL isn't valid from the perspective of the file-system.
 			//L This behavior is described here: https://github.com/webpack/webpack/issues/559, https://sourcemaps.info/spec.html

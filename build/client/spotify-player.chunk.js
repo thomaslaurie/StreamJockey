@@ -1,12 +1,13 @@
-(window["webpackJsonp"] = window["webpackJsonp"] || []).push([["spotify-player"],{
+(self["webpackChunk"] = self["webpackChunk"] || []).push([["spotify-player"],{
 
 /***/ "./source/client/vendor/spotify-player.js":
 /*!************************************************!*\
   !*** ./source/client/vendor/spotify-player.js ***!
   \************************************************/
-/*! no static exports found */
-/***/ (function(module, exports) {
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
+"use strict";
+__webpack_require__.r(__webpack_exports__);
 /* Spotify JS-SDK - v1.7.1-d2b664d */
 !function (e) {
   function t(r) {

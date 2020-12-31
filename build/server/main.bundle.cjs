@@ -1,128 +1,27 @@
-/******/ (function(modules) { // webpackBootstrap
-/******/ 	// The module cache
-/******/ 	var installedModules = {};
-/******/
-/******/ 	// object to store loaded chunks
-/******/ 	// "0" means "already loaded"
-/******/ 	var installedChunks = {
-/******/ 		"main": 0
-/******/ 	};
-/******/
-/******/ 	// The require function
-/******/ 	function __webpack_require__(moduleId) {
-/******/
-/******/ 		// Check if module is in cache
-/******/ 		if(installedModules[moduleId]) {
-/******/ 			return installedModules[moduleId].exports;
-/******/ 		}
-/******/ 		// Create a new module (and put it into the cache)
-/******/ 		var module = installedModules[moduleId] = {
-/******/ 			i: moduleId,
-/******/ 			l: false,
-/******/ 			exports: {}
-/******/ 		};
-/******/
-/******/ 		// Execute the module function
-/******/ 		modules[moduleId].call(module.exports, module, module.exports, __webpack_require__);
-/******/
-/******/ 		// Flag the module as loaded
-/******/ 		module.l = true;
-/******/
-/******/ 		// Return the exports of the module
-/******/ 		return module.exports;
-/******/ 	}
-/******/
-/******/
-/******/ 	// expose the modules object (__webpack_modules__)
-/******/ 	__webpack_require__.m = modules;
-/******/
-/******/ 	// expose the module cache
-/******/ 	__webpack_require__.c = installedModules;
-/******/
-/******/ 	// define getter function for harmony exports
-/******/ 	__webpack_require__.d = function(exports, name, getter) {
-/******/ 		if(!__webpack_require__.o(exports, name)) {
-/******/ 			Object.defineProperty(exports, name, { enumerable: true, get: getter });
-/******/ 		}
-/******/ 	};
-/******/
-/******/ 	// define __esModule on exports
-/******/ 	__webpack_require__.r = function(exports) {
-/******/ 		if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
-/******/ 			Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
-/******/ 		}
-/******/ 		Object.defineProperty(exports, '__esModule', { value: true });
-/******/ 	};
-/******/
-/******/ 	// create a fake namespace object
-/******/ 	// mode & 1: value is a module id, require it
-/******/ 	// mode & 2: merge all properties of value into the ns
-/******/ 	// mode & 4: return value when already ns object
-/******/ 	// mode & 8|1: behave like require
-/******/ 	__webpack_require__.t = function(value, mode) {
-/******/ 		if(mode & 1) value = __webpack_require__(value);
-/******/ 		if(mode & 8) return value;
-/******/ 		if((mode & 4) && typeof value === 'object' && value && value.__esModule) return value;
-/******/ 		var ns = Object.create(null);
-/******/ 		__webpack_require__.r(ns);
-/******/ 		Object.defineProperty(ns, 'default', { enumerable: true, value: value });
-/******/ 		if(mode & 2 && typeof value != 'string') for(var key in value) __webpack_require__.d(ns, key, function(key) { return value[key]; }.bind(null, key));
-/******/ 		return ns;
-/******/ 	};
-/******/
-/******/ 	// getDefaultExport function for compatibility with non-harmony modules
-/******/ 	__webpack_require__.n = function(module) {
-/******/ 		var getter = module && module.__esModule ?
-/******/ 			function getDefault() { return module['default']; } :
-/******/ 			function getModuleExports() { return module; };
-/******/ 		__webpack_require__.d(getter, 'a', getter);
-/******/ 		return getter;
-/******/ 	};
-/******/
-/******/ 	// Object.prototype.hasOwnProperty.call
-/******/ 	__webpack_require__.o = function(object, property) { return Object.prototype.hasOwnProperty.call(object, property); };
-/******/
-/******/ 	// __webpack_public_path__
-/******/ 	__webpack_require__.p = "";
-/******/
-/******/ 	// uncaught error handler for webpack runtime
-/******/ 	__webpack_require__.oe = function(err) {
-/******/ 		process.nextTick(function() {
-/******/ 			throw err; // catch this error by using import().catch()
-/******/ 		});
-/******/ 	};
-/******/
-/******/
-/******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = "./source/server/main.js");
-/******/ })
-/************************************************************************/
-/******/ ({
+/******/ (() => { // webpackBootstrap
+/******/ 	var __webpack_modules__ = ({
 
-/***/ "./source/config/environment-variables.js":
-/*!************************************************!*\
-  !*** ./source/config/environment-variables.js ***!
-  \************************************************/
-/*! no exports provided */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ "./source/config/environment-variables-canary.js":
+/*!*******************************************************!*\
+  !*** ./source/config/environment-variables-canary.js ***!
+  \*******************************************************/
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var dotenv__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! dotenv */ "dotenv");
-/* harmony import */ var dotenv__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(dotenv__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _project_paths_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./project-paths.js */ "./source/config/project-paths.js");
-//! this needs to be in its own file (not at the top of index.js) because imports are hoisted, which causes dotenv.config() to run after any module that uses environment variables immediately, which makes them undefined
-//L https://stackoverflow.com/questions/42817339/es6-import-happening-before-env-import
-
-
-dotenv__WEBPACK_IMPORTED_MODULE_0___default.a.config({
-  path: _project_paths_js__WEBPACK_IMPORTED_MODULE_1__["dotEnvFile"]
-}); // The CANARY environment variable is committed to the repo and tests that environment variables are properly imported and accurate. Here it is imported and compared against an identical, hard-coded string.
+// The CANARY variable tests that environment variables are being defined. Here it is imported and compared against an identical, hard-coded string.
 //TODO Consider creating a test file for this instead?
+if (false) {}
+/* //OLD Using dotenv-webpack now because this broke when upgrading to webpack 5.
+	//! this needs to be in its own file (not at the top of index.js) because imports are hoisted, which causes dotenv.config() to run after any module that uses environment variables immediately, which makes them undefined
+	//L https://stackoverflow.com/questions/42817339/es6-import-happening-before-env-import
+	import dotenv from 'dotenv';
+	import {dotEnvFile} from './project-paths.js';
 
-if (process.env.CANARY !== 'canaryString') {
-  throw new Error('Environment variables are not available.');
-}
+	dotenv.config({
+		path: dotEnvFile,
+	});
+*/
 
 /***/ }),
 
@@ -130,48 +29,48 @@ if (process.env.CANARY !== 'canaryString') {
 /*!****************************************!*\
   !*** ./source/config/project-paths.js ***!
   \****************************************/
-/*! exports provided: serverBuildDirectory, clientBuildDirectory, serverBuildFile, serverDirectory, clientDirectory, serverMainFile, clientMainFile, dotEnvFile, UIMainFileName, UIMainFile, CSSDirectory, testSuffix, defaultTestGlob */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "serverBuildDirectory", function() { return serverBuildDirectory; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "clientBuildDirectory", function() { return clientBuildDirectory; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "serverBuildFile", function() { return serverBuildFile; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "serverDirectory", function() { return serverDirectory; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "clientDirectory", function() { return clientDirectory; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "serverMainFile", function() { return serverMainFile; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "clientMainFile", function() { return clientMainFile; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "dotEnvFile", function() { return dotEnvFile; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "UIMainFileName", function() { return UIMainFileName; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "UIMainFile", function() { return UIMainFile; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "CSSDirectory", function() { return CSSDirectory; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "testSuffix", function() { return testSuffix; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "defaultTestGlob", function() { return defaultTestGlob; });
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "serverBuildDirectory": () => /* binding */ serverBuildDirectory,
+/* harmony export */   "clientBuildDirectory": () => /* binding */ clientBuildDirectory,
+/* harmony export */   "serverBuildFile": () => /* binding */ serverBuildFile,
+/* harmony export */   "serverDirectory": () => /* binding */ serverDirectory,
+/* harmony export */   "clientDirectory": () => /* binding */ clientDirectory,
+/* harmony export */   "serverMainFile": () => /* binding */ serverMainFile,
+/* harmony export */   "clientMainFile": () => /* binding */ clientMainFile,
+/* harmony export */   "dotEnvFile": () => /* binding */ dotEnvFile,
+/* harmony export */   "UIMainFileName": () => /* binding */ UIMainFileName,
+/* harmony export */   "UIMainFile": () => /* binding */ UIMainFile,
+/* harmony export */   "CSSDirectory": () => /* binding */ CSSDirectory,
+/* harmony export */   "testSuffix": () => /* binding */ testSuffix,
+/* harmony export */   "defaultTestGlob": () => /* binding */ defaultTestGlob
+/* harmony export */ });
 /* harmony import */ var _node_utility_source_path_cjs__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../node-utility/source-path.cjs */ "./source/node-utility/source-path.cjs");
-/* harmony import */ var _node_utility_source_path_cjs__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_utility_source_path_cjs__WEBPACK_IMPORTED_MODULE_0__);
 //G Put any hard-coded project paths/names here.
  // Build (outside source)
 
-const buildDirectory = _node_utility_source_path_cjs__WEBPACK_IMPORTED_MODULE_0___default()('../build');
-const serverBuildDirectory = _node_utility_source_path_cjs__WEBPACK_IMPORTED_MODULE_0___default()(buildDirectory, 'server');
-const clientBuildDirectory = _node_utility_source_path_cjs__WEBPACK_IMPORTED_MODULE_0___default()(buildDirectory, 'client');
-const serverBuildFile = _node_utility_source_path_cjs__WEBPACK_IMPORTED_MODULE_0___default()(serverBuildDirectory, 'main.bundle.cjs'); //TODO extract filename
+const buildDirectory = _node_utility_source_path_cjs__WEBPACK_IMPORTED_MODULE_0__('../build');
+const serverBuildDirectory = _node_utility_source_path_cjs__WEBPACK_IMPORTED_MODULE_0__(buildDirectory, 'server');
+const clientBuildDirectory = _node_utility_source_path_cjs__WEBPACK_IMPORTED_MODULE_0__(buildDirectory, 'client');
+const serverBuildFile = _node_utility_source_path_cjs__WEBPACK_IMPORTED_MODULE_0__(serverBuildDirectory, 'main.bundle.cjs'); //TODO extract filename
 // Source
 
-const serverDirectory = _node_utility_source_path_cjs__WEBPACK_IMPORTED_MODULE_0___default()('server');
-const clientDirectory = _node_utility_source_path_cjs__WEBPACK_IMPORTED_MODULE_0___default()('client');
-const serverMainFile = _node_utility_source_path_cjs__WEBPACK_IMPORTED_MODULE_0___default()(serverDirectory, 'main.js');
-const clientMainFile = _node_utility_source_path_cjs__WEBPACK_IMPORTED_MODULE_0___default()(clientDirectory, 'main.js'); // Config
+const serverDirectory = _node_utility_source_path_cjs__WEBPACK_IMPORTED_MODULE_0__('server');
+const clientDirectory = _node_utility_source_path_cjs__WEBPACK_IMPORTED_MODULE_0__('client');
+const serverMainFile = _node_utility_source_path_cjs__WEBPACK_IMPORTED_MODULE_0__(serverDirectory, 'main.js');
+const clientMainFile = _node_utility_source_path_cjs__WEBPACK_IMPORTED_MODULE_0__(clientDirectory, 'main.js'); // Config
 
-const configDirectory = _node_utility_source_path_cjs__WEBPACK_IMPORTED_MODULE_0___default()('config');
-const dotEnvFile = _node_utility_source_path_cjs__WEBPACK_IMPORTED_MODULE_0___default()(configDirectory, '.env'); // UI
+const configDirectory = _node_utility_source_path_cjs__WEBPACK_IMPORTED_MODULE_0__('config');
+const dotEnvFile = _node_utility_source_path_cjs__WEBPACK_IMPORTED_MODULE_0__(configDirectory, '.env'); // UI
 
-const UIDirectory = _node_utility_source_path_cjs__WEBPACK_IMPORTED_MODULE_0___default()(clientDirectory, 'ui');
+const UIDirectory = _node_utility_source_path_cjs__WEBPACK_IMPORTED_MODULE_0__(clientDirectory, 'ui');
 const UIMainFileName = 'index.html';
-const UIMainFile = _node_utility_source_path_cjs__WEBPACK_IMPORTED_MODULE_0___default()(UIDirectory, UIMainFileName); // CSS
+const UIMainFile = _node_utility_source_path_cjs__WEBPACK_IMPORTED_MODULE_0__(UIDirectory, UIMainFileName); // CSS
 
-const CSSDirectory = _node_utility_source_path_cjs__WEBPACK_IMPORTED_MODULE_0___default()(UIDirectory, 'css'); // Misc
+const CSSDirectory = _node_utility_source_path_cjs__WEBPACK_IMPORTED_MODULE_0__(UIDirectory, 'css'); // Misc
 // Suffix for test files.
 
 const testSuffix = '.test.js'; // Default glob used for Ava test selection.
@@ -180,62 +79,17 @@ const defaultTestGlob = 'shared/utility';
 
 /***/ }),
 
-/***/ "./source/node-utility/source-path.cjs":
-/*!*********************************************!*\
-  !*** ./source/node-utility/source-path.cjs ***!
-  \*********************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-/* WEBPACK VAR INJECTION */(function(__dirname) {// Returns an absolute path relative to the source directory.
-//G Use in places where __dirname would normally be required, like config options or non-webpack-recognized imports.
-/* //! Do NOT move this file.
-	If it must be moved,
-		either ensure all references to this file and all relative paths passed to this function are updated,
-		or update the <base path> of this function: resolve(<__dirname, '../',> ...relativePaths)
-*/
-/* //R Workaround for __dirname / import.meta / webpack issues.
-	The __dirname node global doesn't exist in ES Modules, even when run with node.
-		Webpack is supposed to be able to polyfill this with node: {__dirname: true}, however it doesn't seem to be working.
-	The alternative import.meta would normally be the workaround for raw modules.
-		However Webpack doesn't support this yet: //L https://github.com/webpack/webpack/issues/6719
-		@open-wc/webpack-import-meta-loader didn't work because it relies on window which isn't available in node.
-		@bable/plugin-syntax-import-meta just didn't work at all.
-		When webpack is able to parse import.meta, this could be a universal solution:
-			//OLD
-			import path from 'path';
-
-			export default function (metaURL) {
-				return path.dirname(new URL(metaURL.replace(/^file:\/\/\//, '')).pathname);
-			};
-	Current solution is to use __dirname only in a CommonJS Module, and instead import it into ES Modules.
-		//L Solution from: https://medium.com/@almtechhub/es-modules-and-import-meta-dirname-babel-trick-39aad026682
-		Here it was being wrapped in a path call because using the exported __dirname from outside this directory wouldn't make much semantic sense.
-		This initially didn't work because it was actually just using the directory node was being run from.
-			However, with a custom node globals polyfill: //L https://github.com/webpack/webpack/issues/1599#issuecomment-550291610 __dirname can now be properly polyfilled.
-		Even though __dirname will now work properly, this cjs workaround is still the preferred way as it can be used in raw ES Modules.
-	Other links:
-		//L https://stackoverflow.com/questions/46745014/alternative-for-dirname-in-node-when-using-the-experimental-modules-flag
-		//L https://stackoverflow.com/questions/46745014/alternative-for-dirname-in-node-when-using-the-experimental-modules-flag
-*/
-//R Currying this function won't work. __dirname will only apply to the exact file it is used in.
-
-const {resolve} = __webpack_require__(/*! path */ "path");
-module.exports = (...relativePaths) => resolve(__dirname, '../', ...relativePaths);
-
-/* WEBPACK VAR INJECTION */}.call(this, "C:\\Users\\Thomas\\Documents\\Personal-Work\\StreamJockey.git\\source\\node-utility"))
-
-/***/ }),
-
 /***/ "./source/server/auth.js":
 /*!*******************************!*\
   !*** ./source/server/auth.js ***!
   \*******************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => __WEBPACK_DEFAULT_EXPORT__
+/* harmony export */ });
 /* harmony import */ var _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../shared/utility/index.js */ "./source/shared/utility/index.js");
 //TODO consider just writing native api functions, because they are fairly simple, and the spotify-web-api-node
 //L https://beta.developer.spotify.com/documentation/general/guides/authorization-guide/
@@ -243,17 +97,17 @@ __webpack_require__.r(__webpack_exports__);
 //TODO Convert to instantiatable class.
 // INTERNAL
 
-/* harmony default export */ __webpack_exports__["default"] = ({
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ({
   requestTimeout: 300000,
   // 5 minutes
   requestKeys: [],
 
   async addRequestKey() {
-    return _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["keyCode"].addTo(this.requestKeys, this.requestTimeout);
+    return _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__.keyCode.addTo(this.requestKeys, this.requestTimeout);
   },
 
   async checkRequestKey(key) {
-    const pack = await _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["keyCode"].verify(this.requestKeys, key);
+    const pack = await _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__.keyCode.verify(this.requestKeys, key);
     return {
       authRequestKey: pack.key,
       authRequestTimestamp: pack.timestamp
@@ -268,12 +122,13 @@ __webpack_require__.r(__webpack_exports__);
 /*!************************************!*\
   !*** ./source/server/constants.js ***!
   \************************************/
-/*! exports provided: PASSWORD_SALT_ROUNDS */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "PASSWORD_SALT_ROUNDS", function() { return PASSWORD_SALT_ROUNDS; });
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "PASSWORD_SALT_ROUNDS": () => /* binding */ PASSWORD_SALT_ROUNDS
+/* harmony export */ });
 const PASSWORD_SALT_ROUNDS = 10;
 
 /***/ }),
@@ -282,18 +137,20 @@ const PASSWORD_SALT_ROUNDS = 10;
 /*!***************************************************!*\
   !*** ./source/server/database/create-database.js ***!
   \***************************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => __WEBPACK_DEFAULT_EXPORT__
+/* harmony export */ });
 /* harmony import */ var _database_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./database.js */ "./source/server/database/database.js");
 /* harmony import */ var _shared_propagate_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../shared/propagate.js */ "./source/shared/propagate.js");
 /* harmony import */ var _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../shared/errors/index.js */ "./source/shared/errors/index.js");
 
 
 
-/* harmony default export */ __webpack_exports__["default"] = (async () => _database_js__WEBPACK_IMPORTED_MODULE_0__["default"].tx(async t => {
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (async () => _database_js__WEBPACK_IMPORTED_MODULE_0__.default.tx(async t => {
   //TODO This will not alter tables if they do already exist (save this for migration).
   //L schema: https://www.postgresql.org/docs/9.3/static/sql-createschema.html
   //L constraints: https://www.postgresql.org/docs/9.4/static/ddl-constraints.html
@@ -373,12 +230,12 @@ __webpack_require__.r(__webpack_exports__);
 		);
 	`);
 }).catch(rejected => {
-  throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_2__["InvalidStateError"]({
+  throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_2__.InvalidStateError({
     userMessage: 'database error',
     message: rejected.message,
     state: rejected
   });
-}).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_1__["default"])); //TODO Should a better error be used than InvalidStateError?
+}).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_1__.default)); //TODO Should a better error be used than InvalidStateError?
 //TODO Is propagate required here?
 
 /***/ }),
@@ -387,31 +244,32 @@ __webpack_require__.r(__webpack_exports__);
 /*!********************************************!*\
   !*** ./source/server/database/database.js ***!
   \********************************************/
-/*! exports provided: default, pgp */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "pgp", function() { return pgp; });
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => __WEBPACK_DEFAULT_EXPORT__,
+/* harmony export */   "pgp": () => /* binding */ pgp
+/* harmony export */ });
 /* harmony import */ var pg_promise__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! pg-promise */ "pg-promise");
-/* harmony import */ var pg_promise__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(pg_promise__WEBPACK_IMPORTED_MODULE_0__);
 var _process$env$DB_HOST, _process$env$DB_PORT, _process$env$DB_NAME, _process$env$DB_USERN, _process$env$DB_PASSW;
 
 
-const pgp = pg_promise__WEBPACK_IMPORTED_MODULE_0___default()({//TODO Initialization options go here.
+const pgp = pg_promise__WEBPACK_IMPORTED_MODULE_0__({//TODO Initialization options go here.
   //L http://vitaly-t.github.io/pg-promise/module-pg-promise.html
 });
 const database = pgp({
   //L https://github.com/vitaly-t/pg-promise/wiki/Connection-Syntax#configuration-object
   //TODO Create new database user with restricted capabilities.
-  host: (_process$env$DB_HOST = process.env.DB_HOST) !== null && _process$env$DB_HOST !== void 0 ? _process$env$DB_HOST : 'localhost',
-  port: (_process$env$DB_PORT = process.env.DB_PORT) !== null && _process$env$DB_PORT !== void 0 ? _process$env$DB_PORT : '5432',
-  database: (_process$env$DB_NAME = process.env.DB_NAME) !== null && _process$env$DB_NAME !== void 0 ? _process$env$DB_NAME : 'test',
-  user: (_process$env$DB_USERN = process.env.DB_USERNAME) !== null && _process$env$DB_USERN !== void 0 ? _process$env$DB_USERN : 'postgres',
-  password: (_process$env$DB_PASSW = process.env.DB_PASSWORD) !== null && _process$env$DB_PASSW !== void 0 ? _process$env$DB_PASSW : 'pgPassword'
+  host: (_process$env$DB_HOST = "localhost") !== null && _process$env$DB_HOST !== void 0 ? _process$env$DB_HOST : 'localhost',
+  port: (_process$env$DB_PORT = "5432") !== null && _process$env$DB_PORT !== void 0 ? _process$env$DB_PORT : '5432',
+  database: (_process$env$DB_NAME = "test") !== null && _process$env$DB_NAME !== void 0 ? _process$env$DB_NAME : 'test',
+  user: (_process$env$DB_USERN = "postgres") !== null && _process$env$DB_USERN !== void 0 ? _process$env$DB_USERN : 'postgres',
+  password: (_process$env$DB_PASSW = "pgPassword") !== null && _process$env$DB_PASSW !== void 0 ? _process$env$DB_PASSW : 'pgPassword'
 }); // Create a single database object for entire app.
 
-/* harmony default export */ __webpack_exports__["default"] = (database);
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (database);
 
 
 /***/ }),
@@ -420,14 +278,15 @@ const database = pgp({
 /*!************************************************!*\
   !*** ./source/server/database/sql-builders.js ***!
   \************************************************/
-/*! exports provided: buildValues, buildWhere, buildSet */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "buildValues", function() { return buildValues; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "buildWhere", function() { return buildWhere; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "buildSet", function() { return buildSet; });
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "buildValues": () => /* binding */ buildValues,
+/* harmony export */   "buildWhere": () => /* binding */ buildWhere,
+/* harmony export */   "buildSet": () => /* binding */ buildSet
+/* harmony export */ });
 /* harmony import */ var _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../shared/utility/index.js */ "./source/shared/utility/index.js");
 /* harmony import */ var _database_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./database.js */ "./source/server/database/database.js");
 
@@ -453,7 +312,7 @@ function buildValues(mappedEntity) {
   placeholders = placeholders.join(', ');
   placeholders = `(${placeholders})`; //? This should be able to format arrays just as any other value, otherwise the format is: ARRAY[value1, value2, ...].
 
-  return _database_js__WEBPACK_IMPORTED_MODULE_1__["pgp"].as.format(`${columns} VALUES ${placeholders}`, values);
+  return _database_js__WEBPACK_IMPORTED_MODULE_1__.pgp.as.format(`${columns} VALUES ${placeholders}`, values);
 }
 function buildWhere(mappedEntity) {
   if (Object.keys(mappedEntity).length === 0) {
@@ -466,8 +325,8 @@ function buildWhere(mappedEntity) {
   let pairs = [];
   pairs = Object.keys(mappedEntity).map(key => {
     // wrap array in another array so that pgp doesn't think its values are for separate placeholders
-    const input = _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].array.test(mappedEntity[key]) ? [mappedEntity[key]] : mappedEntity[key];
-    return _database_js__WEBPACK_IMPORTED_MODULE_1__["pgp"].as.format(`"${key}" = $1`, input); //! if the value here is undefined, it wont format, it will simply leave the string as '"key" = $1'
+    const input = _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__.rules.array.test(mappedEntity[key]) ? [mappedEntity[key]] : mappedEntity[key];
+    return _database_js__WEBPACK_IMPORTED_MODULE_1__.pgp.as.format(`"${key}" = $1`, input); //! if the value here is undefined, it wont format, it will simply leave the string as '"key" = $1'
   }); // Join with ' AND '
 
   return pairs.join(' AND ');
@@ -483,8 +342,8 @@ function buildSet(mappedEntity) {
   let pairs = []; // Pair as formatted string.
 
   pairs = Object.keys(mappedEntity).map(key => {
-    const input = _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].array.test(mappedEntity[key]) ? [mappedEntity[key]] : mappedEntity[key];
-    return _database_js__WEBPACK_IMPORTED_MODULE_1__["pgp"].as.format(`"${key}" = $1`, input);
+    const input = _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__.rules.array.test(mappedEntity[key]) ? [mappedEntity[key]] : mappedEntity[key];
+    return _database_js__WEBPACK_IMPORTED_MODULE_1__.pgp.as.format(`"${key}" = $1`, input);
   }); // Join with ', '
 
   return pairs.join(', ');
@@ -496,12 +355,13 @@ function buildSet(mappedEntity) {
 /*!******************************************!*\
   !*** ./source/server/entities/entity.js ***!
   \******************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Entity; });
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => /* binding */ Entity
+/* harmony export */ });
 /* harmony import */ var _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../shared/utility/index.js */ "./source/shared/utility/index.js");
 /* harmony import */ var _database_database_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../database/database.js */ "./source/server/database/database.js");
 /* harmony import */ var _shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../shared/entityParts/index.js */ "./source/shared/entityParts/index.js");
@@ -521,14 +381,14 @@ __webpack_require__.r(__webpack_exports__);
 
 class Entity {
   constructor(...args) {
-    _shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_2__["entityParts"].intercept(...args);
-    _shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_2__["entityParts"].instance(this, ...args);
+    _shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_2__.entityParts.intercept(...args);
+    _shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_2__.entityParts.instance(this, ...args);
   }
 
 }
-_shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_2__["entityParts"].prototype(Entity);
-_shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_2__["entityParts"].static(Entity);
-_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(Entity.prototype, {
+_shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_2__.entityParts.prototype(Entity);
+_shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_2__.entityParts.static(Entity);
+_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__.define.constant(Entity.prototype, {
   async add(...args) {
     return this.constructor.add(this, ...args);
   },
@@ -546,44 +406,44 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(Entity.
   }
 
 });
-_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].writable(Entity, {
+_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__.define.writable(Entity, {
   notify() {
     throw new Error('LiveData has not yet been initialized for client notifications.');
   }
 
 });
-_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(Entity, {
+_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__.define.constant(Entity, {
   // CRUD METHODS
   async add(query, {
-    db = _database_database_js__WEBPACK_IMPORTED_MODULE_1__["default"],
+    db = _database_database_js__WEBPACK_IMPORTED_MODULE_1__.default,
     includeMetadata = false
   } = {}) {
     return this.frame(db, query, 'add').then(result => includeMetadata ? result : result.data);
   },
 
   async get(query, {
-    db = _database_database_js__WEBPACK_IMPORTED_MODULE_1__["default"],
+    db = _database_database_js__WEBPACK_IMPORTED_MODULE_1__.default,
     includeMetadata = false
   } = {}) {
     return this.frame(db, query, 'get').then(result => includeMetadata ? result : result.data);
   },
 
   async edit(query, {
-    db = _database_database_js__WEBPACK_IMPORTED_MODULE_1__["default"],
+    db = _database_database_js__WEBPACK_IMPORTED_MODULE_1__.default,
     includeMetadata = false
   } = {}) {
     return this.frame(db, query, 'edit').then(result => includeMetadata ? result : result.data);
   },
 
   async remove(query, {
-    db = _database_database_js__WEBPACK_IMPORTED_MODULE_1__["default"],
+    db = _database_database_js__WEBPACK_IMPORTED_MODULE_1__.default,
     includeMetadata = false
   } = {}) {
     return this.frame(db, query, 'remove').then(result => includeMetadata ? result : result.data);
   },
 
   async getMimic(query, {
-    db = _database_database_js__WEBPACK_IMPORTED_MODULE_1__["default"]
+    db = _database_database_js__WEBPACK_IMPORTED_MODULE_1__.default
   } = {}) {
     // getMimic runs a query through the main database function to be formatted the exact same as any result from a get query, the difference is that it doesn't execute any SQL and returns the data that would be set off in liveData.notify()
     return this.frame(db, query, 'getMimic');
@@ -593,13 +453,13 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(Entity,
   async frame(db, anyEntities, methodName) {
     // catch Entity
     if (this === Entity) {
-      throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_5__["CustomError"]({
+      throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_5__.CustomError({
         message: `cannot call CRUD method directly on Entity`
       });
     } // cast as array
 
 
-    const entities = Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"])(anyEntities); // shorthand
+    const entities = (0,_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__.any)(anyEntities); // shorthand
 
     const isGetMimic = methodName === 'getMimic'; // store getMimic
 
@@ -613,11 +473,11 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(Entity,
       // process
       const beforeEntities = await this[methodName + 'Before'](t, entities, accessory); // validate
 
-      const validatedEntities = await Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"])(beforeEntities, async entity => this.validate(entity, methodName).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_3__["default"])).catch(_shared_errors_index_js__WEBPACK_IMPORTED_MODULE_5__["MultipleErrors"].throw); // prepare
+      const validatedEntities = await (0,_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__.asyncMap)(beforeEntities, async entity => this.validate(entity, methodName).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_3__.default)).catch(_shared_errors_index_js__WEBPACK_IMPORTED_MODULE_5__.MultipleErrors.throw); // prepare
 
-      const preparedEntities = await Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"])(validatedEntities, async entity => this[methodName + 'Prepare'](t, entity, accessory).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_3__["default"])).catch(_shared_errors_index_js__WEBPACK_IMPORTED_MODULE_5__["MultipleErrors"].throw); // accommodate
+      const preparedEntities = await (0,_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__.asyncMap)(validatedEntities, async entity => this[methodName + 'Prepare'](t, entity, accessory).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_3__.default)).catch(_shared_errors_index_js__WEBPACK_IMPORTED_MODULE_5__.MultipleErrors.throw); // accommodate
 
-      const influencedEntities = isGet ? [] : await this[methodName + 'Accommodate'](t, preparedEntities, accessory).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_3__["default"]); // map
+      const influencedEntities = isGet ? [] : await this[methodName + 'Accommodate'](t, preparedEntities, accessory).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_3__.default); // map
 
       const inputMapped = this.mapColumns(preparedEntities);
       const influencedMapped = isGet ? [] : this.mapColumns(influencedEntities); // execute SQL for inputs
@@ -626,17 +486,17 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(Entity,
       const inputAfter = isGetMimic ? inputMapped : [];
 
       if (!isGetMimic) {
-        await Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"])(inputMapped, async entity => {
+        await (0,_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__.asyncMap)(inputMapped, async entity => {
           // before, ignore add
           if (!isGet && methodName !== 'add') {
-            const before = await this.getQuery(t, Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["pick"])(entity, this.filters.id)).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"]).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_3__["default"]);
+            const before = await this.getQuery(t, (0,_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__.pick)(entity, this.filters.id)).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__.any).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_3__.default);
             inputBefore.push(...before);
           } // after, ignore remove (still needs to execute though)
 
 
-          const after = await this[methodName + 'Query'](t, entity).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"]).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_3__["default"]);
+          const after = await this[methodName + 'Query'](t, entity).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__.any).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_3__.default);
           if (methodName !== 'remove') inputAfter.push(...after);
-        }).catch(_shared_errors_index_js__WEBPACK_IMPORTED_MODULE_5__["MultipleErrors"].throw);
+        }).catch(_shared_errors_index_js__WEBPACK_IMPORTED_MODULE_5__.MultipleErrors.throw);
       } // execute SQL for influenced
 
 
@@ -644,12 +504,12 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(Entity,
       const influencedAfter = [];
 
       if (!isGet) {
-        await Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"])(influencedMapped, async influencedEntity => {
-          const before = await this.getQuery(t, Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["pick"])(influencedEntity, this.filters.id)).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"]).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_3__["default"]);
+        await (0,_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__.asyncMap)(influencedMapped, async influencedEntity => {
+          const before = await this.getQuery(t, (0,_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__.pick)(influencedEntity, this.filters.id)).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__.any).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_3__.default);
           influencedBefore.push(...before);
-          const after = await this.editQuery(t, influencedEntity).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"]).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_3__["default"]);
+          const after = await this.editQuery(t, influencedEntity).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__.any).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_3__.default);
           influencedAfter.push(...after);
-        }).catch(_shared_errors_index_js__WEBPACK_IMPORTED_MODULE_5__["MultipleErrors"].throw);
+        }).catch(_shared_errors_index_js__WEBPACK_IMPORTED_MODULE_5__.MultipleErrors.throw);
       } // group for iteration
 
 
@@ -657,11 +517,11 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(Entity,
 
       const unmapped = all.map(list => this.unmapColumns(list)); // process
 
-      return Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"])(unmapped, async list => this[methodName + 'After'](t, list, accessory).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_3__["default"])).catch(_shared_errors_index_js__WEBPACK_IMPORTED_MODULE_5__["MultipleErrors"].throw);
-    }).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_3__["default"]); //! finish the transaction here so that notify won't be called before the database has updated
+      return (0,_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__.asyncMap)(unmapped, async list => this[methodName + 'After'](t, list, accessory).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_3__.default)).catch(_shared_errors_index_js__WEBPACK_IMPORTED_MODULE_5__.MultipleErrors.throw);
+    }).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_3__.default); //! finish the transaction here so that notify won't be called before the database has updated
     // shake for subscriptions with getOut filter
 
-    const shookGet = after.map(list => Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"])(list).map(item => Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["pick"])(item, this.filters.getOut))); // timestamp, used for ignoring duplicate notifications in the case of before and after edits, and overlapping queries
+    const shookGet = after.map(list => (0,_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__.any)(list).map(item => (0,_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__.pick)(item, this.filters.getOut))); // timestamp, used for ignoring duplicate notifications in the case of before and after edits, and overlapping queries
 
     const timestamp = Date.now(); // if get, don't notify
 
@@ -675,10 +535,10 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(Entity,
     } // shake for return
 
 
-    const shook = after.map(list => Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"])(list).map(item => Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["pick"])(item, this.filters[methodName + 'Out']))); // rebuild
+    const shook = after.map(list => (0,_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__.any)(list).map(item => (0,_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__.pick)(item, this.filters[methodName + 'Out']))); // rebuild
 
     const built = shook.map(list => list.map(entity => new this(entity)));
-    return new _shared_timestamped_data_js__WEBPACK_IMPORTED_MODULE_6__["default"]({
+    return new _shared_timestamped_data_js__WEBPACK_IMPORTED_MODULE_6__.default({
       //R content is the inputAfter, for removals this will be an empty array, if in the future some 'undo' functionality is needed consider: returned data should still be filtered by removeOut, and therefore might destroy data if this returned data is used to restore it
       data: built[1],
       timestamp
@@ -693,7 +553,7 @@ async function baseBefore(t, entities) {
   return entities.slice();
 }
 
-_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(Entity, {
+_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__.define.constant(Entity, {
   addBefore: baseBefore,
   getBefore: baseBefore,
   editBefore: baseBefore,
@@ -702,7 +562,7 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(Entity,
   // Validates each using Entity.schema
   async validate(entity, methodName) {
     const validated = {};
-    await Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"])(Object.keys(this.schema), async key => {
+    await (0,_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__.asyncMap)(Object.keys(this.schema), async key => {
       const {
         rule: validator,
         [methodName]: {
@@ -711,14 +571,14 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(Entity,
       } = this.schema[key];
       const isRequired = check === 2;
       const isOptional = check === 1;
-      _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].func.validate(validator);
+      _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__.rules.func.validate(validator);
       const value = entity[key];
 
       if (isRequired || isOptional && !(value === undefined || value === null)) {
         await validator(value);
         validated[key] = value;
       }
-    }).catch(_shared_errors_index_js__WEBPACK_IMPORTED_MODULE_5__["MultipleErrors"].throw);
+    }).catch(_shared_errors_index_js__WEBPACK_IMPORTED_MODULE_5__.MultipleErrors.throw);
     return validated;
   }
 
@@ -729,7 +589,7 @@ async function basePrepare(t, entity) {
   };
 }
 
-_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(Entity, {
+_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__.define.constant(Entity, {
   addPrepare: basePrepare,
   getPrepare: basePrepare,
   editPrepare: basePrepare,
@@ -740,7 +600,7 @@ async function baseAccommodate() {
   return [];
 }
 
-_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(Entity, {
+_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__.define.constant(Entity, {
   addAccommodate: baseAccommodate,
   getAccommodate: baseAccommodate,
   editAccommodate: baseAccommodate,
@@ -754,7 +614,7 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(Entity,
       const mappedEntity = {};
       Object.keys(entity).forEach(key => {
         // For each property.
-        if (_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].object.test(this.schema[key]) && _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].string.test(this.schema[key].columnName)) {
+        if (_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__.rules.object.test(this.schema[key]) && _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__.rules.string.test(this.schema[key].columnName)) {
           // If schema has property.
           mappedEntity[this.schema[key].columnName] = entity[key]; // Set mappedEntity[columnName] as property value.
         } else {
@@ -774,7 +634,7 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(Entity,
         // For each columnName.
         const key = Object.keys(this.schema).find(key => this.schema[key].columnName === columnName); // Find key in schema with same columnName.
 
-        if (_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].string.test(key)) {
+        if (_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__.rules.string.test(key)) {
           // Set entity[key] as value of mappedEntity[columnName].
           entity[key] = mappedEntity[columnName];
         } else {
@@ -790,7 +650,7 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(Entity,
 
   // Executes SQL queries.
   async addQuery(t, mappedEntity) {
-    const values = Object(_database_sql_builders_js__WEBPACK_IMPORTED_MODULE_4__["buildValues"])(mappedEntity); //? is returning * still needed when a final SELECT will be called? //TODO also remember to shake off undesired columns, like passwords
+    const values = (0,_database_sql_builders_js__WEBPACK_IMPORTED_MODULE_4__.buildValues)(mappedEntity); //? is returning * still needed when a final SELECT will be called? //TODO also remember to shake off undesired columns, like passwords
     //L use where clause as raw: https://github.com/vitaly-t/pg-promise#raw-text
 
     return t.one(`
@@ -798,7 +658,7 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(Entity,
 			$1:raw 
 			RETURNING *
 		`, [values]).catch(rejected => {
-      throw new _errors_postgres_error_js__WEBPACK_IMPORTED_MODULE_7__["default"]({
+      throw new _errors_postgres_error_js__WEBPACK_IMPORTED_MODULE_7__.default({
         postgresError: rejected,
         userMessage: `Could not add ${this.name}s.`
       });
@@ -806,14 +666,14 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(Entity,
   },
 
   async getQuery(t, mappedEntity) {
-    const where = Object(_database_sql_builders_js__WEBPACK_IMPORTED_MODULE_4__["buildWhere"])(mappedEntity);
+    const where = (0,_database_sql_builders_js__WEBPACK_IMPORTED_MODULE_4__.buildWhere)(mappedEntity);
     return t.any(`
 			SELECT * 
 			FROM "sj"."${this.table}" 
 			WHERE $1:raw
 			${this.queryOrder}
 		`, [where]).catch(rejected => {
-      throw new _errors_postgres_error_js__WEBPACK_IMPORTED_MODULE_7__["default"]({
+      throw new _errors_postgres_error_js__WEBPACK_IMPORTED_MODULE_7__.default({
         postgresError: rejected,
         userMessage: `Could not get ${this.name}s.`
       });
@@ -825,8 +685,8 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(Entity,
       id,
       ...mappedEntitySet
     } = mappedEntity;
-    const set = Object(_database_sql_builders_js__WEBPACK_IMPORTED_MODULE_4__["buildSet"])(mappedEntitySet);
-    const where = Object(_database_sql_builders_js__WEBPACK_IMPORTED_MODULE_4__["buildWhere"])({
+    const set = (0,_database_sql_builders_js__WEBPACK_IMPORTED_MODULE_4__.buildSet)(mappedEntitySet);
+    const where = (0,_database_sql_builders_js__WEBPACK_IMPORTED_MODULE_4__.buildWhere)({
       id
     });
     return t.one(`
@@ -835,7 +695,7 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(Entity,
 			WHERE $2:raw 
 			RETURNING *
 		`, [set, where]).catch(rejected => {
-      throw new _errors_postgres_error_js__WEBPACK_IMPORTED_MODULE_7__["default"]({
+      throw new _errors_postgres_error_js__WEBPACK_IMPORTED_MODULE_7__.default({
         postgresError: rejected,
         userMessage: `Could not edit ${this.name}s.`
       });
@@ -843,13 +703,13 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(Entity,
   },
 
   async removeQuery(t, mappedEntity) {
-    const where = Object(_database_sql_builders_js__WEBPACK_IMPORTED_MODULE_4__["buildWhere"])(mappedEntity);
+    const where = (0,_database_sql_builders_js__WEBPACK_IMPORTED_MODULE_4__.buildWhere)(mappedEntity);
     return t.one(`
 			DELETE FROM "sj"."${this.table}" 
 			WHERE $1:raw 
 			RETURNING *
 		`, where).catch(rejected => {
-      throw new _errors_postgres_error_js__WEBPACK_IMPORTED_MODULE_7__["default"]({
+      throw new _errors_postgres_error_js__WEBPACK_IMPORTED_MODULE_7__.default({
         postgresError: rejected,
         userMessage: `Could not remove ${this.name}s.`
       });
@@ -862,7 +722,7 @@ async function baseAfter(t, entities) {
   return entities.slice();
 }
 
-_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(Entity, {
+_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__.define.constant(Entity, {
   addAfter: baseAfter,
   getAfter: baseAfter,
   editAfter: baseAfter,
@@ -875,23 +735,20 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(Entity,
 /*!*****************************************!*\
   !*** ./source/server/entities/index.js ***!
   \*****************************************/
-/*! exports provided: Entity, Playlist, Track, User */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "Entity": () => /* reexport safe */ _entity_js__WEBPACK_IMPORTED_MODULE_0__.default,
+/* harmony export */   "Playlist": () => /* reexport safe */ _playlist_js__WEBPACK_IMPORTED_MODULE_1__.default,
+/* harmony export */   "Track": () => /* reexport safe */ _track_js__WEBPACK_IMPORTED_MODULE_2__.default,
+/* harmony export */   "User": () => /* reexport safe */ _user_js__WEBPACK_IMPORTED_MODULE_3__.default
+/* harmony export */ });
 /* harmony import */ var _entity_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./entity.js */ "./source/server/entities/entity.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Entity", function() { return _entity_js__WEBPACK_IMPORTED_MODULE_0__["default"]; });
-
 /* harmony import */ var _playlist_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./playlist.js */ "./source/server/entities/playlist.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Playlist", function() { return _playlist_js__WEBPACK_IMPORTED_MODULE_1__["default"]; });
-
 /* harmony import */ var _track_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./track.js */ "./source/server/entities/track.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Track", function() { return _track_js__WEBPACK_IMPORTED_MODULE_2__["default"]; });
-
 /* harmony import */ var _user_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./user.js */ "./source/server/entities/user.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "User", function() { return _user_js__WEBPACK_IMPORTED_MODULE_3__["default"]; });
-
 
 
 
@@ -903,29 +760,30 @@ __webpack_require__.r(__webpack_exports__);
 /*!********************************************!*\
   !*** ./source/server/entities/playlist.js ***!
   \********************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Playlist; });
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => /* binding */ Playlist
+/* harmony export */ });
 /* harmony import */ var _shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../shared/entityParts/index.js */ "./source/shared/entityParts/index.js");
 /* harmony import */ var _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../shared/utility/index.js */ "./source/shared/utility/index.js");
 /* harmony import */ var _entity_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./entity.js */ "./source/server/entities/entity.js");
 
 
 
-class Playlist extends _entity_js__WEBPACK_IMPORTED_MODULE_2__["default"] {
+class Playlist extends _entity_js__WEBPACK_IMPORTED_MODULE_2__.default {
   constructor(...args) {
-    _shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_0__["playlistParts"].intercept(...args);
+    _shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_0__.playlistParts.intercept(...args);
     super(...args);
-    _shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_0__["playlistParts"].instance(this, ...args);
+    _shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_0__.playlistParts.instance(this, ...args);
   }
 
 }
-_shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_0__["playlistParts"].prototype(Playlist);
-_shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_0__["playlistParts"].static(Playlist);
-_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].constant(Playlist, {
+_shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_0__.playlistParts.prototype(Playlist);
+_shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_0__.playlistParts.static(Playlist);
+_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__.define.constant(Playlist, {
   queryOrder: 'ORDER BY "userId" ASC, "id" ASC'
 });
 
@@ -935,12 +793,13 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].constant(Playlis
 /*!*****************************************!*\
   !*** ./source/server/entities/track.js ***!
   \*****************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Track; });
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => /* binding */ Track
+/* harmony export */ });
 /* harmony import */ var _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../shared/utility/index.js */ "./source/shared/utility/index.js");
 /* harmony import */ var _database_database_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../database/database.js */ "./source/server/database/database.js");
 /* harmony import */ var _server_source_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../server/source.js */ "./source/server/source.js");
@@ -960,27 +819,27 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-class Track extends _entity_js__WEBPACK_IMPORTED_MODULE_7__["default"] {
+class Track extends _entity_js__WEBPACK_IMPORTED_MODULE_7__.default {
   constructor(...args) {
-    _shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_3__["trackParts"].intercept(...args);
+    _shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_3__.trackParts.intercept(...args);
     super(...args);
-    _shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_3__["trackParts"].instance(this, ...args);
+    _shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_3__.trackParts.instance(this, ...args);
     const [{
       source
     }] = args;
-    Object(_shared_entityParts_track_js__WEBPACK_IMPORTED_MODULE_4__["validateSource"])({
+    (0,_shared_entityParts_track_js__WEBPACK_IMPORTED_MODULE_4__.validateSource)({
       instance: this,
-      SourceClass: _server_source_js__WEBPACK_IMPORTED_MODULE_2__["default"],
+      SourceClass: _server_source_js__WEBPACK_IMPORTED_MODULE_2__.default,
       value: source
     });
   }
 
 }
-_shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_3__["trackParts"].prototype(Track);
-_shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_3__["trackParts"].static(Track);
-_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(Track.prototype, {
-  async order(db = _database_database_js__WEBPACK_IMPORTED_MODULE_1__["default"]) {
-    return this.constructor.order(db, Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"])(this));
+_shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_3__.trackParts.prototype(Track);
+_shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_3__.trackParts.static(Track);
+_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__.define.constant(Track.prototype, {
+  async order(db = _database_database_js__WEBPACK_IMPORTED_MODULE_1__.default) {
+    return this.constructor.order(db, (0,_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__.any)(this));
   }
 
 }); // CRUD
@@ -989,12 +848,12 @@ async function baseBefore(t, entities) {
   const newEntities = entities.slice();
   newEntities.forEach(entity => {
     //TODO Possible issue here where the condition following && could evaluate first. Not sure what the precedent is.
-    entity.source = _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].object.test(entity.source) && _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].string.test(entity.source.name) ? entity.source.name : undefined;
+    entity.source = _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__.rules.object.test(entity.source) && _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__.rules.string.test(entity.source.name) ? entity.source.name : undefined;
   });
   return newEntities;
 }
 
-_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(Track, {
+_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__.define.constant(Track, {
   addBefore: baseBefore,
   getBefore: baseBefore,
   editBefore: baseBefore,
@@ -1006,7 +865,7 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(Track, 
       id: Symbol()
     };
 
-    if (!_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].integer.test(newTrack.position)) {
+    if (!_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__.rules.integer.test(newTrack.position)) {
       const existingTracks = await Track.get({
         playlistId: newTrack.playlistId
       }, {
@@ -1033,15 +892,15 @@ async function baseAccommodate(t, tracks) {
   //L deferrable constraints  https://www.postgresql.org/docs/9.1/static/sql-set-constraints.html
   //L https://stackoverflow.com/questions/2679854/postgresql-disabling-constraints
   await t.none(`SET CONSTRAINTS "sj"."tracks_playlistId_position_key" DEFERRED`).catch(rejected => {
-    throw new _errors_postgres_error_js__WEBPACK_IMPORTED_MODULE_8__["default"]({
+    throw new _errors_postgres_error_js__WEBPACK_IMPORTED_MODULE_8__.default({
       postgresError: rejected,
       userMessage: 'Could not order tracks, a database error has occurred.'
     });
   });
-  return this.order(t, tracks).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_5__["default"]);
+  return this.order(t, tracks).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_5__.default);
 }
 
-_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(Track, {
+_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__.define.constant(Track, {
   addAccommodate: baseAccommodate,
   editAccommodate: baseAccommodate,
   removeAccommodate: baseAccommodate
@@ -1050,12 +909,12 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(Track, 
 async function baseAfter(t, entities) {
   const newEntities = entities.slice();
   newEntities.forEach(entity => {
-    entity.source = _server_source_js__WEBPACK_IMPORTED_MODULE_2__["default"].instances.find(source => source.name === entity.source);
+    entity.source = _server_source_js__WEBPACK_IMPORTED_MODULE_2__.default.instances.find(source => source.name === entity.source);
   });
   return newEntities;
 }
 
-_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(Track, {
+_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__.define.constant(Track, {
   addAfter: baseAfter,
   getAfter: baseAfter,
   editAfter: baseAfter,
@@ -1074,8 +933,8 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(Track, 
     // in the case of repositioned tracks that still overlap with other input tracks, all will be repositioned in order of input position
     // filter out tracks
     let inputTracks = tracks.filter(track => // without an id (including symbol)
-    (_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].number.test(track.id) || typeof track.id === 'symbol') && ( // and without a position (including null) or playlistId
-    _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].number.test(track.position) || track.position === null || _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].number.test(track.playlistId))); // filter out duplicate tracks (by id, keeping last), by filtering for tracks where every track after does not have the same id
+    (_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__.rules.number.test(track.id) || typeof track.id === 'symbol') && ( // and without a position (including null) or playlistId
+    _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__.rules.number.test(track.position) || track.position === null || _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__.rules.number.test(track.playlistId))); // filter out duplicate tracks (by id, keeping last), by filtering for tracks where every track after does not have the same id
 
     inputTracks = inputTracks.filter((track, index, self) => self.slice(index + 1).every(trackAfter => track.id !== trackAfter.id)); // return early if none are moving
 
@@ -1089,16 +948,16 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(Track, 
       const influencedTracks = [];
       const inputIndex = Symbol(); // retrieve track's playlist, group each track by playlist & moveType
 
-      await Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"])(inputTracks, async (track, index) => {
+      await (0,_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__.asyncMap)(inputTracks, async (track, index) => {
         const storePlaylist = function (playlistId, existingTracks) {
-          if (!_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].integer.test(playlistId)) {
-            throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_6__["CustomError"]({
+          if (!_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__.rules.integer.test(playlistId)) {
+            throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_6__.CustomError({
               message: `playlistId is not an integer: ${playlistId}`
             });
           }
 
-          if (!_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].array.test(existingTracks)) {
-            throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_6__["CustomError"]({
+          if (!_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__.rules.array.test(existingTracks)) {
+            throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_6__.CustomError({
               message: `existingTracks is not an array: ${existingTracks}`
             });
           } // stores playlist in playlists if not already stored
@@ -1136,11 +995,11 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(Track, 
         //L sub-query = vs IN: https://stackoverflow.com/questions/13741582/differences-between-equal-sign-and-in-with-subquery
 
 
-        const currentQuery = action === 'Add' ? _database_database_js__WEBPACK_IMPORTED_MODULE_1__["pgp"].as.format(`
+        const currentQuery = action === 'Add' ? _database_database_js__WEBPACK_IMPORTED_MODULE_1__.pgp.as.format(`
 						SELECT "id", "position", "playlistId"
 						FROM "sj"."tracks" 
 						WHERE "playlistId" = $1
-					`, track.playlistId) : _database_database_js__WEBPACK_IMPORTED_MODULE_1__["pgp"].as.format(`
+					`, track.playlistId) : _database_database_js__WEBPACK_IMPORTED_MODULE_1__.pgp.as.format(`
 						SELECT "id", "position", "playlistId"
 						FROM "sj"."tracks" 
 						WHERE "playlistId" = (
@@ -1150,7 +1009,7 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(Track, 
 						)
 				`, track.id);
         const currentPlaylist = await t.any('$1:raw', currentQuery).catch(rejected => {
-          throw new _errors_postgres_error_js__WEBPACK_IMPORTED_MODULE_8__["default"]({
+          throw new _errors_postgres_error_js__WEBPACK_IMPORTED_MODULE_8__.default({
             postgresError: rejected,
             userMessage: 'Could not move tracks.'
           });
@@ -1163,7 +1022,7 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(Track, 
           delete t.playlistId;
         });
 
-        if (!_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].integer.test(track.playlistId) || track.playlistId === currentPlaylistStored.id) {
+        if (!_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__.rules.integer.test(track.playlistId) || track.playlistId === currentPlaylistStored.id) {
           // if not switching playlists
           // group by action
           currentPlaylistStored['inputsTo' + action].push(track);
@@ -1175,7 +1034,7 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(Track, 
 						FROM "sj"."tracks" 
 						WHERE "playlistId" = $1
 					`, track.playlistId).catch(rejected => {
-            throw new _errors_postgres_error_js__WEBPACK_IMPORTED_MODULE_8__["default"]({
+            throw new _errors_postgres_error_js__WEBPACK_IMPORTED_MODULE_8__.default({
               postgresError: rejected,
               userMessage: 'Could not move tracks.'
             });
@@ -1189,7 +1048,7 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(Track, 
           anotherPlaylistStored.inputsToAdd.push(track);
         }
       }).catch(rejected => {
-        throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_6__["MultipleErrors"]({
+        throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_6__.MultipleErrors({
           userMessage: `could not retrieve some track's playlist`,
           errors: rejected
         });
@@ -1205,15 +1064,15 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(Track, 
         playlist.inputsToPosition = [...playlist.inputsToAdd, ...playlist.inputsToMove]; // give tracks with no position an Infinite position so they get added to the bottom of the playlist
 
         playlist.inputsToPosition.forEach(trackToPosition => {
-          if (!_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].number.test(trackToPosition.position)) {
+          if (!_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__.rules.number.test(trackToPosition.position)) {
             trackToPosition.position === Infinity;
           }
         }); // sort
 
-        Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["stableSort"])(playlist.others, (a, b) => a.position - b.position); // stable sort by inputIndex then position to resolve clashes by position then inputIndex
+        (0,_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__.stableSort)(playlist.others, (a, b) => a.position - b.position); // stable sort by inputIndex then position to resolve clashes by position then inputIndex
 
-        Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["stableSort"])(playlist.inputsToPosition, (a, b) => a[inputIndex] - b[inputIndex]);
-        Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["stableSort"])(playlist.inputsToPosition, (a, b) => a.position - b.position); // console.log('playlist.inputsToAdd.length:', playlist.inputsToAdd.length);
+        (0,_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__.stableSort)(playlist.inputsToPosition, (a, b) => a[inputIndex] - b[inputIndex]);
+        (0,_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__.stableSort)(playlist.inputsToPosition, (a, b) => a.position - b.position); // console.log('playlist.inputsToAdd.length:', playlist.inputsToAdd.length);
         // console.log('playlist.inputsToRemove.length:', playlist.inputsToRemove.length);
         // console.log('playlist.inputsToMove.length:', playlist.inputsToMove.length, '\n ---');
         // console.log('playlist.inputsToPosition.length:', playlist.inputsToPosition.length, '\n ---');
@@ -1329,14 +1188,14 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(Track, 
 /*!****************************************!*\
   !*** ./source/server/entities/user.js ***!
   \****************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return User; });
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => /* binding */ User
+/* harmony export */ });
 /* harmony import */ var bcryptjs__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! bcryptjs */ "bcryptjs");
-/* harmony import */ var bcryptjs__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(bcryptjs__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../shared/utility/index.js */ "./source/shared/utility/index.js");
 /* harmony import */ var _shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../shared/entityParts/index.js */ "./source/shared/entityParts/index.js");
 /* harmony import */ var _constants_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../constants.js */ "./source/server/constants.js");
@@ -1353,26 +1212,26 @@ __webpack_require__.r(__webpack_exports__);
 
 
 const serverRegistryId = 'User';
-class User extends _entity_js__WEBPACK_IMPORTED_MODULE_4__["default"] {
+class User extends _entity_js__WEBPACK_IMPORTED_MODULE_4__.default {
   constructor(...args) {
-    _shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_2__["userParts"].intercept(...args);
+    _shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_2__.userParts.intercept(...args);
     super(...args);
-    _shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_2__["userParts"].instance(this, ...args);
-    _server_registry_js__WEBPACK_IMPORTED_MODULE_6__["default"].defineId(this, serverRegistryId);
+    _shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_2__.userParts.instance(this, ...args);
+    _server_registry_js__WEBPACK_IMPORTED_MODULE_6__.default.defineId(this, serverRegistryId);
   }
 
 }
-_shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_2__["userParts"].prototype(User);
-_shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_2__["userParts"].static(User);
-_server_registry_js__WEBPACK_IMPORTED_MODULE_6__["default"].register(User, serverRegistryId);
+_shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_2__.userParts.prototype(User);
+_shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_2__.userParts.static(User);
+_server_registry_js__WEBPACK_IMPORTED_MODULE_6__.default.register(User, serverRegistryId);
 
 async function basePrepare(t, user) {
   const newUser = new User(user); // Hash password.
   //TODO might be a vulnerability here with this string check
 
-  if (_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].string.test(newUser.password)) {
-    newUser.password = await bcryptjs__WEBPACK_IMPORTED_MODULE_0___default.a.hash(newUser.password, _constants_js__WEBPACK_IMPORTED_MODULE_3__["PASSWORD_SALT_ROUNDS"]).catch(rejected => {
-      throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_5__["InvalidStateError"]({
+  if (_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__.rules.string.test(newUser.password)) {
+    newUser.password = await bcryptjs__WEBPACK_IMPORTED_MODULE_0__.hash(newUser.password, _constants_js__WEBPACK_IMPORTED_MODULE_3__.PASSWORD_SALT_ROUNDS).catch(rejected => {
+      throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_5__.InvalidStateError({
         userMessage: 'failed to add user',
         message: 'hash failed',
         state: rejected
@@ -1383,7 +1242,7 @@ async function basePrepare(t, user) {
   return newUser;
 }
 
-_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].constant(User, {
+_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__.define.constant(User, {
   addPrepare: basePrepare,
   editPrepare: basePrepare,
   queryOrder: 'ORDER BY "id" ASC'
@@ -1395,12 +1254,13 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].constant(User, {
 /*!************************************************!*\
   !*** ./source/server/errors/postgres-error.js ***!
   \************************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return PostgresError; });
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => /* binding */ PostgresError
+/* harmony export */ });
 /* harmony import */ var _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../shared/errors/index.js */ "./source/shared/errors/index.js");
 /* harmony import */ var _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../shared/utility/index.js */ "./source/shared/utility/index.js");
 //TODO any validation needed here?
@@ -1408,7 +1268,7 @@ __webpack_require__.r(__webpack_exports__);
 //TODO add targets and cssClasses to each violation case too
 
 
-class PostgresError extends _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_0__["CustomError"] {
+class PostgresError extends _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_0__.CustomError {
   constructor({
     postgresError: {
       message,
@@ -1442,7 +1302,7 @@ class PostgresError extends _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_0__
       }
     }
 
-    _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].constant(this, {
+    _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__.define.constant(this, {
       code
     });
   }
@@ -1455,15 +1315,15 @@ class PostgresError extends _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_0__
 /*!*******************************************!*\
   !*** ./source/server/live-data-server.js ***!
   \*******************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => __WEBPACK_DEFAULT_EXPORT__
+/* harmony export */ });
 /* harmony import */ var http__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! http */ "http");
-/* harmony import */ var http__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(http__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var fclone__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! fclone */ "fclone");
-/* harmony import */ var fclone__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(fclone__WEBPACK_IMPORTED_MODULE_1__);
 /* harmony import */ var _shared_utility_object_deep_compare_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../shared/utility/object/deep-compare.js */ "./source/shared/utility/object/deep-compare.js");
 /* harmony import */ var _entities_index_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./entities/index.js */ "./source/server/entities/index.js");
 /* harmony import */ var _shared_live_data_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../shared/live-data.js */ "./source/shared/live-data.js");
@@ -1496,11 +1356,11 @@ __webpack_require__.r(__webpack_exports__);
 
 class Subscription {
   constructor(options = {}) {
-    _shared_live_data_js__WEBPACK_IMPORTED_MODULE_4__["subscriptionParts"].instance(this, options);
+    _shared_live_data_js__WEBPACK_IMPORTED_MODULE_4__.subscriptionParts.instance(this, options);
     const {
       user = null
     } = options;
-    _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_6__["define"].writable(this, {
+    _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_6__.define.writable(this, {
       user
     });
   }
@@ -1510,10 +1370,10 @@ class Subscription {
 const liveDataServer = {
   app: null,
   socket: null,
-  tables: _shared_live_data_js__WEBPACK_IMPORTED_MODULE_4__["LiveTable"].makeTables({
-    User: _entities_index_js__WEBPACK_IMPORTED_MODULE_3__["User"],
-    Playlist: _entities_index_js__WEBPACK_IMPORTED_MODULE_3__["Playlist"],
-    Track: _entities_index_js__WEBPACK_IMPORTED_MODULE_3__["Track"]
+  tables: _shared_live_data_js__WEBPACK_IMPORTED_MODULE_4__.LiveTable.makeTables({
+    User: _entities_index_js__WEBPACK_IMPORTED_MODULE_3__.User,
+    Playlist: _entities_index_js__WEBPACK_IMPORTED_MODULE_3__.Playlist,
+    Track: _entities_index_js__WEBPACK_IMPORTED_MODULE_3__.Track
   }),
 
   start({
@@ -1529,7 +1389,7 @@ const liveDataServer = {
       //L https://github.com/koajs/session/issues/53#issuecomment-311601304
       //! //? socket.session is static, whereas koa ctx.session is dynamic, that is I'm not sure that this is linked in any way to the cookie session
       //L https://socket.io/docs/server-api/#namespace-use-fn
-      socket.session = this.app.createContext(socket.request, new http__WEBPACK_IMPORTED_MODULE_0___default.a.OutgoingMessage()).session;
+      socket.session = this.app.createContext(socket.request, new http__WEBPACK_IMPORTED_MODULE_0__.OutgoingMessage()).session;
       next();
     });
     this.socket.on('connect', socket => {
@@ -1537,7 +1397,7 @@ const liveDataServer = {
         console.log('CONNECT', socket.id); // If user is logged in, give the socketId to the session.
         //! I don't think the cookie session receives this, though it isn't needed there so far.
 
-        if (_server_registry_js__WEBPACK_IMPORTED_MODULE_10__["default"].autoConstruct(socket.session.user) instanceof _entities_index_js__WEBPACK_IMPORTED_MODULE_3__["User"]) {
+        if (_server_registry_js__WEBPACK_IMPORTED_MODULE_10__.default.autoConstruct(socket.session.user) instanceof _entities_index_js__WEBPACK_IMPORTED_MODULE_3__.User) {
           socket.session.user.socketId = socket.id;
         }
 
@@ -1549,11 +1409,11 @@ const liveDataServer = {
               console.error('subscription disconnect error:', rejected);
             }); //? socket won't be used anymore, so does anything really need to be deleted here?
 
-            if (_server_registry_js__WEBPACK_IMPORTED_MODULE_10__["default"].autoConstruct(socket.session.user) instanceof _entities_index_js__WEBPACK_IMPORTED_MODULE_3__["User"]) {
-              socket.session.user.socketId = _shared_entityParts_user_js__WEBPACK_IMPORTED_MODULE_7__["defaultSocketId"];
+            if (_server_registry_js__WEBPACK_IMPORTED_MODULE_10__.default.autoConstruct(socket.session.user) instanceof _entities_index_js__WEBPACK_IMPORTED_MODULE_3__.User) {
+              socket.session.user.socketId = _shared_entityParts_user_js__WEBPACK_IMPORTED_MODULE_7__.defaultSocketId;
             }
           } catch (error) {
-            Object(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_5__["logPropagate"])(error);
+            (0,_shared_propagate_js__WEBPACK_IMPORTED_MODULE_5__.logPropagate)(error);
           }
         });
         socket.on('subscribe', async ({
@@ -1564,17 +1424,17 @@ const liveDataServer = {
             console.log('SUBSCRIBE', socket.id); // if user is not logged in, create an empty user with just it's socketId (this is how subscribers are identified)
             //TODO socketId validator, this is all that really matters here
 
-            const user = _server_registry_js__WEBPACK_IMPORTED_MODULE_10__["default"].autoConstruct(socket.session.user) instanceof _entities_index_js__WEBPACK_IMPORTED_MODULE_3__["User"] ? socket.session.user : new _entities_index_js__WEBPACK_IMPORTED_MODULE_3__["User"]({
+            const user = _server_registry_js__WEBPACK_IMPORTED_MODULE_10__.default.autoConstruct(socket.session.user) instanceof _entities_index_js__WEBPACK_IMPORTED_MODULE_3__.User ? socket.session.user : new _entities_index_js__WEBPACK_IMPORTED_MODULE_3__.User({
               socketId: socket.id
             }); //! using LiveTable.tableToEntity(table) instead of just a table string so that the function can basically function as a validator
 
-            const result = await this.add(_shared_live_data_js__WEBPACK_IMPORTED_MODULE_4__["LiveTable"].tableToEntity(table), query, user); //! //G Do not send back circular data in the acknowledgment callback, SocketIO will cause a stack overflow.
+            const result = await this.add(_shared_live_data_js__WEBPACK_IMPORTED_MODULE_4__.LiveTable.tableToEntity(table), query, user); //! //G Do not send back circular data in the acknowledgment callback, SocketIO will cause a stack overflow.
             //L https://www.reddit.com/r/node/comments/8diy81/what_is_rangeerror_maximum_call_stack_size/dxnkpf7?utm_source=share&utm_medium=web2x
             // Using fclone to drop circular reference.s
 
-            callback(fclone__WEBPACK_IMPORTED_MODULE_1___default()(result));
+            callback(fclone__WEBPACK_IMPORTED_MODULE_1__(result));
           } catch (error) {
-            Object(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_5__["logPropagate"])(error);
+            (0,_shared_propagate_js__WEBPACK_IMPORTED_MODULE_5__.logPropagate)(error);
           }
         });
         socket.on('unsubscribe', async ({
@@ -1583,24 +1443,24 @@ const liveDataServer = {
         }, callback) => {
           try {
             console.log('UNSUBSCRIBE', socket.id);
-            const user = _server_registry_js__WEBPACK_IMPORTED_MODULE_10__["default"].autoConstruct(socket.session.user) instanceof _entities_index_js__WEBPACK_IMPORTED_MODULE_3__["User"] ? socket.session.user : new _entities_index_js__WEBPACK_IMPORTED_MODULE_3__["User"]({
+            const user = _server_registry_js__WEBPACK_IMPORTED_MODULE_10__.default.autoConstruct(socket.session.user) instanceof _entities_index_js__WEBPACK_IMPORTED_MODULE_3__.User ? socket.session.user : new _entities_index_js__WEBPACK_IMPORTED_MODULE_3__.User({
               socketId: socket.id
             });
-            const result = await this.remove(_shared_live_data_js__WEBPACK_IMPORTED_MODULE_4__["LiveTable"].tableToEntity(table), query, user);
-            callback(fclone__WEBPACK_IMPORTED_MODULE_1___default()(result));
+            const result = await this.remove(_shared_live_data_js__WEBPACK_IMPORTED_MODULE_4__.LiveTable.tableToEntity(table), query, user);
+            callback(fclone__WEBPACK_IMPORTED_MODULE_1__(result));
           } catch (error) {
-            Object(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_5__["logPropagate"])(error);
+            (0,_shared_propagate_js__WEBPACK_IMPORTED_MODULE_5__.logPropagate)(error);
           }
         });
         socket.on('error', reason => {
           try {
             console.error('ERROR', socket.id, reason);
           } catch (error) {
-            Object(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_5__["logPropagate"])(error);
+            (0,_shared_propagate_js__WEBPACK_IMPORTED_MODULE_5__.logPropagate)(error);
           }
         });
       } catch (error) {
-        Object(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_5__["logPropagate"])(error);
+        (0,_shared_propagate_js__WEBPACK_IMPORTED_MODULE_5__.logPropagate)(error);
       }
     });
   },
@@ -1610,8 +1470,8 @@ const liveDataServer = {
   },
 
   findLiveQuery(table, query) {
-    return table.liveQueries.find(liveQuery => Object(_shared_utility_object_deep_compare_js__WEBPACK_IMPORTED_MODULE_2__["default"])(query, liveQuery.query, {
-      compareFunction: _shared_utility_object_deep_compare_js__WEBPACK_IMPORTED_MODULE_2__["compareUnorderedArrays"]
+    return table.liveQueries.find(liveQuery => (0,_shared_utility_object_deep_compare_js__WEBPACK_IMPORTED_MODULE_2__.default)(query, liveQuery.query, {
+      compareFunction: _shared_utility_object_deep_compare_js__WEBPACK_IMPORTED_MODULE_2__.compareUnorderedArrays
     }));
   },
 
@@ -1627,8 +1487,8 @@ const liveDataServer = {
 
     const table = this.findTable(Entity);
 
-    if (!(table instanceof _shared_live_data_js__WEBPACK_IMPORTED_MODULE_4__["LiveTable"])) {
-      throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_9__["CustomError"]({
+    if (!(table instanceof _shared_live_data_js__WEBPACK_IMPORTED_MODULE_4__.LiveTable)) {
+      throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_9__.CustomError({
         message: 'table is not an LiveTable'
       });
     } // Find liveQuery, add if it doesn't exist.
@@ -1636,8 +1496,8 @@ const liveDataServer = {
 
     let liveQuery = this.findLiveQuery(table, processedQuery);
 
-    if (!(liveQuery instanceof _shared_live_data_js__WEBPACK_IMPORTED_MODULE_4__["LiveQuery"])) {
-      liveQuery = new _shared_live_data_js__WEBPACK_IMPORTED_MODULE_4__["LiveQuery"]({
+    if (!(liveQuery instanceof _shared_live_data_js__WEBPACK_IMPORTED_MODULE_4__.LiveQuery)) {
+      liveQuery = new _shared_live_data_js__WEBPACK_IMPORTED_MODULE_4__.LiveQuery({
         table,
         query: processedQuery
       });
@@ -1667,8 +1527,8 @@ const liveDataServer = {
 
     const table = this.findTable(Entity);
 
-    if (!(table instanceof _shared_live_data_js__WEBPACK_IMPORTED_MODULE_4__["LiveTable"])) {
-      throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_9__["CustomError"]({
+    if (!(table instanceof _shared_live_data_js__WEBPACK_IMPORTED_MODULE_4__.LiveTable)) {
+      throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_9__.CustomError({
         message: 'table is not an LiveTable'
       });
     } // Find liveQuery index.
@@ -1677,8 +1537,8 @@ const liveDataServer = {
     const liveQuery = this.findLiveQuery(table, processedQuery);
     const liveQueryIndex = this.findTable(Entity).liveQueries.indexOf(liveQuery);
 
-    if (!(liveQuery instanceof _shared_live_data_js__WEBPACK_IMPORTED_MODULE_4__["LiveQuery"]) || liveQueryIndex < 0) {
-      return new _shared_warn_js__WEBPACK_IMPORTED_MODULE_8__["default"]({
+    if (!(liveQuery instanceof _shared_live_data_js__WEBPACK_IMPORTED_MODULE_4__.LiveQuery) || liveQueryIndex < 0) {
+      return new _shared_warn_js__WEBPACK_IMPORTED_MODULE_8__.default({
         origin: 'Subscriptions.remove()',
         message: 'no subscription found for this query',
         content: {
@@ -1694,7 +1554,7 @@ const liveDataServer = {
     const subscriptionIndex = liveQuery.subscriptions.indexOf(subscription);
 
     if (!(subscription instanceof Subscription) || subscriptionIndex < 0) {
-      return new _shared_warn_js__WEBPACK_IMPORTED_MODULE_8__["default"]({
+      return new _shared_warn_js__WEBPACK_IMPORTED_MODULE_8__.default({
         origin: 'Subscriptions.remove()',
         message: 'no subscriber found for this user',
         content: {
@@ -1719,8 +1579,8 @@ const liveDataServer = {
     // For each liveQuery.
     const table = this.findTable(Entity);
 
-    if (!(table instanceof _shared_live_data_js__WEBPACK_IMPORTED_MODULE_4__["LiveTable"])) {
-      throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_9__["CustomError"]({
+    if (!(table instanceof _shared_live_data_js__WEBPACK_IMPORTED_MODULE_4__.LiveTable)) {
+      throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_9__.CustomError({
         message: 'table is not an LiveTable'
       });
     }
@@ -1730,8 +1590,8 @@ const liveDataServer = {
       for (const entity of entities) {
         // If any part of the liveQuery.query matches the entity as a subset && if the notification timestamp is new.
         //R query is an array of object queries, must iterate each then subset match, or else nothing will match because query switches from superset to subset
-        if (liveQuery.query.some(part => Object(_shared_utility_object_deep_compare_js__WEBPACK_IMPORTED_MODULE_2__["default"])(part, entity, {
-          compareFunction: _shared_utility_object_deep_compare_js__WEBPACK_IMPORTED_MODULE_2__["compareUnorderedArrays"],
+        if (liveQuery.query.some(part => (0,_shared_utility_object_deep_compare_js__WEBPACK_IMPORTED_MODULE_2__.default)(part, entity, {
+          compareFunction: _shared_utility_object_deep_compare_js__WEBPACK_IMPORTED_MODULE_2__.compareUnorderedArrays,
           subset: true,
           resultIfTooDeep: true
         })) && timestamp > liveQuery.timestamp) {
@@ -1776,8 +1636,8 @@ const liveDataServer = {
 //R //! This is to avoid a circular dependency, however it is a side-effect.
 //TODO Resolve this side-effect.
 
-_entities_index_js__WEBPACK_IMPORTED_MODULE_3__["Entity"].notify = liveDataServer.notify.bind(liveDataServer);
-/* harmony default export */ __webpack_exports__["default"] = (liveDataServer);
+_entities_index_js__WEBPACK_IMPORTED_MODULE_3__.Entity.notify = liveDataServer.notify.bind(liveDataServer);
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (liveDataServer);
 /* //TODO test:
 	no duplicate live queries
 	subscriptions get removed on disconnect
@@ -1790,22 +1650,16 @@ _entities_index_js__WEBPACK_IMPORTED_MODULE_3__["Entity"].notify = liveDataServe
 /*!*******************************!*\
   !*** ./source/server/main.js ***!
   \*******************************/
-/*! no exports provided */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _config_environment_variables_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../config/environment-variables.js */ "./source/config/environment-variables.js");
+/* harmony import */ var _config_environment_variables_canary_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../config/environment-variables-canary.js */ "./source/config/environment-variables-canary.js");
 /* harmony import */ var koa__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! koa */ "koa");
-/* harmony import */ var koa__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(koa__WEBPACK_IMPORTED_MODULE_1__);
 /* harmony import */ var koa_bodyparser__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! koa-bodyparser */ "koa-bodyparser");
-/* harmony import */ var koa_bodyparser__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(koa_bodyparser__WEBPACK_IMPORTED_MODULE_2__);
 /* harmony import */ var koa_session__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! koa-session */ "koa-session");
-/* harmony import */ var koa_session__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(koa_session__WEBPACK_IMPORTED_MODULE_3__);
 /* harmony import */ var socket_io__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! socket.io */ "socket.io");
-/* harmony import */ var socket_io__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(socket_io__WEBPACK_IMPORTED_MODULE_4__);
 /* harmony import */ var http__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! http */ "http");
-/* harmony import */ var http__WEBPACK_IMPORTED_MODULE_5___default = /*#__PURE__*/__webpack_require__.n(http__WEBPACK_IMPORTED_MODULE_5__);
 /* harmony import */ var _router_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./router.js */ "./source/server/router.js");
 /* harmony import */ var _live_data_server_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./live-data-server.js */ "./source/server/live-data-server.js");
 /* harmony import */ var _database_create_database_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./database/create-database.js */ "./source/server/database/create-database.js");
@@ -1817,7 +1671,7 @@ __webpack_require__.r(__webpack_exports__);
 
 	errors thrown in some places (like routes) still aren't caught
 */
-// TOP
+// TEST
  // EXTERNAL
 
  //L https://github.com/koajs
@@ -1875,7 +1729,7 @@ __webpack_require__.r(__webpack_exports__);
   var _process$env$PORT;
 
   // Initialize the database.
-  await Object(_database_create_database_js__WEBPACK_IMPORTED_MODULE_8__["default"])();
+  await (0,_database_create_database_js__WEBPACK_IMPORTED_MODULE_8__.default)();
   const routerOptions = {};
   /* webpack-dev-middleware
   	const config = clientOptions({}, {
@@ -1902,11 +1756,11 @@ __webpack_require__.r(__webpack_exports__);
   	}
   */
 
-  const router = Object(_router_js__WEBPACK_IMPORTED_MODULE_6__["default"])(routerOptions);
-  const PORT = (_process$env$PORT = process.env.PORT) !== null && _process$env$PORT !== void 0 ? _process$env$PORT : 3000; // KOA
+  const router = (0,_router_js__WEBPACK_IMPORTED_MODULE_6__.default)(routerOptions);
+  const PORT = (_process$env$PORT = {}.PORT) !== null && _process$env$PORT !== void 0 ? _process$env$PORT : 3000; // KOA
 
-  const app = new koa__WEBPACK_IMPORTED_MODULE_1___default.a();
-  app.keys = [process.env.APP_KEY || 'imJustSomeKey'];
+  const app = new koa__WEBPACK_IMPORTED_MODULE_1__();
+  app.keys = ["imJustSomeKey" || 0];
   const sessionConfig = {
     //TODO random keys: //L https://randomkeygen.com/
     // (string)(default is koa:sess) cookie key
@@ -1929,12 +1783,12 @@ __webpack_require__.r(__webpack_exports__);
     sameSite: 'Lax'
   }; //L https://github.com/socketio/socket.io#in-conjunction-with-koa
 
-  const server = http__WEBPACK_IMPORTED_MODULE_5___default.a.createServer(app.callback()); // SOCKET IO
+  const server = http__WEBPACK_IMPORTED_MODULE_5__.createServer(app.callback()); // SOCKET IO
 
-  const socketIO = new socket_io__WEBPACK_IMPORTED_MODULE_4___default.a(server, {
+  const socketIO = new socket_io__WEBPACK_IMPORTED_MODULE_4__(server, {
     cookie: false
   });
-  _live_data_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].socket = socketIO.of('/live-data'); //? See liveData.start below
+  _live_data_server_js__WEBPACK_IMPORTED_MODULE_7__.default.socket = socketIO.of('/live-data'); //? See liveData.start below
   //  ███╗   ███╗██╗██████╗ ██████╗ ██╗     ███████╗██╗    ██╗ █████╗ ██████╗ ███████╗
   //  ████╗ ████║██║██╔══██╗██╔══██╗██║     ██╔════╝██║    ██║██╔══██╗██╔══██╗██╔════╝
   //  ██╔████╔██║██║██║  ██║██║  ██║██║     █████╗  ██║ █╗ ██║███████║██████╔╝█████╗
@@ -1959,9 +1813,9 @@ __webpack_require__.r(__webpack_exports__);
   */
   // BODY PARSER
 
-  app.use(koa_bodyparser__WEBPACK_IMPORTED_MODULE_2___default()()); // SESSION
+  app.use(koa_bodyparser__WEBPACK_IMPORTED_MODULE_2__()); // SESSION
 
-  app.use(koa_session__WEBPACK_IMPORTED_MODULE_3___default()(sessionConfig, app));
+  app.use(koa_session__WEBPACK_IMPORTED_MODULE_3__(sessionConfig, app));
   /* View Counter
   	app.use(async (ctx, next) => {
   		// ignore favicon
@@ -1986,7 +1840,7 @@ __webpack_require__.r(__webpack_exports__);
 
   app.use(router.allowedMethods()); // LIVE DATA
 
-  _live_data_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].start({
+  _live_data_server_js__WEBPACK_IMPORTED_MODULE_7__.default.start({
     app,
     socket: socketIO.of('/live-data') //? See liveData.socket above
 
@@ -2007,7 +1861,7 @@ __webpack_require__.r(__webpack_exports__);
   process.on('unhandledRejection', (reason, p) => {
     console.error('Unhandled Rejection at:', p, '\n Reason:', reason); //TODO handle
   });
-})().catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_9__["logPropagate"]);
+})().catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_9__.logPropagate);
 
 /***/ }),
 
@@ -2015,20 +1869,17 @@ __webpack_require__.r(__webpack_exports__);
 /*!*********************************!*\
   !*** ./source/server/router.js ***!
   \*********************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return createRouter; });
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => /* binding */ createRouter
+/* harmony export */ });
 /* harmony import */ var path__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! path */ "path");
-/* harmony import */ var path__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(path__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var fs__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! fs */ "fs");
-/* harmony import */ var fs__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(fs__WEBPACK_IMPORTED_MODULE_1__);
 /* harmony import */ var koa_router__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! koa-router */ "koa-router");
-/* harmony import */ var koa_router__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(koa_router__WEBPACK_IMPORTED_MODULE_2__);
 /* harmony import */ var koa_send__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! koa-send */ "koa-send");
-/* harmony import */ var koa_send__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(koa_send__WEBPACK_IMPORTED_MODULE_3__);
 /* harmony import */ var _config_project_paths_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../config/project-paths.js */ "./source/config/project-paths.js");
 /* harmony import */ var _shared_constants_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../shared/constants.js */ "./source/shared/constants.js");
 /* harmony import */ var _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../shared/errors/index.js */ "./source/shared/errors/index.js");
@@ -2112,26 +1963,26 @@ __webpack_require__.r(__webpack_exports__);
 
 /* eslint-disable require-atomic-updates */
 
-const root = _config_project_paths_js__WEBPACK_IMPORTED_MODULE_4__["clientBuildDirectory"];
-const app = `/${_config_project_paths_js__WEBPACK_IMPORTED_MODULE_4__["UIMainFileName"]}`;
+const root = _config_project_paths_js__WEBPACK_IMPORTED_MODULE_4__.clientBuildDirectory;
+const app = `/${_config_project_paths_js__WEBPACK_IMPORTED_MODULE_4__.UIMainFileName}`;
 
 function createAPIRouter() {
-  const apiRouter = new koa_router__WEBPACK_IMPORTED_MODULE_2___default.a(); // Database CRUD and server-side processing.
+  const apiRouter = new koa_router__WEBPACK_IMPORTED_MODULE_2__(); // Database CRUD and server-side processing.
 
   apiRouter // Catches and propagates all errors, but assigns them to the response body rather than throwing.
   .all('/*', async (ctx, next) => {
     await next().catch(rejected => {
-      ctx.response.body = Object(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_8__["returnPropagate"])(rejected);
+      ctx.response.body = (0,_shared_propagate_js__WEBPACK_IMPORTED_MODULE_8__.returnPropagate)(rejected);
     });
   }) // Set GET request bodies as the parsed body parameter (if it exists).
   .get('/*', async (ctx, next) => {
-    const queryBody = ctx.request.query[_shared_constants_js__WEBPACK_IMPORTED_MODULE_5__["GET_BODY"]];
+    const queryBody = ctx.request.query[_shared_constants_js__WEBPACK_IMPORTED_MODULE_5__.GET_BODY];
 
     try {
       ctx.request.body = queryBody === undefined ? {} : JSON.parse(queryBody);
     } catch (error) {
       ctx.response.body = 400;
-      ctx.response.body = new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_6__["ParseError"]({
+      ctx.response.body = new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_6__.ParseError({
         message: error.message,
         userMessage: 'Request failed due to an internal error.',
         input: queryBody
@@ -2153,41 +2004,41 @@ function createAPIRouter() {
     return router.post(path, action(Entity.add.bind(Entity))).get(path, action(Entity.get.bind(Entity))).patch(path, action(Entity.edit.bind(Entity))).delete(path, action(Entity.remove.bind(Entity)));
   }
 
-  addCRUD(apiRouter, _entities_index_js__WEBPACK_IMPORTED_MODULE_7__["User"]);
-  addCRUD(apiRouter, _entities_index_js__WEBPACK_IMPORTED_MODULE_7__["Playlist"]);
-  addCRUD(apiRouter, _entities_index_js__WEBPACK_IMPORTED_MODULE_7__["Track"]);
+  addCRUD(apiRouter, _entities_index_js__WEBPACK_IMPORTED_MODULE_7__.User);
+  addCRUD(apiRouter, _entities_index_js__WEBPACK_IMPORTED_MODULE_7__.Playlist);
+  addCRUD(apiRouter, _entities_index_js__WEBPACK_IMPORTED_MODULE_7__.Track);
   apiRouter // SESSION
   //R //L login/logout are create/remove for sessions: https://stackoverflow.com/questions/31089221/what-is-the-difference-between-put-post-and-patch, https://stackoverflow.com/questions/5868786/what-method-should-i-use-for-a-login-authentication-request
   //? what is the 'update' equivalent of user session? isn't this all done server-side by refreshing the cookie? or is this just the login put because there is no post equivalent instead
   .post('/session', async ctx => {
-    ctx.response.body = await _session_methods_js__WEBPACK_IMPORTED_MODULE_9__["login"](_database_database_js__WEBPACK_IMPORTED_MODULE_10__["default"], ctx, ctx.request.body);
+    ctx.response.body = await _session_methods_js__WEBPACK_IMPORTED_MODULE_9__.login(_database_database_js__WEBPACK_IMPORTED_MODULE_10__.default, ctx, ctx.request.body);
   }).get('/session', async ctx => {
     //R thought about moving this to user, but with 'self' permissions, but if its a me request, the user specifically needs to know who they are - in get user cases, the user already knows what they're searching for an just needs the rest of the information
-    ctx.response.body = await _session_methods_js__WEBPACK_IMPORTED_MODULE_9__["get"](ctx);
+    ctx.response.body = await _session_methods_js__WEBPACK_IMPORTED_MODULE_9__.get(ctx);
   }).delete('/session', async ctx => {
-    ctx.response.body = await _session_methods_js__WEBPACK_IMPORTED_MODULE_9__["logout"](ctx);
+    ctx.response.body = await _session_methods_js__WEBPACK_IMPORTED_MODULE_9__.logout(ctx);
   }) // AUTH
   .get('/spotify/authRequestStart', async ctx => {
     // Retrieves an auth request URL and it's respective local key (for event handling).
-    ctx.response.body = await _sources_index_js__WEBPACK_IMPORTED_MODULE_11__["spotify"].startAuthRequest();
+    ctx.response.body = await _sources_index_js__WEBPACK_IMPORTED_MODULE_11__.spotify.startAuthRequest();
   }).get('/spotify/authRedirect', async ctx => {
     // Receives credentials sent from spotify, emits an event & payload that can then be sent back to the original client.
     //! This URL is sensitive to the url given to spotify developer site (I think).
-    await _sources_index_js__WEBPACK_IMPORTED_MODULE_11__["spotify"].receiveAuthRequest(ctx.request.query);
-    await koa_send__WEBPACK_IMPORTED_MODULE_3___default()(ctx, app, {
+    await _sources_index_js__WEBPACK_IMPORTED_MODULE_11__.spotify.receiveAuthRequest(ctx.request.query);
+    await koa_send__WEBPACK_IMPORTED_MODULE_3__(ctx, app, {
       root
     });
   }).post('/spotify/authRequestEnd', async ctx => {
-    ctx.response.body = await _sources_index_js__WEBPACK_IMPORTED_MODULE_11__["spotify"].endAuthRequest(ctx.request.body);
+    ctx.response.body = await _sources_index_js__WEBPACK_IMPORTED_MODULE_11__.spotify.endAuthRequest(ctx.request.body);
   }).post('/spotify/exchangeToken', async ctx => {
-    ctx.response.body = await _sources_index_js__WEBPACK_IMPORTED_MODULE_11__["spotify"].exchangeToken(ctx, ctx.request.body);
+    ctx.response.body = await _sources_index_js__WEBPACK_IMPORTED_MODULE_11__.spotify.exchangeToken(ctx, ctx.request.body);
   }).get('/spotify/refreshToken', async ctx => {
-    ctx.response.body = await _sources_index_js__WEBPACK_IMPORTED_MODULE_11__["spotify"].refreshToken(ctx);
+    ctx.response.body = await _sources_index_js__WEBPACK_IMPORTED_MODULE_11__.spotify.refreshToken(ctx);
   }).get('/youtube/credentials', async ctx => {
-    ctx.response.body = await _sources_index_js__WEBPACK_IMPORTED_MODULE_11__["youtube"].getCredentials();
+    ctx.response.body = await _sources_index_js__WEBPACK_IMPORTED_MODULE_11__.youtube.getCredentials();
   }) // catch
   .all('/*', async ctx => {
-    ctx.response.body = new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_6__["InvalidStateError"]({
+    ctx.response.body = new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_6__.InvalidStateError({
       userMessage: 'could not process request',
       message: 'invalid api command',
       state: ctx.request.body
@@ -2199,7 +2050,7 @@ function createAPIRouter() {
 function createRouter()
 /* {replaceIndex}*/
 {
-  const router = new koa_router__WEBPACK_IMPORTED_MODULE_2___default.a();
+  const router = new koa_router__WEBPACK_IMPORTED_MODULE_2__();
   const apiRouter = createAPIRouter(); //L nested routers: https://github.com/alexmingoia/koa-router#nested-routers
 
   router.use('/api', apiRouter.routes(), apiRouter.allowedMethods()); // PAGE
@@ -2216,12 +2067,12 @@ function createRouter()
     			//TODO //! errors thrown here aren't caught - fix this here and everywhere else
     */
     // Serve resources.
-    if (fs__WEBPACK_IMPORTED_MODULE_1___default.a.existsSync(path__WEBPACK_IMPORTED_MODULE_0___default.a.join(root, ctx.request.path)) && ctx.request.path.indexOf('.') >= 0) {
-      await koa_send__WEBPACK_IMPORTED_MODULE_3___default()(ctx, ctx.request.path, {
+    if (fs__WEBPACK_IMPORTED_MODULE_1__.existsSync(path__WEBPACK_IMPORTED_MODULE_0__.join(root, ctx.request.path)) && ctx.request.path.indexOf('.') >= 0) {
+      await koa_send__WEBPACK_IMPORTED_MODULE_3__(ctx, ctx.request.path, {
         root
       }); //TODO find a better way to differentiate a valid file from a just a valid path (other than indexOf('.'))
       //TODO webpack might have a better way to identify static resources
-    } else if (!_session_methods_js__WEBPACK_IMPORTED_MODULE_9__["isLoggedIn"](ctx) && ctx.request.path !== '/login' && ctx.request.path !== '/database') {
+    } else if (!_session_methods_js__WEBPACK_IMPORTED_MODULE_9__.isLoggedIn(ctx) && ctx.request.path !== '/login' && ctx.request.path !== '/database') {
       // Redirect if not logged in.
       //TODO this should use isLoggedIn, though that isn't perfect yet and it's async
       ctx.request.path = '/'; //! ctx.redirect() will not redirect if ctx.request.path is anything but '/', no idea why
@@ -2230,7 +2081,7 @@ function createRouter()
     } else {
       // Otherwise always return the index.js file, this is the root app and vue will handle the routing client-side.
       //L https://router.vuejs.org/guide/essentials/history-mode.html#example-server-configurations
-      await koa_send__WEBPACK_IMPORTED_MODULE_3___default()(ctx, app, {
+      await koa_send__WEBPACK_IMPORTED_MODULE_3__(ctx, app, {
         root
       });
     }
@@ -2253,14 +2104,16 @@ function createRouter()
 /*!******************************************!*\
   !*** ./source/server/server-registry.js ***!
   \******************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _shared_class_registry__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../shared/class-registry */ "./source/shared/class-registry.js");
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => __WEBPACK_DEFAULT_EXPORT__
+/* harmony export */ });
+/* harmony import */ var _shared_class_registry_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../shared/class-registry.js */ "./source/shared/class-registry.js");
 
-/* harmony default export */ __webpack_exports__["default"] = (new _shared_class_registry__WEBPACK_IMPORTED_MODULE_0__["default"]('serverRegistryIdKey'));
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (new _shared_class_registry_js__WEBPACK_IMPORTED_MODULE_0__.default('serverRegistryIdKey'));
 
 /***/ }),
 
@@ -2268,17 +2121,17 @@ __webpack_require__.r(__webpack_exports__);
 /*!******************************************!*\
   !*** ./source/server/session-methods.js ***!
   \******************************************/
-/*! exports provided: login, get, logout, isLoggedIn */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "login", function() { return login; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "get", function() { return get; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "logout", function() { return logout; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "isLoggedIn", function() { return isLoggedIn; });
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "login": () => /* binding */ login,
+/* harmony export */   "get": () => /* binding */ get,
+/* harmony export */   "logout": () => /* binding */ logout,
+/* harmony export */   "isLoggedIn": () => /* binding */ isLoggedIn
+/* harmony export */ });
 /* harmony import */ var bcryptjs__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! bcryptjs */ "bcryptjs");
-/* harmony import */ var bcryptjs__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(bcryptjs__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _entities_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./entities/index.js */ "./source/server/entities/index.js");
 /* harmony import */ var _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../shared/utility/index.js */ "./source/shared/utility/index.js");
 /* harmony import */ var _errors_postgres_error_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./errors/postgres-error.js */ "./source/server/errors/postgres-error.js");
@@ -2295,21 +2148,21 @@ __webpack_require__.r(__webpack_exports__);
 
 async function login(db, ctx, user) {
   // Validate
-  await _entities_index_js__WEBPACK_IMPORTED_MODULE_1__["User"].schema.name.rule(user.name);
-  await _entities_index_js__WEBPACK_IMPORTED_MODULE_1__["User"].schema.password.rule(user.password); //! this will error on stuff like 'password must be over x characters long' when really it should just be 'password incorrect', maybe just have a string check rule?
+  await _entities_index_js__WEBPACK_IMPORTED_MODULE_1__.User.schema.name.rule(user.name);
+  await _entities_index_js__WEBPACK_IMPORTED_MODULE_1__.User.schema.password.rule(user.password); //! this will error on stuff like 'password must be over x characters long' when really it should just be 'password incorrect', maybe just have a string check rule?
   // Get password.
 
   const existingPassword = await db.one('SELECT password FROM "sj"."users" WHERE "name" = $1', [user.name]).then(resolved => {
     return resolved.password;
   }).catch(rejected => {
-    throw new _errors_postgres_error_js__WEBPACK_IMPORTED_MODULE_3__["default"]({
+    throw new _errors_postgres_error_js__WEBPACK_IMPORTED_MODULE_3__.default({
       postgresError: rejected,
       userMessage: 'Could not login, a database error has occurred.'
     });
   }); // Check password.
 
-  const isMatch = await bcryptjs__WEBPACK_IMPORTED_MODULE_0___default.a.compare(user.password, existingPassword).catch(rejected => {
-    throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_4__["InvalidStateError"]({
+  const isMatch = await bcryptjs__WEBPACK_IMPORTED_MODULE_0__.compare(user.password, existingPassword).catch(rejected => {
+    throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_4__.InvalidStateError({
       userMessage: 'server error',
       message: 'hash compare failed',
       state: rejected
@@ -2317,19 +2170,19 @@ async function login(db, ctx, user) {
   });
 
   if (!isMatch) {
-    throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_4__["CustomError"]({
+    throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_4__.CustomError({
       userMessage: 'incorrect password'
     });
   } // Get user
 
 
   const retrievedUser = await db.one('SELECT * FROM "sj"."users_self" WHERE "name" = $1', user.name).catch(rejected => {
-    throw new _errors_postgres_error_js__WEBPACK_IMPORTED_MODULE_3__["default"]({
+    throw new _errors_postgres_error_js__WEBPACK_IMPORTED_MODULE_3__.default({
       postgresError: rejected,
       userMessage: 'Could not login, a database error has occurred.'
     });
   });
-  ctx.session.user = new _entities_index_js__WEBPACK_IMPORTED_MODULE_1__["User"](retrievedUser);
+  ctx.session.user = new _entities_index_js__WEBPACK_IMPORTED_MODULE_1__.User(retrievedUser);
   return ctx.session.user;
 } // READ
 
@@ -2338,7 +2191,7 @@ async function get(ctx) {
     return ctx.session.user;
   }
 
-  throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_4__["CustomError"]({
+  throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_4__.CustomError({
     userMessage: 'You are not logged in.',
     message: 'User is not logged in.'
   });
@@ -2353,7 +2206,7 @@ async function logout(ctx) {
 function isLoggedIn(ctx) {
   var _ctx$session$user;
 
-  return _server_registry_js__WEBPACK_IMPORTED_MODULE_5__["default"].autoConstruct(ctx.session.user) instanceof _entities_index_js__WEBPACK_IMPORTED_MODULE_1__["User"] && _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["rules"].integer.test((_ctx$session$user = ctx.session.user) === null || _ctx$session$user === void 0 ? void 0 : _ctx$session$user.id);
+  return _server_registry_js__WEBPACK_IMPORTED_MODULE_5__.default.autoConstruct(ctx.session.user) instanceof _entities_index_js__WEBPACK_IMPORTED_MODULE_1__.User && _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__.rules.integer.test((_ctx$session$user = ctx.session.user) === null || _ctx$session$user === void 0 ? void 0 : _ctx$session$user.id);
 }
 
 /***/ }),
@@ -2362,31 +2215,32 @@ function isLoggedIn(ctx) {
 /*!*********************************!*\
   !*** ./source/server/source.js ***!
   \*********************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Source; });
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => /* binding */ Source
+/* harmony export */ });
 /* harmony import */ var _shared_source_parts_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../shared/source-parts.js */ "./source/shared/source-parts.js");
 /* harmony import */ var _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../shared/utility/index.js */ "./source/shared/utility/index.js");
 
 
 class Source {
   constructor(...args) {
-    _shared_source_parts_js__WEBPACK_IMPORTED_MODULE_0__["default"].intercept(...args);
-    _shared_source_parts_js__WEBPACK_IMPORTED_MODULE_0__["default"].instance(this, ...args);
+    _shared_source_parts_js__WEBPACK_IMPORTED_MODULE_0__.default.intercept(...args);
+    _shared_source_parts_js__WEBPACK_IMPORTED_MODULE_0__.default.instance(this, ...args);
     const [{
       serverTestProp = null
     }] = args;
-    _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].constant(this, {
+    _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__.define.constant(this, {
       serverTestProp
     });
   }
 
 }
-_shared_source_parts_js__WEBPACK_IMPORTED_MODULE_0__["default"].prototype(Source);
-_shared_source_parts_js__WEBPACK_IMPORTED_MODULE_0__["default"].static(Source);
+_shared_source_parts_js__WEBPACK_IMPORTED_MODULE_0__.default.prototype(Source);
+_shared_source_parts_js__WEBPACK_IMPORTED_MODULE_0__.default.static(Source);
 
 /***/ }),
 
@@ -2394,17 +2248,16 @@ _shared_source_parts_js__WEBPACK_IMPORTED_MODULE_0__["default"].static(Source);
 /*!****************************************!*\
   !*** ./source/server/sources/index.js ***!
   \****************************************/
-/*! exports provided: spotify, youtube */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "spotify": () => /* reexport safe */ _spotify_js__WEBPACK_IMPORTED_MODULE_0__.default,
+/* harmony export */   "youtube": () => /* reexport safe */ _youtube_js__WEBPACK_IMPORTED_MODULE_1__.default
+/* harmony export */ });
 /* harmony import */ var _spotify_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./spotify.js */ "./source/server/sources/spotify.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "spotify", function() { return _spotify_js__WEBPACK_IMPORTED_MODULE_0__["default"]; });
-
 /* harmony import */ var _youtube_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./youtube.js */ "./source/server/sources/youtube.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "youtube", function() { return _youtube_js__WEBPACK_IMPORTED_MODULE_1__["default"]; });
-
 
 
 
@@ -2414,15 +2267,15 @@ __webpack_require__.r(__webpack_exports__);
 /*!******************************************!*\
   !*** ./source/server/sources/spotify.js ***!
   \******************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => __WEBPACK_DEFAULT_EXPORT__
+/* harmony export */ });
 /* harmony import */ var spotify_web_api_node__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! spotify-web-api-node */ "spotify-web-api-node");
-/* harmony import */ var spotify_web_api_node__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(spotify_web_api_node__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var events__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! events */ "events");
-/* harmony import */ var events__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(events__WEBPACK_IMPORTED_MODULE_1__);
 /* harmony import */ var _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../shared/utility/index.js */ "./source/shared/utility/index.js");
 /* harmony import */ var _shared_request_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../shared/request.js */ "./source/shared/request.js");
 /* harmony import */ var _server_source_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../server/source.js */ "./source/server/source.js");
@@ -2450,15 +2303,15 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-const emitter = new events__WEBPACK_IMPORTED_MODULE_1___default.a();
-const spotify = new _server_source_js__WEBPACK_IMPORTED_MODULE_4__["default"]({
+const emitter = new events__WEBPACK_IMPORTED_MODULE_1__();
+const spotify = new _server_source_js__WEBPACK_IMPORTED_MODULE_4__.default({
   name: 'spotify',
   register: true,
-  api: new spotify_web_api_node__WEBPACK_IMPORTED_MODULE_0___default.a({
+  api: new spotify_web_api_node__WEBPACK_IMPORTED_MODULE_0__({
     // create api object and set credentials in constructor
-    clientId: process.env.SPOTIFY_CLIENT_ID,
-    clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
-    redirectUri: process.env.SPOTIFY_REDIRECT_URI
+    clientId: "ba31691d69c84626a6e762d332060d7a",
+    clientSecret: "b142422ce75343cda3df02807a41b9c1",
+    redirectUri: "http://localhost:3000/api/spotify/authRedirect/"
   }),
 
   get scopes() {
@@ -2483,8 +2336,8 @@ const spotify = new _server_source_js__WEBPACK_IMPORTED_MODULE_4__["default"]({
     //TODO make a better catch & handle, this is a temporary catch for undefined credentials as the error is silent until it arrives on spotify's end: 'Missing required parameter: client_id'
     const credentials = this.api._credentials;
 
-    if (!_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["rules"].string.test(credentials.clientId) || !_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["rules"].string.test(credentials.clientSecret) || !_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["rules"].string.test(credentials.redirectUri)) {
-      throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_8__["InvalidStateError"]({
+    if (!_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__.rules.string.test(credentials.clientId) || !_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__.rules.string.test(credentials.clientSecret) || !_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__.rules.string.test(credentials.redirectUri)) {
+      throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_8__.InvalidStateError({
         userMessage: 'one or more api credentials are missing or of the wrong type',
         state: {
           clientId: credentials.clientId,
@@ -2502,8 +2355,8 @@ const spotify = new _server_source_js__WEBPACK_IMPORTED_MODULE_4__["default"]({
 
 Object.assign(spotify, {
   async startAuthRequest() {
-    const pack = await _auth_js__WEBPACK_IMPORTED_MODULE_10__["default"].addRequestKey();
-    return new _shared_credentials_js__WEBPACK_IMPORTED_MODULE_9__["default"]({
+    const pack = await _auth_js__WEBPACK_IMPORTED_MODULE_10__.default.addRequestKey();
+    return new _shared_credentials_js__WEBPACK_IMPORTED_MODULE_9__.default({
       authRequestKey: pack.key,
       authRequestTimestamp: pack.timestamp,
       authRequestTimeout: pack.timeout,
@@ -2525,10 +2378,10 @@ Object.assign(spotify, {
     			//TODO create error parser for spotify api
     */
     // ensure key is recognized, if its not (or timed out), nothing can be done, let it timeout on the client side too
-    await _auth_js__WEBPACK_IMPORTED_MODULE_10__["default"].checkRequestKey(query.state); // ensure that spotify sent the code
+    await _auth_js__WEBPACK_IMPORTED_MODULE_10__.default.checkRequestKey(query.state); // ensure that spotify sent the code
 
     if (query.code === undefined) {
-      emitter.emit(query.state, new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_8__["InvalidStateError"]({
+      emitter.emit(query.state, new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_8__.InvalidStateError({
         userMessage: 'spotify authorization failed',
         message: 'code is missing',
         state: query
@@ -2537,7 +2390,7 @@ Object.assign(spotify, {
 
 
     if (query.error !== undefined) {
-      emitter.emit(query.state, new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_8__["InvalidStateError"]({
+      emitter.emit(query.state, new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_8__.InvalidStateError({
         userMessage: 'spotify authorization failed',
         message: query.error,
         state: query
@@ -2545,7 +2398,7 @@ Object.assign(spotify, {
     } // send the event and credentials for endAuthRequest() to pick up
 
 
-    emitter.emit(query.state, new _shared_credentials_js__WEBPACK_IMPORTED_MODULE_9__["default"]({
+    emitter.emit(query.state, new _shared_credentials_js__WEBPACK_IMPORTED_MODULE_9__.default({
       //? sj.success here?
       authRequestKey: query.state,
       //? is this needed anymore?
@@ -2562,8 +2415,8 @@ Object.assign(spotify, {
         resolve(result);
       }); // setup timeout
 
-      Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["wait"])(credentials.authRequestTimeout).then(() => {
-        reject(new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_8__["CustomError"]({
+      (0,_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__.wait)(credentials.authRequestTimeout).then(() => {
+        reject(new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_8__.CustomError({
           userMessage: 'request timeout'
         }));
       });
@@ -2577,19 +2430,19 @@ Object.assign(spotify, {
     const timestamp = Date.now(); // exchange the auth code for tokens
     //L https://developer.spotify.com/documentation/general/guides/authorization-guide/
 
-    const result = await Object(_shared_request_js__WEBPACK_IMPORTED_MODULE_3__["default"])('POST', 'https://accounts.spotify.com/api/token', {
-      body: Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["encodeProperties"])({
+    const result = await (0,_shared_request_js__WEBPACK_IMPORTED_MODULE_3__.default)('POST', 'https://accounts.spotify.com/api/token', {
+      body: (0,_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__.encodeProperties)({
         grant_type: 'authorization_code',
         code: credentials.authCode,
-        redirect_uri: process.env.SPOTIFY_REDIRECT_URI,
+        redirect_uri: "http://localhost:3000/api/spotify/authRedirect/",
         // only used for validation, no need to make a second redirect handler
-        client_id: process.env.SPOTIFY_CLIENT_ID,
-        client_secret: process.env.SPOTIFY_CLIENT_SECRET // alternative to client_id and client_secret properties, put this in header: 'Authorization': `Basic ${btoa(`${process.env.SPOTIFY_CLIENT_ID}:${process.env.SPOTIFY_CLIENT_SECRET}`)}`,
+        client_id: "ba31691d69c84626a6e762d332060d7a",
+        client_secret: "b142422ce75343cda3df02807a41b9c1" // alternative to client_id and client_secret properties, put this in header: 'Authorization': `Basic ${btoa(`${process.env.SPOTIFY_CLIENT_ID}:${process.env.SPOTIFY_CLIENT_SECRET}`)}`,
 
       }),
-      headers: _shared_constants_js__WEBPACK_IMPORTED_MODULE_6__["URL_HEADER"]
+      headers: _shared_constants_js__WEBPACK_IMPORTED_MODULE_6__.URL_HEADER
     }).catch(rejected => {
-      throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_8__["InvalidStateError"]({
+      throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_8__.InvalidStateError({
         userMessage: 'failed to authorize spotify',
         message: 'token exchange failed',
         state: rejected
@@ -2597,13 +2450,13 @@ Object.assign(spotify, {
     }); // store refresh token in database
     // while the client triggers the refresh of the accessToken (so that the server doesn't have to keep track of which users are online), the refreshToken is stored server side so that the user doesn't have to re-auth between sessions
 
-    const me = await _session_methods_js__WEBPACK_IMPORTED_MODULE_7__["get"](ctx);
-    await _entities_index_js__WEBPACK_IMPORTED_MODULE_5__["User"].edit({
+    const me = await _session_methods_js__WEBPACK_IMPORTED_MODULE_7__.get(ctx);
+    await _entities_index_js__WEBPACK_IMPORTED_MODULE_5__.User.edit({
       id: me.id,
       spotifyRefreshToken: result.refresh_token
     }); // repack and return
 
-    return new _shared_credentials_js__WEBPACK_IMPORTED_MODULE_9__["default"]({
+    return new _shared_credentials_js__WEBPACK_IMPORTED_MODULE_9__.default({
       accessToken: result.access_token,
       expires: timestamp + result.expires_in,
       // refreshToken: result.refresh_token,
@@ -2614,43 +2467,43 @@ Object.assign(spotify, {
 
   async refreshToken(ctx) {
     // get the refresh token from the database
-    const me = await _session_methods_js__WEBPACK_IMPORTED_MODULE_7__["get"](ctx);
-    const refreshToken = await _entities_index_js__WEBPACK_IMPORTED_MODULE_5__["User"].get(me).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["one"]).then(resolved => resolved.spotifyRefreshToken); // if there isn't one, throw the specific AuthRequired error, this will be identified on the client side and trigger spotify.auth()
+    const me = await _session_methods_js__WEBPACK_IMPORTED_MODULE_7__.get(ctx);
+    const refreshToken = await _entities_index_js__WEBPACK_IMPORTED_MODULE_5__.User.get(me).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__.one).then(resolved => resolved.spotifyRefreshToken); // if there isn't one, throw the specific AuthRequired error, this will be identified on the client side and trigger spotify.auth()
     //TODO reconsider this string test
 
-    if (!_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["rules"].visibleString.test(refreshToken)) {
-      throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_8__["AuthRequired"]();
+    if (!_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__.rules.visibleString.test(refreshToken)) {
+      throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_8__.AuthRequired();
     } // send a refresh request to spotify to get new access token, expiry time, and possible refresh token
 
 
     const timestamp = Date.now();
-    const result = await Object(_shared_request_js__WEBPACK_IMPORTED_MODULE_3__["default"])('POST', 'https://accounts.spotify.com/api/token', {
-      body: Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["encodeProperties"])({
+    const result = await (0,_shared_request_js__WEBPACK_IMPORTED_MODULE_3__.default)('POST', 'https://accounts.spotify.com/api/token', {
+      body: (0,_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__.encodeProperties)({
         grant_type: 'refresh_token',
         refresh_token: refreshToken,
-        client_id: process.env.SPOTIFY_CLIENT_ID,
-        client_secret: process.env.SPOTIFY_CLIENT_SECRET
+        client_id: "ba31691d69c84626a6e762d332060d7a",
+        client_secret: "b142422ce75343cda3df02807a41b9c1"
       }),
-      headers: _shared_constants_js__WEBPACK_IMPORTED_MODULE_6__["URL_HEADER"]
+      headers: _shared_constants_js__WEBPACK_IMPORTED_MODULE_6__.URL_HEADER
     }).catch(rejected => {
-      throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_8__["InvalidStateError"]({
+      throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_8__.InvalidStateError({
         userMessage: 'failed to authorize spotify',
         message: 'token refresh failed',
         state: rejected
       });
     }); // if a new refresh token was sent
 
-    if (_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["rules"].string.test(result.refresh_token)) {
+    if (_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__.rules.string.test(result.refresh_token)) {
       //? better validation?
       // store it
-      await _entities_index_js__WEBPACK_IMPORTED_MODULE_5__["User"].edit({
+      await _entities_index_js__WEBPACK_IMPORTED_MODULE_5__.User.edit({
         id: me.id,
         spotifyRefreshToken: result.refresh_token
       });
     } // send only the accessToken and the expiry time
 
 
-    return new _shared_credentials_js__WEBPACK_IMPORTED_MODULE_9__["default"]({
+    return new _shared_credentials_js__WEBPACK_IMPORTED_MODULE_9__.default({
       origin: 'sj.spotify.refreshToken()',
       accessToken: result.access_token,
       expires: timestamp + result.expires_in
@@ -2658,7 +2511,7 @@ Object.assign(spotify, {
   }
 
 });
-/* harmony default export */ __webpack_exports__["default"] = (spotify);
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (spotify);
 
 /***/ }),
 
@@ -2666,24 +2519,26 @@ Object.assign(spotify, {
 /*!******************************************!*\
   !*** ./source/server/sources/youtube.js ***!
   \******************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => __WEBPACK_DEFAULT_EXPORT__
+/* harmony export */ });
 /* harmony import */ var _server_source_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../server/source.js */ "./source/server/source.js");
 
-const youtube = new _server_source_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
+const youtube = new _server_source_js__WEBPACK_IMPORTED_MODULE_0__.default({
   name: 'youtube',
   register: true
 });
 Object.assign(youtube, {
   getCredentials: async () => ({
-    apiKey: process.env.YOUTUBE_API_KEY,
-    clientId: process.env.YOUTUBE_CLIENT_ID
+    apiKey: "AIzaSyCwPT_DDUqyqWFFo5AMN2MUq_t_LCeU884",
+    clientId: "306280025937-8kpoh42p2vlsmb438591acei5pgopsh7.apps.googleusercontent.com"
   })
 });
-/* harmony default export */ __webpack_exports__["default"] = (youtube);
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (youtube);
 
 /***/ }),
 
@@ -2691,13 +2546,14 @@ Object.assign(youtube, {
 /*!*****************************************!*\
   !*** ./source/shared/class-registry.js ***!
   \*****************************************/
-/*! exports provided: default, sharedRegistry */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return ClassRegistry; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "sharedRegistry", function() { return sharedRegistry; });
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => /* binding */ ClassRegistry,
+/* harmony export */   "sharedRegistry": () => /* binding */ sharedRegistry
+/* harmony export */ });
 /* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utility/index.js */ "./source/shared/utility/index.js");
 /*
 	Provides a system for determining the class to reconstruct from a raw object passed between the client and server.
@@ -2709,27 +2565,27 @@ __webpack_require__.r(__webpack_exports__);
 
 class ClassRegistry {
   constructor(idKey) {
-    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].string.validate(idKey);
-    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(this, {
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__.rules.string.validate(idKey);
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__.define.constant(this, {
       idKey,
       registry: []
     });
   }
 
 }
-_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(ClassRegistry.prototype, {
+_utility_index_js__WEBPACK_IMPORTED_MODULE_0__.define.constant(ClassRegistry.prototype, {
   defineId(target, id) {
-    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].string.validate(id); // Must be writable so that sub-classes can overwrite the id with a more specific one.
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__.rules.string.validate(id); // Must be writable so that sub-classes can overwrite the id with a more specific one.
 
-    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].writable(target, {
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__.define.writable(target, {
       [this.idKey]: id
     });
   },
 
   register(Class, id, reconstructor = (Class, value) => new Class(value)) {
-    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].constructor.validate(Class);
-    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].string.validate(id);
-    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].func.validate(reconstructor);
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__.rules.constructor.validate(Class);
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__.rules.string.validate(id);
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__.rules.func.validate(reconstructor);
     this.registry.forEach(registered => {
       if (registered.Class === Class) {
         throw new Error('Cannot register auto constructable class, as the class has already been registered.');
@@ -2764,17 +2620,18 @@ const sharedRegistry = new ClassRegistry('sharedRegistryIdKey');
 /*!************************************!*\
   !*** ./source/shared/constants.js ***!
   \************************************/
-/*! exports provided: SERVER_URL, API_URL, JSON_HEADER, URL_HEADER, GET_BODY, APP_NAME */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "SERVER_URL", function() { return SERVER_URL; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "API_URL", function() { return API_URL; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "JSON_HEADER", function() { return JSON_HEADER; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "URL_HEADER", function() { return URL_HEADER; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "GET_BODY", function() { return GET_BODY; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "APP_NAME", function() { return APP_NAME; });
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "SERVER_URL": () => /* binding */ SERVER_URL,
+/* harmony export */   "API_URL": () => /* binding */ API_URL,
+/* harmony export */   "JSON_HEADER": () => /* binding */ JSON_HEADER,
+/* harmony export */   "URL_HEADER": () => /* binding */ URL_HEADER,
+/* harmony export */   "GET_BODY": () => /* binding */ GET_BODY,
+/* harmony export */   "APP_NAME": () => /* binding */ APP_NAME
+/* harmony export */ });
 const SERVER_URL = `http://localhost:3000`;
 const API_URL = `${SERVER_URL}/api`;
 const JSON_HEADER = Object.freeze({
@@ -2794,12 +2651,13 @@ const APP_NAME = 'StreamJockey'; // Only used for Spotify player right now.
 /*!**************************************!*\
   !*** ./source/shared/credentials.js ***!
   \**************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Credentials; });
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => /* binding */ Credentials
+/* harmony export */ });
 /* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utility/index.js */ "./source/shared/utility/index.js");
 
 class Credentials {
@@ -2822,7 +2680,7 @@ class Credentials {
       // 1 minute //TODO figure out what the expiry time is for these apis and change this to a more useful value
       scopes = []
     } = options;
-    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].writable(this, {
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__.define.writable(this, {
       authRequestKey,
       authRequestTimestamp,
       authRequestTimeout,
@@ -2844,19 +2702,21 @@ class Credentials {
 /*!************************************************!*\
   !*** ./source/shared/derived-utility/fetch.js ***!
   \************************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => /* export default binding */ __WEBPACK_DEFAULT_EXPORT__
+/* harmony export */ });
 // Dynamically imports fetch from 'node-fetch' if it is not available.
 //! Cannot name the function fetch because it creates a recursion issue.
-/* harmony default export */ __webpack_exports__["default"] = (async function (...args) {
+/* harmony default export */ async function __WEBPACK_DEFAULT_EXPORT__(...args) {
   // Must use typeof because it won't throw a reference error. https://stackoverflow.com/questions/5113374/javascript-check-if-variable-exists-is-defined-initialized
   // Fetch requires
-  if (typeof fetch === 'undefined') return Promise.resolve(/*! import() */).then(__webpack_require__.t.bind(null, /*! node-fetch */ "node-fetch", 7)).then(m => m.default(...args));
+  if (typeof fetch === 'undefined') return Promise.resolve(/*! import() */).then(__webpack_require__.t.bind(__webpack_require__, /*! node-fetch */ "node-fetch", 19)).then(m => m.default(...args));
   return fetch(...args);
-});
+}
 
 /***/ }),
 
@@ -2864,18 +2724,19 @@ __webpack_require__.r(__webpack_exports__);
 /*!************************************************!*\
   !*** ./source/shared/derived-utility/image.js ***!
   \************************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return image; });
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => /* binding */ image
+/* harmony export */ });
 /* harmony import */ var _safe_stringify_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./safe-stringify.js */ "./source/shared/derived-utility/safe-stringify.js");
 // Returns a deep-cloned value for the purposes of debugging.
 //! Will destroy any data not compatible with JSON.
 
 function image(value) {
-  return JSON.parse(Object(_safe_stringify_js__WEBPACK_IMPORTED_MODULE_0__["default"])(value));
+  return JSON.parse((0,_safe_stringify_js__WEBPACK_IMPORTED_MODULE_0__.default)(value));
 }
 
 /***/ }),
@@ -2884,23 +2745,20 @@ function image(value) {
 /*!************************************************!*\
   !*** ./source/shared/derived-utility/index.js ***!
   \************************************************/
-/*! exports provided: fetch, image, safeStringify, urlRule */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "fetch": () => /* reexport safe */ _fetch_js__WEBPACK_IMPORTED_MODULE_0__.default,
+/* harmony export */   "image": () => /* reexport safe */ _image_js__WEBPACK_IMPORTED_MODULE_1__.default,
+/* harmony export */   "safeStringify": () => /* reexport safe */ _safe_stringify_js__WEBPACK_IMPORTED_MODULE_2__.default,
+/* harmony export */   "urlRule": () => /* reexport safe */ _url_js__WEBPACK_IMPORTED_MODULE_3__.default
+/* harmony export */ });
 /* harmony import */ var _fetch_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./fetch.js */ "./source/shared/derived-utility/fetch.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "fetch", function() { return _fetch_js__WEBPACK_IMPORTED_MODULE_0__["default"]; });
-
 /* harmony import */ var _image_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./image.js */ "./source/shared/derived-utility/image.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "image", function() { return _image_js__WEBPACK_IMPORTED_MODULE_1__["default"]; });
-
 /* harmony import */ var _safe_stringify_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./safe-stringify.js */ "./source/shared/derived-utility/safe-stringify.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "safeStringify", function() { return _safe_stringify_js__WEBPACK_IMPORTED_MODULE_2__["default"]; });
-
 /* harmony import */ var _url_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./url.js */ "./source/shared/derived-utility/url.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "urlRule", function() { return _url_js__WEBPACK_IMPORTED_MODULE_3__["default"]; });
-
 
 
 
@@ -2912,20 +2770,20 @@ __webpack_require__.r(__webpack_exports__);
 /*!*********************************************************!*\
   !*** ./source/shared/derived-utility/safe-stringify.js ***!
   \*********************************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return safeStringify; });
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => /* binding */ safeStringify
+/* harmony export */ });
 /* harmony import */ var fclone__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! fclone */ "fclone");
-/* harmony import */ var fclone__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(fclone__WEBPACK_IMPORTED_MODULE_0__);
 //TODO //L Consider: https://www.npmjs.com/package/safe-stable-stringify
 //TODO //L Consider: https://www.npmjs.com/package/flatted <--- preserves circular JSON
 //TODO //? Does this account for JSON.stringify() throwing on BigInt?
 
 function safeStringify(value) {
-  return JSON.stringify(fclone__WEBPACK_IMPORTED_MODULE_0___default()(value));
+  return JSON.stringify(fclone__WEBPACK_IMPORTED_MODULE_0__(value));
 }
 
 /***/ }),
@@ -2934,19 +2792,20 @@ function safeStringify(value) {
 /*!**********************************************!*\
   !*** ./source/shared/derived-utility/url.js ***!
   \**********************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => __WEBPACK_DEFAULT_EXPORT__
+/* harmony export */ });
 /* harmony import */ var _utility_validation_rule_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../utility/validation/rule.js */ "./source/shared/utility/validation/rule.js");
 /* harmony import */ var valid_url__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! valid-url */ "valid-url");
-/* harmony import */ var valid_url__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(valid_url__WEBPACK_IMPORTED_MODULE_1__);
 
 
-/* harmony default export */ __webpack_exports__["default"] = (new _utility_validation_rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (new _utility_validation_rule_js__WEBPACK_IMPORTED_MODULE_0__.default({
   validator(value) {
-    if (valid_url__WEBPACK_IMPORTED_MODULE_1___default.a.isWebUri(value) === undefined) {
+    if (valid_url__WEBPACK_IMPORTED_MODULE_1__.isWebUri(value) === undefined) {
       throw new Error('Value is not a valid URL');
     }
   }
@@ -2959,19 +2818,21 @@ __webpack_require__.r(__webpack_exports__);
 /*!*********************************************!*\
   !*** ./source/shared/entityParts/entity.js ***!
   \*********************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => __WEBPACK_DEFAULT_EXPORT__
+/* harmony export */ });
 /* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../utility/index.js */ "./source/shared/utility/index.js");
 
-/* harmony default export */ __webpack_exports__["default"] = (new _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["ClassParts"]({
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (new _utility_index_js__WEBPACK_IMPORTED_MODULE_0__.ClassParts({
   instance(options = {}) {
     const {
       id
     } = options;
-    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].writable(this, {
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__.define.writable(this, {
       id,
       //R This has to be a variable because in some places entities are overwritten with entire other entities: Object.assign(E1, E2). Maybe this isn't ideal.
       filters: {}
@@ -2980,10 +2841,10 @@ __webpack_require__.r(__webpack_exports__);
 
     const that = this;
     const staticFilters = this.constructor.filters;
-    Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["getKeysOf"])(staticFilters).forEach(key => {
-      _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].getter(this.filters, {
+    (0,_utility_index_js__WEBPACK_IMPORTED_MODULE_0__.getKeysOf)(staticFilters).forEach(key => {
+      _utility_index_js__WEBPACK_IMPORTED_MODULE_0__.define.getter(this.filters, {
         get [key]() {
-          return Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["pick"])(that, staticFilters[key]);
+          return (0,_utility_index_js__WEBPACK_IMPORTED_MODULE_0__.pick)(that, staticFilters[key]);
         }
 
       });
@@ -2991,19 +2852,19 @@ __webpack_require__.r(__webpack_exports__);
   },
 
   static() {
-    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].getter(this, {
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__.define.getter(this, {
       get table() {
         return `${this.name.charAt(0).toLowerCase() + this.name.slice(1)}s`; //! lowercase, plural of name
       }
 
     }); //TODO Can this be locked down as a constant? (See updateFilters()).
 
-    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].writable(this, {
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__.define.writable(this, {
       filters: {
         id: ['id']
       }
     });
-    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(this, {
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__.define.constant(this, {
       // Automatically create new filters based on schema.
       updateFilters() {
         const methodNames = ['add', 'get', 'edit', 'remove'];
@@ -3041,23 +2902,20 @@ __webpack_require__.r(__webpack_exports__);
 /*!********************************************!*\
   !*** ./source/shared/entityParts/index.js ***!
   \********************************************/
-/*! exports provided: entityParts, playlistParts, trackParts, userParts */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "entityParts": () => /* reexport safe */ _entity_js__WEBPACK_IMPORTED_MODULE_0__.default,
+/* harmony export */   "playlistParts": () => /* reexport safe */ _playlist_js__WEBPACK_IMPORTED_MODULE_1__.default,
+/* harmony export */   "trackParts": () => /* reexport safe */ _track_js__WEBPACK_IMPORTED_MODULE_2__.default,
+/* harmony export */   "userParts": () => /* reexport safe */ _user_js__WEBPACK_IMPORTED_MODULE_3__.default
+/* harmony export */ });
 /* harmony import */ var _entity_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./entity.js */ "./source/shared/entityParts/entity.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "entityParts", function() { return _entity_js__WEBPACK_IMPORTED_MODULE_0__["default"]; });
-
 /* harmony import */ var _playlist_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./playlist.js */ "./source/shared/entityParts/playlist.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "playlistParts", function() { return _playlist_js__WEBPACK_IMPORTED_MODULE_1__["default"]; });
-
 /* harmony import */ var _track_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./track.js */ "./source/shared/entityParts/track.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "trackParts", function() { return _track_js__WEBPACK_IMPORTED_MODULE_2__["default"]; });
-
 /* harmony import */ var _user_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./user.js */ "./source/shared/entityParts/user.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "userParts", function() { return _user_js__WEBPACK_IMPORTED_MODULE_3__["default"]; });
-
 
 
 
@@ -3069,18 +2927,20 @@ __webpack_require__.r(__webpack_exports__);
 /*!***********************************************!*\
   !*** ./source/shared/entityParts/playlist.js ***!
   \***********************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => __WEBPACK_DEFAULT_EXPORT__
+/* harmony export */ });
 /* harmony import */ var _schema_states_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./schema-states.js */ "./source/shared/entityParts/schema-states.js");
 /* harmony import */ var _project_rules_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../project-rules.js */ "./source/shared/project-rules.js");
 /* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../utility/index.js */ "./source/shared/utility/index.js");
 
 
 
-/* harmony default export */ __webpack_exports__["default"] = (new _utility_index_js__WEBPACK_IMPORTED_MODULE_2__["ClassParts"]({
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (new _utility_index_js__WEBPACK_IMPORTED_MODULE_2__.ClassParts({
   instance(options = {}) {
     const {
       userId,
@@ -3090,7 +2950,7 @@ __webpack_require__.r(__webpack_exports__);
       color = '',
       image = ''
     } = options;
-    _utility_index_js__WEBPACK_IMPORTED_MODULE_2__["define"].writable(this, {
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_2__.define.writable(this, {
       userId,
       name,
       visibility,
@@ -3101,64 +2961,64 @@ __webpack_require__.r(__webpack_exports__);
   },
 
   static() {
-    _utility_index_js__WEBPACK_IMPORTED_MODULE_2__["define"].constant(this, {
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_2__.define.constant(this, {
       schema: {
         id: {
           columnName: 'id',
-          rule: _project_rules_js__WEBPACK_IMPORTED_MODULE_1__["id"].validate,
-          add: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["auto"],
-          get: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
-          edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["required"],
-          remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["required"]
+          rule: _project_rules_js__WEBPACK_IMPORTED_MODULE_1__.id.validate,
+          add: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__.auto,
+          get: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__.optional,
+          edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__.required,
+          remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__.required
         },
         userId: {
           columnName: 'userId',
-          rule: _project_rules_js__WEBPACK_IMPORTED_MODULE_1__["id"].validate,
-          add: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["required"],
-          get: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
-          edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
-          remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["unused"]
+          rule: _project_rules_js__WEBPACK_IMPORTED_MODULE_1__.id.validate,
+          add: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__.required,
+          get: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__.optional,
+          edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__.optional,
+          remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__.unused
         },
         name: {
           columnName: 'name',
-          rule: _project_rules_js__WEBPACK_IMPORTED_MODULE_1__["name"].validate,
-          add: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["required"],
-          get: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
-          edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
-          remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["unused"]
+          rule: _project_rules_js__WEBPACK_IMPORTED_MODULE_1__.name.validate,
+          add: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__.required,
+          get: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__.optional,
+          edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__.optional,
+          remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__.unused
         },
         description: {
           columnName: 'description',
-          rule: _project_rules_js__WEBPACK_IMPORTED_MODULE_1__["description"].validate,
-          add: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
-          get: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
-          edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
-          remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["unused"]
+          rule: _project_rules_js__WEBPACK_IMPORTED_MODULE_1__.description.validate,
+          add: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__.optional,
+          get: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__.optional,
+          edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__.optional,
+          remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__.unused
         },
         visibility: {
           columnName: 'visibility',
-          rule: _project_rules_js__WEBPACK_IMPORTED_MODULE_1__["visibilityState"].validate,
-          add: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
-          get: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
-          edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
-          remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["unused"]
+          rule: _project_rules_js__WEBPACK_IMPORTED_MODULE_1__.visibilityState.validate,
+          add: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__.optional,
+          get: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__.optional,
+          edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__.optional,
+          remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__.unused
         },
         image: {
           columnName: 'image',
-          rule: _utility_index_js__WEBPACK_IMPORTED_MODULE_2__["rules"].string.validate,
+          rule: _utility_index_js__WEBPACK_IMPORTED_MODULE_2__.rules.string.validate,
           //TODO Image url rule.
-          add: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
-          get: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
-          edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
-          remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["unused"]
+          add: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__.optional,
+          get: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__.optional,
+          edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__.optional,
+          remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__.unused
         },
         color: {
           columnName: 'color',
-          rule: _project_rules_js__WEBPACK_IMPORTED_MODULE_1__["color"].validate,
-          add: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
-          get: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
-          edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
-          remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["unused"]
+          rule: _project_rules_js__WEBPACK_IMPORTED_MODULE_1__.color.validate,
+          add: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__.optional,
+          get: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__.optional,
+          edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__.optional,
+          remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__.unused
         }
       }
     });
@@ -3173,15 +3033,16 @@ __webpack_require__.r(__webpack_exports__);
 /*!****************************************************!*\
   !*** ./source/shared/entityParts/schema-states.js ***!
   \****************************************************/
-/*! exports provided: unused, optional, required, auto */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "unused", function() { return unused; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "optional", function() { return optional; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "required", function() { return required; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "auto", function() { return auto; });
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "unused": () => /* binding */ unused,
+/* harmony export */   "optional": () => /* binding */ optional,
+/* harmony export */   "required": () => /* binding */ required,
+/* harmony export */   "auto": () => /* binding */ auto
+/* harmony export */ });
 //TODO Make into class with validated properties.
 //TODO //OLD schema property states //TODO could these be static on sj.Entity and called via this.x ?
 const unused = {
@@ -3211,19 +3072,21 @@ const auto = {
 /*!********************************************!*\
   !*** ./source/shared/entityParts/track.js ***!
   \********************************************/
-/*! exports provided: default, validateSource */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "validateSource", function() { return validateSource; });
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => __WEBPACK_DEFAULT_EXPORT__,
+/* harmony export */   "validateSource": () => /* binding */ validateSource
+/* harmony export */ });
 /* harmony import */ var _schema_states_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./schema-states.js */ "./source/shared/entityParts/schema-states.js");
 /* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../utility/index.js */ "./source/shared/utility/index.js");
 /* harmony import */ var _project_rules_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../project-rules.js */ "./source/shared/project-rules.js");
 
 
 
-/* harmony default export */ __webpack_exports__["default"] = (new _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["ClassParts"]({
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (new _utility_index_js__WEBPACK_IMPORTED_MODULE_1__.ClassParts({
   instance(options = {}) {
     const {
       playlistId = null,
@@ -3236,7 +3099,7 @@ __webpack_require__.r(__webpack_exports__);
       duration = null,
       link = null
     } = options;
-    _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].writable(this, {
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_1__.define.writable(this, {
       playlistId,
       position,
       sourceId,
@@ -3248,76 +3111,76 @@ __webpack_require__.r(__webpack_exports__);
   },
 
   static() {
-    _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].constant(this, {
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_1__.define.constant(this, {
       schema: {
         id: {
           columnName: 'id',
-          rule: _project_rules_js__WEBPACK_IMPORTED_MODULE_2__["id"].validate,
-          add: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["auto"],
-          get: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
-          edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["required"],
-          remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["required"]
+          rule: _project_rules_js__WEBPACK_IMPORTED_MODULE_2__.id.validate,
+          add: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__.auto,
+          get: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__.optional,
+          edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__.required,
+          remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__.required
         },
         playlistId: {
           columnName: 'playlistId',
-          rule: _project_rules_js__WEBPACK_IMPORTED_MODULE_2__["id"].validate,
-          add: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["required"],
-          get: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
-          edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
-          remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["unused"]
+          rule: _project_rules_js__WEBPACK_IMPORTED_MODULE_2__.id.validate,
+          add: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__.required,
+          get: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__.optional,
+          edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__.optional,
+          remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__.unused
         },
         position: {
           columnName: 'position',
-          rule: _project_rules_js__WEBPACK_IMPORTED_MODULE_2__["position"].validate,
-          add: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
-          get: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
-          edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
-          remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["unused"]
+          rule: _project_rules_js__WEBPACK_IMPORTED_MODULE_2__.position.validate,
+          add: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__.optional,
+          get: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__.optional,
+          edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__.optional,
+          remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__.unused
         },
         name: {
           columnName: 'name',
-          rule: _project_rules_js__WEBPACK_IMPORTED_MODULE_2__["name"].validate,
-          add: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["required"],
-          get: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
-          edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
-          remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["unused"]
+          rule: _project_rules_js__WEBPACK_IMPORTED_MODULE_2__.name.validate,
+          add: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__.required,
+          get: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__.optional,
+          edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__.optional,
+          remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__.unused
         },
         duration: {
           columnName: 'duration',
-          rule: _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].nonNegativeInteger.validate,
+          rule: _utility_index_js__WEBPACK_IMPORTED_MODULE_1__.rules.nonNegativeInteger.validate,
           //TODO Expand
-          add: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["required"],
-          get: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
-          edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
-          remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["unused"]
+          add: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__.required,
+          get: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__.optional,
+          edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__.optional,
+          remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__.unused
         },
         source: {
           columnName: 'source',
           //TODO Split source schema validation between client and server because they use different instances.
           rule: () => {},
           // rule: Source.validateRegistration.bind(Source),
-          add: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["required"],
-          get: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
-          edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
-          remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["unused"]
+          add: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__.required,
+          get: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__.optional,
+          edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__.optional,
+          remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__.unused
         },
         sourceId: {
           columnName: 'sourceId',
-          rule: _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].string.validate,
+          rule: _utility_index_js__WEBPACK_IMPORTED_MODULE_1__.rules.string.validate,
           //TODO Expand
-          add: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["required"],
-          get: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
-          edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
-          remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["unused"]
+          add: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__.required,
+          get: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__.optional,
+          edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__.optional,
+          remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__.unused
         },
         artists: {
           columnName: 'artists',
-          rule: _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].array.validate,
+          rule: _utility_index_js__WEBPACK_IMPORTED_MODULE_1__.rules.array.validate,
           //TODO Expand
-          add: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["required"],
-          get: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
-          edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
-          remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["unused"]
+          add: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__.required,
+          get: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__.optional,
+          edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__.optional,
+          remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__.unused
         }
       }
     }); // Update filters after schema is defined.
@@ -3325,7 +3188,7 @@ __webpack_require__.r(__webpack_exports__);
     this.updateFilters(); // Add an additional filter 'localMetadata'.
     //G localMetadata is track properties that aren't derived from the source data, but instead created by the app or user. It must be preserved when using source data.
 
-    _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].constant(this.filters, {
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_1__.define.constant(this.filters, {
       localMetadata: ['id', 'playlistId', 'position']
     });
   }
@@ -3340,7 +3203,7 @@ function validateSource({
   //R Must be defined on client/server because they use different Source classes.
   let source = null;
 
-  if (_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].object.test(value)) {
+  if (_utility_index_js__WEBPACK_IMPORTED_MODULE_1__.rules.object.test(value)) {
     const found = SourceClass.instances.find(sourceInstance => sourceInstance.name === value.name);
 
     if (found) {
@@ -3350,7 +3213,7 @@ function validateSource({
     }
   }
 
-  _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].writable(instance, {
+  _utility_index_js__WEBPACK_IMPORTED_MODULE_1__.define.writable(instance, {
     source
   });
 }
@@ -3361,12 +3224,14 @@ function validateSource({
 /*!*******************************************!*\
   !*** ./source/shared/entityParts/user.js ***!
   \*******************************************/
-/*! exports provided: defaultSocketId, default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "defaultSocketId", function() { return defaultSocketId; });
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "defaultSocketId": () => /* binding */ defaultSocketId,
+/* harmony export */   "default": () => __WEBPACK_DEFAULT_EXPORT__
+/* harmony export */ });
 /* harmony import */ var _schema_states_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./schema-states.js */ "./source/shared/entityParts/schema-states.js");
 /* harmony import */ var _project_rules_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../project-rules.js */ "./source/shared/project-rules.js");
 /* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../utility/index.js */ "./source/shared/utility/index.js");
@@ -3374,7 +3239,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 const defaultSocketId = null;
-/* harmony default export */ __webpack_exports__["default"] = (new _utility_index_js__WEBPACK_IMPORTED_MODULE_2__["ClassParts"]({
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (new _utility_index_js__WEBPACK_IMPORTED_MODULE_2__.ClassParts({
   instance(options = {}) {
     const {
       name = null,
@@ -3385,7 +3250,7 @@ const defaultSocketId = null;
       //?
       socketId = defaultSocketId
     } = options;
-    _utility_index_js__WEBPACK_IMPORTED_MODULE_2__["define"].writable(this, {
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_2__.define.writable(this, {
       name,
       email,
       password,
@@ -3396,58 +3261,58 @@ const defaultSocketId = null;
   },
 
   static() {
-    _utility_index_js__WEBPACK_IMPORTED_MODULE_2__["define"].constant(this, {
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_2__.define.constant(this, {
       schema: {
         //G 0 = unused, 1 = optional, 2 = required
         id: {
           columnName: 'id',
-          rule: _project_rules_js__WEBPACK_IMPORTED_MODULE_1__["id"].validate,
-          add: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["auto"],
-          get: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
-          edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["required"],
-          remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["required"]
+          rule: _project_rules_js__WEBPACK_IMPORTED_MODULE_1__.id.validate,
+          add: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__.auto,
+          get: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__.optional,
+          edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__.required,
+          remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__.required
         },
         name: {
           columnName: 'name',
-          rule: _project_rules_js__WEBPACK_IMPORTED_MODULE_1__["name"].validate,
-          add: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["required"],
-          get: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
-          edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
-          remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["unused"]
+          rule: _project_rules_js__WEBPACK_IMPORTED_MODULE_1__.name.validate,
+          add: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__.required,
+          get: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__.optional,
+          edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__.optional,
+          remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__.unused
         },
         email: {
           columnName: 'email',
-          rule: _utility_index_js__WEBPACK_IMPORTED_MODULE_2__["rules"].string.validate,
+          rule: _utility_index_js__WEBPACK_IMPORTED_MODULE_2__.rules.string.validate,
           //TODO Email rule.
-          add: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["required"],
-          get: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
-          edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
-          remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["unused"]
+          add: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__.required,
+          get: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__.optional,
+          edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__.optional,
+          remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__.unused
         },
         password: {
           columnName: 'password',
-          rule: _project_rules_js__WEBPACK_IMPORTED_MODULE_1__["password"].validate,
-          add: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["required"],
-          get: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["unused"],
+          rule: _project_rules_js__WEBPACK_IMPORTED_MODULE_1__.password.validate,
+          add: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__.required,
+          get: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__.unused,
           edit: {
             in: true,
             out: false,
             check: 1
           },
-          remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["unused"]
+          remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__.unused
         },
         spotifyRefreshToken: {
           columnName: 'spotifyRefreshToken',
           rule: () => {},
           //TODO empty for now
-          add: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["unused"],
+          add: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__.unused,
           get: {
             in: false,
             out: true,
             check: 0
           },
-          edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
-          remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["unused"]
+          edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__.optional,
+          remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__.unused
         }
       }
     });
@@ -3462,12 +3327,13 @@ const defaultSocketId = null;
 /*!***********************************************!*\
   !*** ./source/shared/errors/auth-required.js ***!
   \***********************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return AuthRequired; });
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => /* binding */ AuthRequired
+/* harmony export */ });
 /* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../utility/index.js */ "./source/shared/utility/index.js");
 /* harmony import */ var _class_registry_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../class-registry.js */ "./source/shared/class-registry.js");
 // Used to communicate to client that the server does not have the required tokens and that the client must authorize.
@@ -3479,14 +3345,14 @@ class AuthRequired {
     const {
       message = 'authorization required'
     } = options;
-    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].writable(this, {
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__.define.writable(this, {
       message
     });
-    _class_registry_js__WEBPACK_IMPORTED_MODULE_1__["sharedRegistry"].defineId(this, sharedRegistryId);
+    _class_registry_js__WEBPACK_IMPORTED_MODULE_1__.sharedRegistry.defineId(this, sharedRegistryId);
   }
 
 }
-_class_registry_js__WEBPACK_IMPORTED_MODULE_1__["sharedRegistry"].register(AuthRequired, sharedRegistryId);
+_class_registry_js__WEBPACK_IMPORTED_MODULE_1__.sharedRegistry.register(AuthRequired, sharedRegistryId);
 
 /***/ }),
 
@@ -3494,12 +3360,13 @@ _class_registry_js__WEBPACK_IMPORTED_MODULE_1__["sharedRegistry"].register(AuthR
 /*!**********************************************!*\
   !*** ./source/shared/errors/custom-error.js ***!
   \**********************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return CustomError; });
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => /* binding */ CustomError
+/* harmony export */ });
 /* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../utility/index.js */ "./source/shared/utility/index.js");
 /* harmony import */ var _class_registry_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../class-registry.js */ "./source/shared/class-registry.js");
 //TODO Error's message property is non-enumerable. This prevents it from being passed to the client.
@@ -3517,17 +3384,17 @@ class CustomError extends Error {
     message = userMessage
   } = {}) {
     super(message);
-    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].validatedVariable(this, {
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__.define.validatedVariable(this, {
       userMessage: {
         value: userMessage,
-        validator: _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].string.validate
+        validator: _utility_index_js__WEBPACK_IMPORTED_MODULE_0__.rules.string.validate
       }
     });
-    _class_registry_js__WEBPACK_IMPORTED_MODULE_1__["sharedRegistry"].defineId(this, sharedRegistryId);
+    _class_registry_js__WEBPACK_IMPORTED_MODULE_1__.sharedRegistry.defineId(this, sharedRegistryId);
   }
 
 }
-_class_registry_js__WEBPACK_IMPORTED_MODULE_1__["sharedRegistry"].register(CustomError, sharedRegistryId);
+_class_registry_js__WEBPACK_IMPORTED_MODULE_1__.sharedRegistry.register(CustomError, sharedRegistryId);
 
 /***/ }),
 
@@ -3535,17 +3402,18 @@ _class_registry_js__WEBPACK_IMPORTED_MODULE_1__["sharedRegistry"].register(Custo
 /*!********************************************!*\
   !*** ./source/shared/errors/http-error.js ***!
   \********************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return HTTPError; });
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => /* binding */ HTTPError
+/* harmony export */ });
 /* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../utility/index.js */ "./source/shared/utility/index.js");
 /* harmony import */ var _custom_error_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./custom-error.js */ "./source/shared/errors/custom-error.js");
 
 
-class HTTPError extends _custom_error_js__WEBPACK_IMPORTED_MODULE_1__["default"] {
+class HTTPError extends _custom_error_js__WEBPACK_IMPORTED_MODULE_1__.default {
   constructor({
     code = 400,
     // HTTPS Response Status Code
@@ -3554,14 +3422,14 @@ class HTTPError extends _custom_error_js__WEBPACK_IMPORTED_MODULE_1__["default"]
     ...rest
   } = {}) {
     super(rest);
-    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].validatedVariable(this, {
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__.define.validatedVariable(this, {
       code: {
         value: code,
-        validator: _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].integer.validate
+        validator: _utility_index_js__WEBPACK_IMPORTED_MODULE_0__.rules.integer.validate
       },
       type: {
         value: type,
-        validator: _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].string.validate
+        validator: _utility_index_js__WEBPACK_IMPORTED_MODULE_0__.rules.string.validate
       }
     });
   }
@@ -3574,41 +3442,32 @@ class HTTPError extends _custom_error_js__WEBPACK_IMPORTED_MODULE_1__["default"]
 /*!***************************************!*\
   !*** ./source/shared/errors/index.js ***!
   \***************************************/
-/*! exports provided: AuthRequired, CustomError, HTTPError, InternalError, InvalidStateError, MultipleErrors, ParseError, UnexpectedValueThrown, UnknownError, UnreachableError */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "AuthRequired": () => /* reexport safe */ _auth_required_js__WEBPACK_IMPORTED_MODULE_0__.default,
+/* harmony export */   "CustomError": () => /* reexport safe */ _custom_error_js__WEBPACK_IMPORTED_MODULE_1__.default,
+/* harmony export */   "HTTPError": () => /* reexport safe */ _http_error_js__WEBPACK_IMPORTED_MODULE_2__.default,
+/* harmony export */   "InternalError": () => /* reexport safe */ _internal_error_js__WEBPACK_IMPORTED_MODULE_3__.default,
+/* harmony export */   "InvalidStateError": () => /* reexport safe */ _invalid_state_error_js__WEBPACK_IMPORTED_MODULE_4__.default,
+/* harmony export */   "MultipleErrors": () => /* reexport safe */ _multiple_errors_js__WEBPACK_IMPORTED_MODULE_5__.default,
+/* harmony export */   "ParseError": () => /* reexport safe */ _parse_error_js__WEBPACK_IMPORTED_MODULE_6__.default,
+/* harmony export */   "UnexpectedValueThrown": () => /* reexport safe */ _unexpected_value_thrown_js__WEBPACK_IMPORTED_MODULE_7__.default,
+/* harmony export */   "UnknownError": () => /* reexport safe */ _unknown_error_js__WEBPACK_IMPORTED_MODULE_8__.default,
+/* harmony export */   "UnreachableError": () => /* reexport safe */ _unreachable_error_js__WEBPACK_IMPORTED_MODULE_9__.default
+/* harmony export */ });
 /* harmony import */ var _auth_required_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./auth-required.js */ "./source/shared/errors/auth-required.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "AuthRequired", function() { return _auth_required_js__WEBPACK_IMPORTED_MODULE_0__["default"]; });
-
 /* harmony import */ var _custom_error_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./custom-error.js */ "./source/shared/errors/custom-error.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "CustomError", function() { return _custom_error_js__WEBPACK_IMPORTED_MODULE_1__["default"]; });
-
 /* harmony import */ var _http_error_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./http-error.js */ "./source/shared/errors/http-error.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "HTTPError", function() { return _http_error_js__WEBPACK_IMPORTED_MODULE_2__["default"]; });
-
 /* harmony import */ var _internal_error_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./internal-error.js */ "./source/shared/errors/internal-error.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "InternalError", function() { return _internal_error_js__WEBPACK_IMPORTED_MODULE_3__["default"]; });
-
 /* harmony import */ var _invalid_state_error_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./invalid-state-error.js */ "./source/shared/errors/invalid-state-error.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "InvalidStateError", function() { return _invalid_state_error_js__WEBPACK_IMPORTED_MODULE_4__["default"]; });
-
 /* harmony import */ var _multiple_errors_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./multiple-errors.js */ "./source/shared/errors/multiple-errors.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "MultipleErrors", function() { return _multiple_errors_js__WEBPACK_IMPORTED_MODULE_5__["default"]; });
-
 /* harmony import */ var _parse_error_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./parse-error.js */ "./source/shared/errors/parse-error.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "ParseError", function() { return _parse_error_js__WEBPACK_IMPORTED_MODULE_6__["default"]; });
-
 /* harmony import */ var _unexpected_value_thrown_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./unexpected-value-thrown.js */ "./source/shared/errors/unexpected-value-thrown.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "UnexpectedValueThrown", function() { return _unexpected_value_thrown_js__WEBPACK_IMPORTED_MODULE_7__["default"]; });
-
 /* harmony import */ var _unknown_error_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./unknown-error.js */ "./source/shared/errors/unknown-error.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "UnknownError", function() { return _unknown_error_js__WEBPACK_IMPORTED_MODULE_8__["default"]; });
-
 /* harmony import */ var _unreachable_error_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./unreachable-error.js */ "./source/shared/errors/unreachable-error.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "UnreachableError", function() { return _unreachable_error_js__WEBPACK_IMPORTED_MODULE_9__["default"]; });
-
 
 
 
@@ -3626,17 +3485,18 @@ __webpack_require__.r(__webpack_exports__);
 /*!************************************************!*\
   !*** ./source/shared/errors/internal-error.js ***!
   \************************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return InternalError; });
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => /* binding */ InternalError
+/* harmony export */ });
 /* harmony import */ var _custom_error_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./custom-error.js */ "./source/shared/errors/custom-error.js");
 // Used for errors that are caused by internal mistakes in the code.
 // ie. Not the user's fault.
 
-class InternalError extends _custom_error_js__WEBPACK_IMPORTED_MODULE_0__["default"] {
+class InternalError extends _custom_error_js__WEBPACK_IMPORTED_MODULE_0__.default {
   constructor({
     userMessage = 'An internal error has occurred.',
     ...rest
@@ -3655,26 +3515,27 @@ class InternalError extends _custom_error_js__WEBPACK_IMPORTED_MODULE_0__["defau
 /*!*****************************************************!*\
   !*** ./source/shared/errors/invalid-state-error.js ***!
   \*****************************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return InvalidStateError; });
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => /* binding */ InvalidStateError
+/* harmony export */ });
 /* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../utility/index.js */ "./source/shared/utility/index.js");
 /* harmony import */ var _custom_error_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./custom-error.js */ "./source/shared/errors/custom-error.js");
 /* harmony import */ var _derived_utility_index_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../derived-utility/index.js */ "./source/shared/derived-utility/index.js");
 
 
 
-class InvalidStateError extends _custom_error_js__WEBPACK_IMPORTED_MODULE_1__["default"] {
+class InvalidStateError extends _custom_error_js__WEBPACK_IMPORTED_MODULE_1__.default {
   constructor({
     state,
     ...rest
   } = {}) {
     super(rest);
-    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(this, {
-      state: Object(_derived_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["image"])(state)
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__.define.constant(this, {
+      state: (0,_derived_utility_index_js__WEBPACK_IMPORTED_MODULE_2__.image)(state)
     });
   }
 
@@ -3686,19 +3547,20 @@ class InvalidStateError extends _custom_error_js__WEBPACK_IMPORTED_MODULE_1__["d
 /*!*************************************************!*\
   !*** ./source/shared/errors/multiple-errors.js ***!
   \*************************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return MultipleErrors; });
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => /* binding */ MultipleErrors
+/* harmony export */ });
 /* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../utility/index.js */ "./source/shared/utility/index.js");
 /* harmony import */ var _custom_error_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./custom-error.js */ "./source/shared/errors/custom-error.js");
 // Used for errors that get thrown in parallel.
 //TODO Consider replacing with AggregateError (remember to add it to sharedRegistry like CustomError is)
 
 
-class MultipleErrors extends _custom_error_js__WEBPACK_IMPORTED_MODULE_1__["default"] {
+class MultipleErrors extends _custom_error_js__WEBPACK_IMPORTED_MODULE_1__.default {
   constructor({
     userMessage = 'Some errors have occurred.',
     errors,
@@ -3708,16 +3570,16 @@ class MultipleErrors extends _custom_error_js__WEBPACK_IMPORTED_MODULE_1__["defa
       userMessage,
       ...rest
     });
-    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].validatedVariable(this, {
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__.define.validatedVariable(this, {
       errors: {
         value: errors,
-        validator: _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].array.validate
+        validator: _utility_index_js__WEBPACK_IMPORTED_MODULE_0__.rules.array.validate
       }
     });
   }
 
 }
-_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(MultipleErrors, {
+_utility_index_js__WEBPACK_IMPORTED_MODULE_0__.define.constant(MultipleErrors, {
   throw(errors) {
     throw new MultipleErrors({
       errors
@@ -3732,23 +3594,24 @@ _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(MultipleErrors
 /*!*********************************************!*\
   !*** ./source/shared/errors/parse-error.js ***!
   \*********************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return ParseError; });
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => /* binding */ ParseError
+/* harmony export */ });
 /* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../utility/index.js */ "./source/shared/utility/index.js");
 /* harmony import */ var _custom_error_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./custom-error.js */ "./source/shared/errors/custom-error.js");
 
 
-class ParseError extends _custom_error_js__WEBPACK_IMPORTED_MODULE_1__["default"] {
+class ParseError extends _custom_error_js__WEBPACK_IMPORTED_MODULE_1__.default {
   constructor({
     input,
     ...rest
   } = {}) {
     super(rest);
-    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(this, {
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__.define.constant(this, {
       input
     });
   }
@@ -3761,24 +3624,25 @@ class ParseError extends _custom_error_js__WEBPACK_IMPORTED_MODULE_1__["default"
 /*!*********************************************************!*\
   !*** ./source/shared/errors/unexpected-value-thrown.js ***!
   \*********************************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return UnexpectedValueThrown; });
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => /* binding */ UnexpectedValueThrown
+/* harmony export */ });
 /* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../utility/index.js */ "./source/shared/utility/index.js");
 /* harmony import */ var _custom_error_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./custom-error.js */ "./source/shared/errors/custom-error.js");
 
 
-class UnexpectedValueThrown extends _custom_error_js__WEBPACK_IMPORTED_MODULE_1__["default"] {
+class UnexpectedValueThrown extends _custom_error_js__WEBPACK_IMPORTED_MODULE_1__.default {
   constructor({
     value,
     // The value that was thrown.
     ...rest
   } = {}) {
     super(rest);
-    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(this, {
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__.define.constant(this, {
       value
     });
   }
@@ -3791,12 +3655,13 @@ class UnexpectedValueThrown extends _custom_error_js__WEBPACK_IMPORTED_MODULE_1_
 /*!***********************************************!*\
   !*** ./source/shared/errors/unknown-error.js ***!
   \***********************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return UnknownError; });
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => /* binding */ UnknownError
+/* harmony export */ });
 /* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../utility/index.js */ "./source/shared/utility/index.js");
 /* harmony import */ var _class_registry_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../class-registry.js */ "./source/shared/class-registry.js");
 // Used for unknown errors. Those which cannot be reconstructed.
@@ -3810,16 +3675,16 @@ class UnknownError extends Error {
   constructor(error = {}) {
     super(error.message); // Copy all properties.
 
-    Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["forOwnKeysOf"])(error, key => {
+    (0,_utility_index_js__WEBPACK_IMPORTED_MODULE_0__.forOwnKeysOf)(error, key => {
       if (key !== 'message') {
-        Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["copyProperty"])(key, error, this);
+        (0,_utility_index_js__WEBPACK_IMPORTED_MODULE_0__.copyProperty)(key, error, this);
       }
     });
-    _class_registry_js__WEBPACK_IMPORTED_MODULE_1__["sharedRegistry"].defineId(this, sharedRegistryId);
+    _class_registry_js__WEBPACK_IMPORTED_MODULE_1__.sharedRegistry.defineId(this, sharedRegistryId);
   }
 
 }
-_class_registry_js__WEBPACK_IMPORTED_MODULE_1__["sharedRegistry"].register(UnknownError, sharedRegistryId);
+_class_registry_js__WEBPACK_IMPORTED_MODULE_1__.sharedRegistry.register(UnknownError, sharedRegistryId);
 
 /***/ }),
 
@@ -3827,16 +3692,17 @@ _class_registry_js__WEBPACK_IMPORTED_MODULE_1__["sharedRegistry"].register(Unkno
 /*!***************************************************!*\
   !*** ./source/shared/errors/unreachable-error.js ***!
   \***************************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return UnreachableError; });
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => /* binding */ UnreachableError
+/* harmony export */ });
 /* harmony import */ var _custom_error_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./custom-error.js */ "./source/shared/errors/custom-error.js");
 //G Used when a supposedly unreachable code path has been reached.
 
-class UnreachableError extends _custom_error_js__WEBPACK_IMPORTED_MODULE_0__["default"] {
+class UnreachableError extends _custom_error_js__WEBPACK_IMPORTED_MODULE_0__.default {
   constructor({
     message = 'An unreachable code-path has been reached.',
     ...rest
@@ -3855,16 +3721,17 @@ class UnreachableError extends _custom_error_js__WEBPACK_IMPORTED_MODULE_0__["de
 /*!************************************!*\
   !*** ./source/shared/live-data.js ***!
   \************************************/
-/*! exports provided: LiveTable, CachedEntity, LiveQuery, subscriptionParts, Subscription */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "LiveTable", function() { return LiveTable; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "CachedEntity", function() { return CachedEntity; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "LiveQuery", function() { return LiveQuery; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "subscriptionParts", function() { return subscriptionParts; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Subscription", function() { return Subscription; });
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "LiveTable": () => /* binding */ LiveTable,
+/* harmony export */   "CachedEntity": () => /* binding */ CachedEntity,
+/* harmony export */   "LiveQuery": () => /* binding */ LiveQuery,
+/* harmony export */   "subscriptionParts": () => /* binding */ subscriptionParts,
+/* harmony export */   "Subscription": () => /* binding */ Subscription
+/* harmony export */ });
 /* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utility/index.js */ "./source/shared/utility/index.js");
 
 class LiveTable {
@@ -3873,7 +3740,7 @@ class LiveTable {
       Entity
     } = options; //TODO See if any of these can be validated or made constant.
 
-    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].writable(this, {
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__.define.writable(this, {
       Entity,
       liveQueries: [],
       cachedEntities: []
@@ -3881,7 +3748,7 @@ class LiveTable {
   }
 
 }
-_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(LiveTable, {
+_utility_index_js__WEBPACK_IMPORTED_MODULE_0__.define.constant(LiveTable, {
   tableEntities: [],
 
   makeTables({
@@ -3915,7 +3782,7 @@ class CachedEntity {
       entity
     } = options; //TODO See if any of these can be validated or made constant.
 
-    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].writable(this, {
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__.define.writable(this, {
       table,
       entity,
       liveQueryRefs: [],
@@ -3933,8 +3800,8 @@ class LiveQuery {
       query
     } = options; //? Not sure why this is being done.
 
-    if (_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].array.test(query)) query = Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"])(query);
-    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].writable(this, {
+    if (_utility_index_js__WEBPACK_IMPORTED_MODULE_0__.rules.array.test(query)) query = (0,_utility_index_js__WEBPACK_IMPORTED_MODULE_0__.any)(query);
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__.define.writable(this, {
       table,
       query,
       cachedEntityRefs: [],
@@ -3945,7 +3812,7 @@ class LiveQuery {
 
 } // live-data-server uses an augmented Subscription class.
 
-const subscriptionParts = new _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["ClassParts"]({
+const subscriptionParts = new _utility_index_js__WEBPACK_IMPORTED_MODULE_0__.ClassParts({
   instance(options = {}) {
     const {
       liveQuery,
@@ -3958,7 +3825,7 @@ const subscriptionParts = new _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["Cl
       onRemove = () => {} // Entities removed.
 
     } = options;
-    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].writable(this, {
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__.define.writable(this, {
       liveQuery,
       onUpdate,
       onAdd,
@@ -3981,18 +3848,19 @@ class Subscription {
 /*!****************************************!*\
   !*** ./source/shared/project-rules.js ***!
   \****************************************/
-/*! exports provided: id, position, name, description, color, password, visibilityState */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "id", function() { return id; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "position", function() { return position; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "name", function() { return name; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "description", function() { return description; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "color", function() { return color; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "password", function() { return password; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "visibilityState", function() { return visibilityState; });
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "id": () => /* binding */ id,
+/* harmony export */   "position": () => /* binding */ position,
+/* harmony export */   "name": () => /* binding */ name,
+/* harmony export */   "description": () => /* binding */ description,
+/* harmony export */   "color": () => /* binding */ color,
+/* harmony export */   "password": () => /* binding */ password,
+/* harmony export */   "visibilityState": () => /* binding */ visibilityState
+/* harmony export */ });
 /* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utility/index.js */ "./source/shared/utility/index.js");
 //G This file is for global rules that are opinionated for this project.
 // For example: all identifiers shall be non-negative integers.
@@ -4000,24 +3868,24 @@ __webpack_require__.r(__webpack_exports__);
 //----------
 //TODO : server source maps, better route error handling, fix error handling specifically in session.login
 
-const id = new _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["Rule"]({
+const id = new _utility_index_js__WEBPACK_IMPORTED_MODULE_0__.Rule({
   validator(value) {
-    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].nonNegativeInteger.validate(value);
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__.rules.nonNegativeInteger.validate(value);
   },
 
   caster(reference) {
-    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].nonNegativeInteger.validateCast(reference); // Cannot cast any further than a nonNegativeInteger.
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__.rules.nonNegativeInteger.validateCast(reference); // Cannot cast any further than a nonNegativeInteger.
   }
 
 }); //TODO Consider renaming this and have 'position' refer to 1-based indices.
 
-const position = new _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["Rule"]({
+const position = new _utility_index_js__WEBPACK_IMPORTED_MODULE_0__.Rule({
   validator(value) {
-    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].nonNegativeInteger.validate(value);
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__.rules.nonNegativeInteger.validate(value);
   },
 
   caster(reference) {
-    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].nonNegativeInteger.validateCast(reference); // Cannot cast any further than a nonNegativeInteger.
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__.rules.nonNegativeInteger.validateCast(reference); // Cannot cast any further than a nonNegativeInteger.
   }
 
 }); // Extracted Rules
@@ -4029,9 +3897,9 @@ const position = new _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["Rule"]({
 
 const nameMinLength = 3;
 const nameMaxLength = 100;
-const name = new _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["Rule"]({
+const name = new _utility_index_js__WEBPACK_IMPORTED_MODULE_0__.Rule({
   validator(value) {
-    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].trimmedString.validate(value);
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__.rules.trimmedString.validate(value);
 
     if (!(nameMinLength <= value.length && value.length <= nameMaxLength)) {
       throw new Error(`Name is not between ${nameMinLength} and ${nameMaxLength} characters long.`);
@@ -4040,9 +3908,9 @@ const name = new _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["Rule"]({
 
 });
 const descriptionMaxLength = 2000;
-const description = new _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["Rule"]({
+const description = new _utility_index_js__WEBPACK_IMPORTED_MODULE_0__.Rule({
   validator(value) {
-    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].trimmedString.validate(value);
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__.rules.trimmedString.validate(value);
 
     if (!(value.length <= descriptionMaxLength)) {
       throw new Error(`Description is not under ${descriptionMaxLength} characters long.`);
@@ -4050,7 +3918,7 @@ const description = new _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["Rule"]({
   }
 
 });
-const color = new _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["Rule"]({
+const color = new _utility_index_js__WEBPACK_IMPORTED_MODULE_0__.Rule({
   filter: '/#([a-f0-9]{3}){1,2}\b/',
   //TODO is this correct?
   filterMessage: 'Color must be in hex format #XXXXXX',
@@ -4065,9 +3933,9 @@ const color = new _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["Rule"]({
 const passwordMinLength = 6;
 const passwordMaxLength = 72; //! As per bcrypt.
 
-const password = new _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["Rule"]({
+const password = new _utility_index_js__WEBPACK_IMPORTED_MODULE_0__.Rule({
   validator(value) {
-    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].trimmedString.validate(value);
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__.rules.trimmedString.validate(value);
 
     if (!(passwordMinLength <= value.length && value.length <= passwordMaxLength)) {
       throw new Error(`Password is not between ${passwordMinLength} and ${passwordMaxLength} characters long.`);
@@ -4076,11 +3944,11 @@ const password = new _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["Rule"]({
 
 }); // Very Opinionated
 
-const visibilityStates = new _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["Enum"]('public', 'private', 'linkOnly'); // Basically an enum.
+const visibilityStates = new _utility_index_js__WEBPACK_IMPORTED_MODULE_0__.Enum('public', 'private', 'linkOnly'); // Basically an enum.
 
-const visibilityState = new _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["Rule"]({
+const visibilityState = new _utility_index_js__WEBPACK_IMPORTED_MODULE_0__.Rule({
   validator(value) {
-    if (!_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["Enum"].hasKey(visibilityStates, value)) {
+    if (!_utility_index_js__WEBPACK_IMPORTED_MODULE_0__.Enum.hasKey(visibilityStates, value)) {
       throw new Error('Value is not a valid visibility state.');
     }
   }
@@ -4093,14 +3961,15 @@ const visibilityState = new _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["Rule
 /*!************************************!*\
   !*** ./source/shared/propagate.js ***!
   \************************************/
-/*! exports provided: default, returnPropagate, logPropagate */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return propagate; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "returnPropagate", function() { return returnPropagate; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "logPropagate", function() { return logPropagate; });
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => /* binding */ propagate,
+/* harmony export */   "returnPropagate": () => /* binding */ returnPropagate,
+/* harmony export */   "logPropagate": () => /* binding */ logPropagate
+/* harmony export */ });
 /* harmony import */ var _errors_unexpected_value_thrown_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./errors/unexpected-value-thrown.js */ "./source/shared/errors/unexpected-value-thrown.js");
 /* harmony import */ var _errors_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./errors/index.js */ "./source/shared/errors/index.js");
 /* harmony import */ var _class_registry_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./class-registry.js */ "./source/shared/class-registry.js");
@@ -4116,24 +3985,24 @@ __webpack_require__.r(__webpack_exports__);
 // The registry id will be manually assigned to errors.
 
 const sharedRegistryId = 'Error';
-_class_registry_js__WEBPACK_IMPORTED_MODULE_2__["sharedRegistry"].register(Error, sharedRegistryId, _reconstruct_error_js__WEBPACK_IMPORTED_MODULE_3__["default"]); // Wraps the passed value in an Error instance if it isn't one. Then throws it.
+_class_registry_js__WEBPACK_IMPORTED_MODULE_2__.sharedRegistry.register(Error, sharedRegistryId, _reconstruct_error_js__WEBPACK_IMPORTED_MODULE_3__.default); // Wraps the passed value in an Error instance if it isn't one. Then throws it.
 // All instances will be registered with the sharedRegistry so that they can be identified as errors when passed between the client and server.
 
 function propagate(thrownValue) {
   if (thrownValue instanceof Error) {
     if (thrownValue.constructor === Error) {
       // If the error is a direct instance of Error, try to add a sharedRegistryId so that it can be reconstructed as an Error.
-      if (Object.getOwnPropertyDescriptor(thrownValue, _class_registry_js__WEBPACK_IMPORTED_MODULE_2__["sharedRegistry"].idKey).configurable) {
-        _class_registry_js__WEBPACK_IMPORTED_MODULE_2__["sharedRegistry"].defineId(thrownValue, sharedRegistryId);
+      if (Object.getOwnPropertyDescriptor(thrownValue, _class_registry_js__WEBPACK_IMPORTED_MODULE_2__.sharedRegistry.idKey).configurable) {
+        _class_registry_js__WEBPACK_IMPORTED_MODULE_2__.sharedRegistry.defineId(thrownValue, sharedRegistryId);
         throw thrownValue;
-      } else if (_class_registry_js__WEBPACK_IMPORTED_MODULE_2__["sharedRegistry"].isRegistered(thrownValue)) {
+      } else if (_class_registry_js__WEBPACK_IMPORTED_MODULE_2__.sharedRegistry.isRegistered(thrownValue)) {
         throw thrownValue;
       }
     }
 
-    throw new _errors_index_js__WEBPACK_IMPORTED_MODULE_1__["UnknownError"](thrownValue);
+    throw new _errors_index_js__WEBPACK_IMPORTED_MODULE_1__.UnknownError(thrownValue);
   } else {
-    throw new _errors_unexpected_value_thrown_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
+    throw new _errors_unexpected_value_thrown_js__WEBPACK_IMPORTED_MODULE_0__.default({
       message: `An unexpected value was thrown.`,
       userMessage: 'An unexpected error has occurred.',
       value: thrownValue
@@ -4160,21 +4029,22 @@ function logPropagate(thrownValue) {
 /*!********************************************!*\
   !*** ./source/shared/reconstruct-error.js ***!
   \********************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return reconstructError; });
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => /* binding */ reconstructError
+/* harmony export */ });
 /* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utility/index.js */ "./source/shared/utility/index.js");
 //TODO Create custom reconstruction option.
 
 function reconstructError(Class, error) {
   const newError = new Class(error.message); // Copy all properties.
 
-  Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["forOwnKeysOf"])(error, key => {
+  (0,_utility_index_js__WEBPACK_IMPORTED_MODULE_0__.forOwnKeysOf)(error, key => {
     if (key !== 'message') {
-      Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["copyProperty"])(key, error, newError);
+      (0,_utility_index_js__WEBPACK_IMPORTED_MODULE_0__.copyProperty)(key, error, newError);
     }
   });
   return newError;
@@ -4186,12 +4056,13 @@ function reconstructError(Class, error) {
 /*!**********************************!*\
   !*** ./source/shared/request.js ***!
   \**********************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return request; });
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => /* binding */ request
+/* harmony export */ });
 /* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utility/index.js */ "./source/shared/utility/index.js");
 /* harmony import */ var _derived_utility_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./derived-utility/index.js */ "./source/shared/derived-utility/index.js");
 /* harmony import */ var _propagate_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./propagate.js */ "./source/shared/propagate.js");
@@ -4210,7 +4081,7 @@ async function request(method, URL, {
   queryParameters,
   JSONBody,
   // Fetch
-  headers = _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["constants"].JSON_HEADER,
+  headers = _utility_index_js__WEBPACK_IMPORTED_MODULE_0__.constants.JSON_HEADER,
   body,
   ...rest
 }) {
@@ -4224,28 +4095,28 @@ async function request(method, URL, {
   // Transform jsonBody to body string.
   if (JSONBody !== undefined) {
     if (body !== undefined) {
-      throw new _errors_index_js__WEBPACK_IMPORTED_MODULE_3__["InternalError"]({
+      throw new _errors_index_js__WEBPACK_IMPORTED_MODULE_3__.InternalError({
         message: 'Request may not use both a string body and a JSONBody.'
       });
     }
 
-    body = Object(_derived_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["safeStringify"])(JSONBody);
+    body = (0,_derived_utility_index_js__WEBPACK_IMPORTED_MODULE_1__.safeStringify)(JSONBody);
   } // Encode and append queryParameters to the URL.
 
 
   if (queryParameters !== undefined) {
-    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].queryParameters.validate(queryParameters);
-    const encodedParameters = Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["encodeProperties"])(queryParameters);
-    URL = Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["appendQueryParameters"])(URL, encodedParameters);
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__.rules.queryParameters.validate(queryParameters);
+    const encodedParameters = (0,_utility_index_js__WEBPACK_IMPORTED_MODULE_0__.encodeProperties)(queryParameters);
+    URL = (0,_utility_index_js__WEBPACK_IMPORTED_MODULE_0__.appendQueryParameters)(URL, encodedParameters);
   } // VALIDATION
 
 
-  _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].string.validate(method);
-  _derived_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["urlRule"].validate(URL);
-  _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].headers.validate(headers);
-  if (body !== undefined) _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].body.validate(body); // Check that rest doesn't have any unused options.
+  _utility_index_js__WEBPACK_IMPORTED_MODULE_0__.rules.string.validate(method);
+  _derived_utility_index_js__WEBPACK_IMPORTED_MODULE_1__.urlRule.validate(URL);
+  _utility_index_js__WEBPACK_IMPORTED_MODULE_0__.rules.headers.validate(headers);
+  if (body !== undefined) _utility_index_js__WEBPACK_IMPORTED_MODULE_0__.rules.body.validate(body); // Check that rest doesn't have any unused options.
 
-  for (const key of Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["getKeysOf"])(rest, {
+  for (const key of (0,_utility_index_js__WEBPACK_IMPORTED_MODULE_0__.getKeysOf)(rest, {
     own: true,
     named: true,
     enumerable: true,
@@ -4256,7 +4127,7 @@ async function request(method, URL, {
     if (![//L From: https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/fetch
     // Except 'method', 'headers', 'body'.
     'mode', 'credentials', 'cache', 'redirect', 'referrer', 'referrerPolicy', 'integrity', 'keepalive', 'signal'].includes(key)) {
-      throw new _errors_index_js__WEBPACK_IMPORTED_MODULE_3__["InternalError"]({
+      throw new _errors_index_js__WEBPACK_IMPORTED_MODULE_3__.InternalError({
         message: `Request has an unused option ${key}. This is a mistake.`,
         userMessage: 'Request failed due to an internal error.'
       });
@@ -4265,11 +4136,11 @@ async function request(method, URL, {
   //L When fetch throws: https://www.tjvantoll.com/2015/09/13/fetch-and-errors
 
 
-  const result = await Object(_derived_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["fetch"])(URL, { ...rest,
+  const result = await (0,_derived_utility_index_js__WEBPACK_IMPORTED_MODULE_1__.fetch)(URL, { ...rest,
     method,
     headers,
     body
-  }).catch(_propagate_js__WEBPACK_IMPORTED_MODULE_2__["default"]); //TODO Add custom handlers for fetch errors.
+  }).catch(_propagate_js__WEBPACK_IMPORTED_MODULE_2__.default); //TODO Add custom handlers for fetch errors.
   // Return undefined if request was successful with no content returned.
 
   if (result.status === 204) return undefined; //TODO Consider adding custom handlers for other return types.
@@ -4278,7 +4149,7 @@ async function request(method, URL, {
 
   const rawResult = await result.clone().text().catch(rejected => {
     // Record the raw result for easier debugging.
-    throw new _errors_index_js__WEBPACK_IMPORTED_MODULE_3__["CustomError"]({
+    throw new _errors_index_js__WEBPACK_IMPORTED_MODULE_3__.CustomError({
       message: 'Failed to parse fetch response as raw text.',
       userMessage: 'Request failed.',
       value: {
@@ -4288,10 +4159,10 @@ async function request(method, URL, {
     });
   }); // Throw non-ok status codes.
 
-  if (!result.ok) throw Object(_propagate_js__WEBPACK_IMPORTED_MODULE_2__["default"])(rawResult); //TODO consider custom handlers for http errors (ie 404s etc.);
+  if (!result.ok) throw (0,_propagate_js__WEBPACK_IMPORTED_MODULE_2__.default)(rawResult); //TODO consider custom handlers for http errors (ie 404s etc.);
   // If the parse fails, throw an error containing the raw result.
 
-  const parsedResult = await result.clone().json().catch(() => Object(_propagate_js__WEBPACK_IMPORTED_MODULE_2__["default"])(rawResult));
+  const parsedResult = await result.clone().json().catch(() => (0,_propagate_js__WEBPACK_IMPORTED_MODULE_2__.default)(rawResult));
   return parsedResult;
 }
 
@@ -4301,18 +4172,20 @@ async function request(method, URL, {
 /*!***************************************!*\
   !*** ./source/shared/source-parts.js ***!
   \***************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => __WEBPACK_DEFAULT_EXPORT__
+/* harmony export */ });
 /* harmony import */ var _errors_internal_error_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./errors/internal-error.js */ "./source/shared/errors/internal-error.js");
 /* harmony import */ var _credentials_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./credentials.js */ "./source/shared/credentials.js");
 /* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./utility/index.js */ "./source/shared/utility/index.js");
 
 
 
-/* harmony default export */ __webpack_exports__["default"] = (new _utility_index_js__WEBPACK_IMPORTED_MODULE_2__["ClassParts"]({
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (new _utility_index_js__WEBPACK_IMPORTED_MODULE_2__.ClassParts({
   instance(options = {}) {
     const {
       name,
@@ -4320,7 +4193,7 @@ __webpack_require__.r(__webpack_exports__);
       register = false,
       nullPrefix = '',
       idPrefix = '',
-      credentials = new _credentials_js__WEBPACK_IMPORTED_MODULE_1__["default"](),
+      credentials = new _credentials_js__WEBPACK_IMPORTED_MODULE_1__.default(),
       //TODO This should only be server-side.
       api = {},
       scopes = [],
@@ -4328,7 +4201,7 @@ __webpack_require__.r(__webpack_exports__);
       makeAuthRequestURL = () => {},
       ...rest
     } = options;
-    _utility_index_js__WEBPACK_IMPORTED_MODULE_2__["define"].vueConstant(this, {
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_2__.define.vueConstant(this, {
       name,
       register,
       nullPrefix,
@@ -4348,12 +4221,12 @@ __webpack_require__.r(__webpack_exports__);
   },
 
   static() {
-    _utility_index_js__WEBPACK_IMPORTED_MODULE_2__["define"].constant(this, {
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_2__.define.constant(this, {
       instances: [],
 
       register(source) {
         if (!(source instanceof this)) {
-          throw new _errors_internal_error_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
+          throw new _errors_internal_error_js__WEBPACK_IMPORTED_MODULE_0__.default({
             message: 'A non-Source was registered.'
           });
         }
@@ -4365,7 +4238,7 @@ __webpack_require__.r(__webpack_exports__);
         return this.instances.find(instance => instance.name === name);
       },
 
-      registered: new _utility_index_js__WEBPACK_IMPORTED_MODULE_2__["Rule"]({
+      registered: new _utility_index_js__WEBPACK_IMPORTED_MODULE_2__.Rule({
         validator: function (instance) {
           if (this.find(instance === null || instance === void 0 ? void 0 : instance.name) === undefined) {
             throw new Error('Source instance is not registered.');
@@ -4383,13 +4256,14 @@ __webpack_require__.r(__webpack_exports__);
 /*!*******************************************!*\
   !*** ./source/shared/timestamped-data.js ***!
   \*******************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return MetadataContainer; });
-/* harmony import */ var _utility__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utility */ "./source/shared/utility/index.js");
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => /* binding */ MetadataContainer
+/* harmony export */ });
+/* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utility/index.js */ "./source/shared/utility/index.js");
 // Holds timestamp metadata for data to be transferred.
 
 class MetadataContainer {
@@ -4398,7 +4272,7 @@ class MetadataContainer {
       data,
       timestamp = null
     } = options;
-    _utility__WEBPACK_IMPORTED_MODULE_0__["define"].constant(this, {
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__.define.constant(this, {
       data,
       timestamp
     });
@@ -4412,17 +4286,18 @@ class MetadataContainer {
 /*!********************************************!*\
   !*** ./source/shared/utility/array/any.js ***!
   \********************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return any; });
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => /* binding */ any
+/* harmony export */ });
 /* harmony import */ var _validation_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../validation/index.js */ "./source/shared/utility/validation/index.js");
 // Wraps a value in an array. If the value is already an array, its items get spread into a fresh one.
 
 function any(value) {
-  return _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].array.test(value) ? [...value] : [value];
+  return _validation_index_js__WEBPACK_IMPORTED_MODULE_0__.rules.array.test(value) ? [...value] : [value];
 }
 
 /***/ }),
@@ -4431,12 +4306,13 @@ function any(value) {
 /*!**************************************************!*\
   !*** ./source/shared/utility/array/async-map.js ***!
   \**************************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return asyncMap; });
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => /* binding */ asyncMap
+/* harmony export */ });
 /* harmony import */ var _validation_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../validation/index.js */ "./source/shared/utility/validation/index.js");
 // Executes an async function for each item in an array.
 // When all async functions are settled, returns an array of results if all are fulfilled, but throws the array of results if any reject.
@@ -4448,8 +4324,8 @@ __webpack_require__.r(__webpack_exports__);
 
 async function asyncMap(array, mapFunction) {
   // Validate.
-  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].array.validate(array);
-  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].func.validate(mapFunction); // Wait for every promise to settle.
+  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__.rules.array.validate(array);
+  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__.rules.func.validate(mapFunction); // Wait for every promise to settle.
 
   const promises = array.map((item, index, self) => mapFunction(item, index, self));
   const outcomes = await Promise.allSettled(promises); // Extract results and fulfillment.
@@ -4481,16 +4357,18 @@ async function asyncMap(array, mapFunction) {
 /*!*****************************************************!*\
   !*** ./source/shared/utility/array/dynamic-sort.js ***!
   \*****************************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => /* export default binding */ __WEBPACK_DEFAULT_EXPORT__
+/* harmony export */ });
 /* harmony import */ var _stable_sort_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./stable-sort.js */ "./source/shared/utility/array/stable-sort.js");
 //TODO add validation
 //TODO consider replacing typechecks with a 'comparable' rule.
 
-/* harmony default export */ __webpack_exports__["default"] = (function (list, ascending, prop) {
+/* harmony default export */ function __WEBPACK_DEFAULT_EXPORT__(list, ascending, prop) {
   // sorts a list in ascending or descending order by the numeric or string-converted value of its items or their properties if a prop is defined
   // ascending will flip the list into descending if false
   if (ascending) {
@@ -4539,8 +4417,8 @@ __webpack_require__.r(__webpack_exports__);
     };
   }
 
-  return Object(_stable_sort_js__WEBPACK_IMPORTED_MODULE_0__["default"])(list, compare);
-});
+  return (0,_stable_sort_js__WEBPACK_IMPORTED_MODULE_0__.default)(list, compare);
+}
 
 /***/ }),
 
@@ -4548,26 +4426,22 @@ __webpack_require__.r(__webpack_exports__);
 /*!**********************************************!*\
   !*** ./source/shared/utility/array/index.js ***!
   \**********************************************/
-/*! exports provided: any, asyncMap, dynamicSort, one, stableSort */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "any": () => /* reexport safe */ _any_js__WEBPACK_IMPORTED_MODULE_0__.default,
+/* harmony export */   "asyncMap": () => /* reexport safe */ _async_map_js__WEBPACK_IMPORTED_MODULE_1__.default,
+/* harmony export */   "dynamicSort": () => /* reexport safe */ _dynamic_sort_js__WEBPACK_IMPORTED_MODULE_2__.default,
+/* harmony export */   "one": () => /* reexport safe */ _one_js__WEBPACK_IMPORTED_MODULE_3__.default,
+/* harmony export */   "stableSort": () => /* reexport safe */ _stable_sort_js__WEBPACK_IMPORTED_MODULE_4__.default
+/* harmony export */ });
 /* harmony import */ var _any_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./any.js */ "./source/shared/utility/array/any.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "any", function() { return _any_js__WEBPACK_IMPORTED_MODULE_0__["default"]; });
-
 /* harmony import */ var _async_map_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./async-map.js */ "./source/shared/utility/array/async-map.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "asyncMap", function() { return _async_map_js__WEBPACK_IMPORTED_MODULE_1__["default"]; });
-
 /* harmony import */ var _dynamic_sort_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./dynamic-sort.js */ "./source/shared/utility/array/dynamic-sort.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "dynamicSort", function() { return _dynamic_sort_js__WEBPACK_IMPORTED_MODULE_2__["default"]; });
-
 /* harmony import */ var _one_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./one.js */ "./source/shared/utility/array/one.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "one", function() { return _one_js__WEBPACK_IMPORTED_MODULE_3__["default"]; });
-
 /* harmony import */ var _stable_sort_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./stable-sort.js */ "./source/shared/utility/array/stable-sort.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "stableSort", function() { return _stable_sort_js__WEBPACK_IMPORTED_MODULE_4__["default"]; });
-
 
 
 
@@ -4580,18 +4454,19 @@ __webpack_require__.r(__webpack_exports__);
 /*!********************************************!*\
   !*** ./source/shared/utility/array/one.js ***!
   \********************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return one; });
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => /* binding */ one
+/* harmony export */ });
 /* harmony import */ var _validation_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../validation/index.js */ "./source/shared/utility/validation/index.js");
 // Returns the first item of an array, or the value otherwise.
 //G If exactly one item is required, instead of undefined, use a validator.
 
 function one(value) {
-  return _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].array.test(value) ? value[0] : value;
+  return _validation_index_js__WEBPACK_IMPORTED_MODULE_0__.rules.array.test(value) ? value[0] : value;
 }
 
 /***/ }),
@@ -4600,12 +4475,13 @@ function one(value) {
 /*!****************************************************!*\
   !*** ./source/shared/utility/array/stable-sort.js ***!
   \****************************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return stableSort; });
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => /* binding */ stableSort
+/* harmony export */ });
 /* harmony import */ var _validation_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../validation/index.js */ "./source/shared/utility/validation/index.js");
 //L https://stackoverflow.com/questions/1063007/how-to-sort-an-array-of-integers-correctly
 //L https://stackoverflow.com/questions/1129216/sort-array-of-objects-by-string-property-value-in-javascript
@@ -4615,8 +4491,8 @@ function stableSort(array, compare = (a, b) => {
   // low to high
   return a - b;
 }) {
-  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].array.validate(array);
-  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].func.validate(compare); // Create new array where the original index is preserved.
+  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__.rules.array.validate(array);
+  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__.rules.func.validate(compare); // Create new array where the original index is preserved.
 
   const preservedArray = array.map((value, index) => ({
     value,
@@ -4644,12 +4520,13 @@ function stableSort(array, compare = (a, b) => {
 /*!*********************************************!*\
   !*** ./source/shared/utility/bool-catch.js ***!
   \*********************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return boolCatch; });
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => /* binding */ boolCatch
+/* harmony export */ });
 function boolCatch(f) {
   try {
     f();
@@ -4665,20 +4542,21 @@ function boolCatch(f) {
 /*!****************************************!*\
   !*** ./source/shared/utility/clamp.js ***!
   \****************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return clamp; });
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => /* binding */ clamp
+/* harmony export */ });
 /* harmony import */ var _validation_rules_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./validation/rules/index.js */ "./source/shared/utility/validation/rules/index.js");
 
 function clamp(input, min = -Infinity, max = Infinity) {
   // Throw if input is not defined, do not default to 0.
   // Throw on NaN, because whether NaN is 'within' the bounds is implementation dependant on whether x>y or !(x<=y) is used for comparison. The consumer should not be expected to know which.
-  _validation_rules_index_js__WEBPACK_IMPORTED_MODULE_0__["nonNaNNumber"].validate(input);
-  _validation_rules_index_js__WEBPACK_IMPORTED_MODULE_0__["nonNaNNumber"].validate(min);
-  _validation_rules_index_js__WEBPACK_IMPORTED_MODULE_0__["nonNaNNumber"].validate(max);
+  _validation_rules_index_js__WEBPACK_IMPORTED_MODULE_0__.nonNaNNumber.validate(input);
+  _validation_rules_index_js__WEBPACK_IMPORTED_MODULE_0__.nonNaNNumber.validate(min);
+  _validation_rules_index_js__WEBPACK_IMPORTED_MODULE_0__.nonNaNNumber.validate(max);
   if (min > max) throw new Error(`min: ${min} must not be greater than max: ${max}`);else if (input < min) return min;else if (input > max) return max;else return input;
 }
 
@@ -4688,16 +4566,17 @@ function clamp(input, min = -Infinity, max = Infinity) {
 /*!**********************************************!*\
   !*** ./source/shared/utility/class-parts.js ***!
   \**********************************************/
-/*! exports provided: default, initPrototype, initStatic, getSuperPrototypeOf, getSuperClassOf */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return ClassParts; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "initPrototype", function() { return initPrototype; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "initStatic", function() { return initStatic; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getSuperPrototypeOf", function() { return getSuperPrototypeOf; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getSuperClassOf", function() { return getSuperClassOf; });
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => /* binding */ ClassParts,
+/* harmony export */   "initPrototype": () => /* binding */ initPrototype,
+/* harmony export */   "initStatic": () => /* binding */ initStatic,
+/* harmony export */   "getSuperPrototypeOf": () => /* binding */ getSuperPrototypeOf,
+/* harmony export */   "getSuperClassOf": () => /* binding */ getSuperClassOf
+/* harmony export */ });
 /* harmony import */ var _object_define_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./object/define.js */ "./source/shared/utility/object/define.js");
 /* harmony import */ var _validation_interface_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./validation/interface.js */ "./source/shared/utility/validation/interface.js");
 /* harmony import */ var _validation_index_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./validation/index.js */ "./source/shared/utility/validation/index.js");
@@ -4708,12 +4587,12 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-const wrappedPartInterface = new _validation_interface_js__WEBPACK_IMPORTED_MODULE_1__["SymbolInterface"]({
-  marker: _validation_interface_js__WEBPACK_IMPORTED_MODULE_1__["SymbolInterface"].exists
+const wrappedPartInterface = new _validation_interface_js__WEBPACK_IMPORTED_MODULE_1__.SymbolInterface({
+  marker: _validation_interface_js__WEBPACK_IMPORTED_MODULE_1__.SymbolInterface.exists
 }); // Marks the passed function as wrapped.
 
 function mark(func) {
-  _object_define_js__WEBPACK_IMPORTED_MODULE_0__["default"].constant(func, {
+  _object_define_js__WEBPACK_IMPORTED_MODULE_0__.default.constant(func, {
     [wrappedPartInterface.keys.marker]: true
   });
   return func;
@@ -4721,32 +4600,32 @@ function mark(func) {
 
 
 function wrapIntercept(interceptor) {
-  _validation_index_js__WEBPACK_IMPORTED_MODULE_2__["rules"].func.validate(interceptor);
+  _validation_index_js__WEBPACK_IMPORTED_MODULE_2__.rules.func.validate(interceptor);
   return mark((...args) => {
     return interceptor.call(null, ...args);
   });
 }
 
 function wrapInstance(initializer) {
-  _validation_index_js__WEBPACK_IMPORTED_MODULE_2__["rules"].func.validate(initializer);
+  _validation_index_js__WEBPACK_IMPORTED_MODULE_2__.rules.func.validate(initializer);
   return mark((instance, ...args) => {
-    _validation_index_js__WEBPACK_IMPORTED_MODULE_2__["rules"].object.validate(instance);
+    _validation_index_js__WEBPACK_IMPORTED_MODULE_2__.rules.object.validate(instance);
     return initializer.call(instance, ...args);
   });
 }
 
 function wrapPrototype(initializer) {
-  _validation_index_js__WEBPACK_IMPORTED_MODULE_2__["rules"].func.validate(initializer);
+  _validation_index_js__WEBPACK_IMPORTED_MODULE_2__.rules.func.validate(initializer);
   return mark(Class => {
-    _validation_index_js__WEBPACK_IMPORTED_MODULE_2__["rules"].object.validate(Class === null || Class === void 0 ? void 0 : Class.prototype);
+    _validation_index_js__WEBPACK_IMPORTED_MODULE_2__.rules.object.validate(Class === null || Class === void 0 ? void 0 : Class.prototype);
     return initializer.call(Class.prototype);
   });
 }
 
 function wrapStatic(initializer) {
-  _validation_index_js__WEBPACK_IMPORTED_MODULE_2__["rules"].func.validate(initializer);
+  _validation_index_js__WEBPACK_IMPORTED_MODULE_2__.rules.func.validate(initializer);
   return mark(Class => {
-    _validation_index_js__WEBPACK_IMPORTED_MODULE_2__["rules"].object.validate(Class);
+    _validation_index_js__WEBPACK_IMPORTED_MODULE_2__.rules.object.validate(Class);
     return initializer.call(Class);
   });
 }
@@ -4764,7 +4643,7 @@ class ClassParts {
     const wrappedPrototype = wrappedPartInterface.test(prototype) ? prototype : wrapPrototype(prototype);
     const wrappedStatic = wrappedPartInterface.test(s) ? s : wrapStatic(s); // Initialization
 
-    _object_define_js__WEBPACK_IMPORTED_MODULE_0__["default"].constant(this, {
+    _object_define_js__WEBPACK_IMPORTED_MODULE_0__.default.constant(this, {
       intercept: wrappedIntercept,
       instance: wrappedInstance,
       prototype: wrappedPrototype,
@@ -4831,12 +4710,13 @@ function getSuperClassOf(Class) {
 /*!***********************************************!*\
   !*** ./source/shared/utility/combinations.js ***!
   \***********************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return combinations; });
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => /* binding */ combinations
+/* harmony export */ });
 function combinations(optionsObject) {
   // takes an options object with a set of own properties whose value is an array of all possible values for that property
   // returns an array of objects with all combinations of those property values
@@ -4890,15 +4770,16 @@ function combinations(optionsObject) {
 /*!********************************************!*\
   !*** ./source/shared/utility/constants.js ***!
   \********************************************/
-/*! exports provided: MAX_32_BIT_INTEGER, MAX_URL_LENGTH, JSON_HEADER, URL_HEADER */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "MAX_32_BIT_INTEGER", function() { return MAX_32_BIT_INTEGER; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "MAX_URL_LENGTH", function() { return MAX_URL_LENGTH; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "JSON_HEADER", function() { return JSON_HEADER; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "URL_HEADER", function() { return URL_HEADER; });
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "MAX_32_BIT_INTEGER": () => /* binding */ MAX_32_BIT_INTEGER,
+/* harmony export */   "MAX_URL_LENGTH": () => /* binding */ MAX_URL_LENGTH,
+/* harmony export */   "JSON_HEADER": () => /* binding */ JSON_HEADER,
+/* harmony export */   "URL_HEADER": () => /* binding */ URL_HEADER
+/* harmony export */ });
 const MAX_32_BIT_INTEGER = 2147483647;
 const MAX_URL_LENGTH = 2047;
 const JSON_HEADER = Object.freeze({
@@ -4916,12 +4797,13 @@ const URL_HEADER = Object.freeze({
 /*!*******************************************!*\
   !*** ./source/shared/utility/deferred.js ***!
   \*******************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Deferred; });
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => /* binding */ Deferred
+/* harmony export */ });
 /* harmony import */ var _object_define_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./object/define.js */ "./source/shared/utility/object/define.js");
 /* harmony import */ var _time_wait_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./time/wait.js */ "./source/shared/utility/time/wait.js");
 // Custom promise that can be resolve, rejected, and cancelled outside its executor.
@@ -4958,7 +4840,7 @@ class Deferred extends Promise {
 
     super(interceptedExecutor); // INSTANCE VARIABLES
 
-    _object_define_js__WEBPACK_IMPORTED_MODULE_0__["default"].getter(this, {
+    _object_define_js__WEBPACK_IMPORTED_MODULE_0__.default.getter(this, {
       // Read-only access to closure.isPending and closure.isCanceled.
       get isPending() {
         return closure.isPending;
@@ -4969,7 +4851,7 @@ class Deferred extends Promise {
       }
 
     });
-    _object_define_js__WEBPACK_IMPORTED_MODULE_0__["default"].constant(this, {
+    _object_define_js__WEBPACK_IMPORTED_MODULE_0__.default.constant(this, {
       // Access to resolve/reject functions.
       resolve: closure.resolve,
       reject: closure.reject,
@@ -4982,7 +4864,7 @@ class Deferred extends Promise {
 
       // Ability to set automatic rejection upon timeout.
       timeout(duration, onTimeout = () => new Error('Deferred promise timed out.')) {
-        Object(_time_wait_js__WEBPACK_IMPORTED_MODULE_1__["default"])(duration).then(() => {
+        (0,_time_wait_js__WEBPACK_IMPORTED_MODULE_1__.default)(duration).then(() => {
           // Don't timeout if promise has settled.
           if (closure.isPending) {
             this.reject(onTimeout());
@@ -5002,12 +4884,13 @@ class Deferred extends Promise {
 /*!***************************************!*\
   !*** ./source/shared/utility/enum.js ***!
   \***************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Enum; });
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => /* binding */ Enum
+/* harmony export */ });
 /* harmony import */ var _object_define_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./object/define.js */ "./source/shared/utility/object/define.js");
 /* harmony import */ var _validation_rule_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./validation/rule.js */ "./source/shared/utility/validation/rule.js");
 /* harmony import */ var _object_keys_of_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./object/keys-of.js */ "./source/shared/utility/object/keys-of.js");
@@ -5029,8 +4912,8 @@ class Enum {
   }
 
 }
-_object_define_js__WEBPACK_IMPORTED_MODULE_0__["default"].constant(Enum, {
-  instanceRule: new _validation_rule_js__WEBPACK_IMPORTED_MODULE_1__["default"]({
+_object_define_js__WEBPACK_IMPORTED_MODULE_0__.default.constant(Enum, {
+  instanceRule: new _validation_rule_js__WEBPACK_IMPORTED_MODULE_1__.default({
     validator(value) {
       if (!(value instanceof Enum)) {
         throw new Error(`Value is not an Enum.`);
@@ -5050,7 +4933,7 @@ _object_define_js__WEBPACK_IMPORTED_MODULE_0__["default"].constant(Enum, {
   //G Useful for validating Enum values in internal code.
   hasValue(e, value) {
     this.instanceRule.validate(e);
-    const enumKeys = Object(_object_keys_of_js__WEBPACK_IMPORTED_MODULE_2__["getKeysOf"])(e, this.keyAttributes);
+    const enumKeys = (0,_object_keys_of_js__WEBPACK_IMPORTED_MODULE_2__.getKeysOf)(e, this.keyAttributes);
     return enumKeys.some(key => e[key] === value);
   },
 
@@ -5058,8 +4941,8 @@ _object_define_js__WEBPACK_IMPORTED_MODULE_0__["default"].constant(Enum, {
   //! Matching values in this method have no guarantee of originating from the enum. Ie. they can be fabricated.
   hasKey(e, value) {
     this.instanceRule.validate(e);
-    const enumKeys = Object(_object_keys_of_js__WEBPACK_IMPORTED_MODULE_2__["getKeysOf"])(e, this.keyAttributes);
-    const key = Object(_keyify_js__WEBPACK_IMPORTED_MODULE_3__["default"])(value);
+    const enumKeys = (0,_object_keys_of_js__WEBPACK_IMPORTED_MODULE_2__.getKeysOf)(e, this.keyAttributes);
+    const key = (0,_keyify_js__WEBPACK_IMPORTED_MODULE_3__.default)(value);
     return enumKeys.includes(key);
   },
 
@@ -5068,7 +4951,7 @@ _object_define_js__WEBPACK_IMPORTED_MODULE_0__["default"].constant(Enum, {
   //! Will return a symbol if the enum value was keyed with one.
   valueToKey(e, value) {
     this.instanceRule.validate(e);
-    const enumKeys = Object(_object_keys_of_js__WEBPACK_IMPORTED_MODULE_2__["getKeysOf"])(e, this.keyAttributes);
+    const enumKeys = (0,_object_keys_of_js__WEBPACK_IMPORTED_MODULE_2__.getKeysOf)(e, this.keyAttributes);
     const foundKey = enumKeys.find(key => e[key] === value);
 
     if (typeof foundKey !== 'symbol') {
@@ -5080,7 +4963,7 @@ _object_define_js__WEBPACK_IMPORTED_MODULE_0__["default"].constant(Enum, {
 
   getKeys(e) {
     this.instanceRule.validate(e);
-    return Object(_object_keys_of_js__WEBPACK_IMPORTED_MODULE_2__["getKeysOf"])(e, this.keyAttributes);
+    return (0,_object_keys_of_js__WEBPACK_IMPORTED_MODULE_2__.getKeysOf)(e, this.keyAttributes);
   }
 
 });
@@ -5091,14 +4974,16 @@ _object_define_js__WEBPACK_IMPORTED_MODULE_0__["default"].constant(Enum, {
 /*!********************************************!*\
   !*** ./source/shared/utility/format-ms.js ***!
   \********************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => /* export default binding */ __WEBPACK_DEFAULT_EXPORT__
+/* harmony export */ });
 //TODO Unused
 //TODO Format hours, days, etc.
-/* harmony default export */ __webpack_exports__["default"] = (function (ms) {
+/* harmony default export */ function __WEBPACK_DEFAULT_EXPORT__(ms) {
   // extract
   const minutes = Math.floor(ms / 60000);
   let seconds = Math.ceil(ms % 60000); // format
@@ -5106,7 +4991,7 @@ __webpack_require__.r(__webpack_exports__);
   seconds = ('0' + seconds).slice(-2); // returns ...0:00 format rounded up to the nearest second
 
   return minutes + ':' + seconds;
-});
+}
 
 /***/ }),
 
@@ -5114,121 +4999,77 @@ __webpack_require__.r(__webpack_exports__);
 /*!****************************************!*\
   !*** ./source/shared/utility/index.js ***!
   \****************************************/
-/*! exports provided: any, asyncMap, dynamicSort, one, stableSort, copyProperty, deepCompare, define, forKeysOf, getKeysOf, forSimpleKeysOf, getSimpleKeysOf, forOwnKeysOf, getOwnKeysOf, forSpreadableKeysOf, getSpreadableKeysOf, pick, undeclareUndefined, capitalizeFirstCharacter, escapeRegExp, spaceIndented, tabIndented, replaceAll, setTimer, wait, appendQueryParameters, encodeProperties, decodeProperties, encodeList, decodeList, rules, flexTest, Interface, SymbolInterface, Rule, boolCatch, clamp, ClassParts, combinations, Deferred, Enum, formatMs, constants, keyCode, keyify, reference, repeat */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "any": () => /* reexport safe */ _array_index_js__WEBPACK_IMPORTED_MODULE_0__.any,
+/* harmony export */   "asyncMap": () => /* reexport safe */ _array_index_js__WEBPACK_IMPORTED_MODULE_0__.asyncMap,
+/* harmony export */   "dynamicSort": () => /* reexport safe */ _array_index_js__WEBPACK_IMPORTED_MODULE_0__.dynamicSort,
+/* harmony export */   "one": () => /* reexport safe */ _array_index_js__WEBPACK_IMPORTED_MODULE_0__.one,
+/* harmony export */   "stableSort": () => /* reexport safe */ _array_index_js__WEBPACK_IMPORTED_MODULE_0__.stableSort,
+/* harmony export */   "copyProperty": () => /* reexport safe */ _object_index_js__WEBPACK_IMPORTED_MODULE_1__.copyProperty,
+/* harmony export */   "deepCompare": () => /* reexport safe */ _object_index_js__WEBPACK_IMPORTED_MODULE_1__.deepCompare,
+/* harmony export */   "define": () => /* reexport safe */ _object_index_js__WEBPACK_IMPORTED_MODULE_1__.define,
+/* harmony export */   "forKeysOf": () => /* reexport safe */ _object_index_js__WEBPACK_IMPORTED_MODULE_1__.forKeysOf,
+/* harmony export */   "forOwnKeysOf": () => /* reexport safe */ _object_index_js__WEBPACK_IMPORTED_MODULE_1__.forOwnKeysOf,
+/* harmony export */   "forSimpleKeysOf": () => /* reexport safe */ _object_index_js__WEBPACK_IMPORTED_MODULE_1__.forSimpleKeysOf,
+/* harmony export */   "forSpreadableKeysOf": () => /* reexport safe */ _object_index_js__WEBPACK_IMPORTED_MODULE_1__.forSpreadableKeysOf,
+/* harmony export */   "getKeysOf": () => /* reexport safe */ _object_index_js__WEBPACK_IMPORTED_MODULE_1__.getKeysOf,
+/* harmony export */   "getOwnKeysOf": () => /* reexport safe */ _object_index_js__WEBPACK_IMPORTED_MODULE_1__.getOwnKeysOf,
+/* harmony export */   "getSimpleKeysOf": () => /* reexport safe */ _object_index_js__WEBPACK_IMPORTED_MODULE_1__.getSimpleKeysOf,
+/* harmony export */   "getSpreadableKeysOf": () => /* reexport safe */ _object_index_js__WEBPACK_IMPORTED_MODULE_1__.getSpreadableKeysOf,
+/* harmony export */   "pick": () => /* reexport safe */ _object_index_js__WEBPACK_IMPORTED_MODULE_1__.pick,
+/* harmony export */   "undeclareUndefined": () => /* reexport safe */ _object_index_js__WEBPACK_IMPORTED_MODULE_1__.undeclareUndefined,
+/* harmony export */   "capitalizeFirstCharacter": () => /* reexport safe */ _string_index_js__WEBPACK_IMPORTED_MODULE_2__.capitalizeFirstCharacter,
+/* harmony export */   "escapeRegExp": () => /* reexport safe */ _string_index_js__WEBPACK_IMPORTED_MODULE_2__.escapeRegExp,
+/* harmony export */   "replaceAll": () => /* reexport safe */ _string_index_js__WEBPACK_IMPORTED_MODULE_2__.replaceAll,
+/* harmony export */   "spaceIndented": () => /* reexport safe */ _string_index_js__WEBPACK_IMPORTED_MODULE_2__.spaceIndented,
+/* harmony export */   "tabIndented": () => /* reexport safe */ _string_index_js__WEBPACK_IMPORTED_MODULE_2__.tabIndented,
+/* harmony export */   "setTimer": () => /* reexport safe */ _time_index_js__WEBPACK_IMPORTED_MODULE_3__.setTimer,
+/* harmony export */   "wait": () => /* reexport safe */ _time_index_js__WEBPACK_IMPORTED_MODULE_3__.wait,
+/* harmony export */   "appendQueryParameters": () => /* reexport safe */ _uri_index_js__WEBPACK_IMPORTED_MODULE_4__.appendQueryParameters,
+/* harmony export */   "decodeList": () => /* reexport safe */ _uri_index_js__WEBPACK_IMPORTED_MODULE_4__.decodeList,
+/* harmony export */   "decodeProperties": () => /* reexport safe */ _uri_index_js__WEBPACK_IMPORTED_MODULE_4__.decodeProperties,
+/* harmony export */   "encodeList": () => /* reexport safe */ _uri_index_js__WEBPACK_IMPORTED_MODULE_4__.encodeList,
+/* harmony export */   "encodeProperties": () => /* reexport safe */ _uri_index_js__WEBPACK_IMPORTED_MODULE_4__.encodeProperties,
+/* harmony export */   "Interface": () => /* reexport safe */ _validation_index_js__WEBPACK_IMPORTED_MODULE_5__.Interface,
+/* harmony export */   "Rule": () => /* reexport safe */ _validation_index_js__WEBPACK_IMPORTED_MODULE_5__.Rule,
+/* harmony export */   "SymbolInterface": () => /* reexport safe */ _validation_index_js__WEBPACK_IMPORTED_MODULE_5__.SymbolInterface,
+/* harmony export */   "flexTest": () => /* reexport safe */ _validation_index_js__WEBPACK_IMPORTED_MODULE_5__.flexTest,
+/* harmony export */   "rules": () => /* reexport safe */ _validation_index_js__WEBPACK_IMPORTED_MODULE_5__.rules,
+/* harmony export */   "boolCatch": () => /* reexport safe */ _bool_catch_js__WEBPACK_IMPORTED_MODULE_6__.default,
+/* harmony export */   "clamp": () => /* reexport safe */ _clamp_js__WEBPACK_IMPORTED_MODULE_7__.default,
+/* harmony export */   "ClassParts": () => /* reexport safe */ _class_parts_js__WEBPACK_IMPORTED_MODULE_8__.default,
+/* harmony export */   "combinations": () => /* reexport safe */ _combinations_js__WEBPACK_IMPORTED_MODULE_9__.default,
+/* harmony export */   "Deferred": () => /* reexport safe */ _deferred_js__WEBPACK_IMPORTED_MODULE_10__.default,
+/* harmony export */   "Enum": () => /* reexport safe */ _enum_js__WEBPACK_IMPORTED_MODULE_11__.default,
+/* harmony export */   "formatMs": () => /* reexport safe */ _format_ms_js__WEBPACK_IMPORTED_MODULE_12__.default,
+/* harmony export */   "constants": () => /* reexport module object */ _constants_js__WEBPACK_IMPORTED_MODULE_13__,
+/* harmony export */   "keyCode": () => /* reexport module object */ _key_code_js__WEBPACK_IMPORTED_MODULE_14__,
+/* harmony export */   "keyify": () => /* reexport safe */ _keyify_js__WEBPACK_IMPORTED_MODULE_15__.default,
+/* harmony export */   "reference": () => /* reexport safe */ _reference_js__WEBPACK_IMPORTED_MODULE_16__.default,
+/* harmony export */   "repeat": () => /* reexport safe */ _repeat_js__WEBPACK_IMPORTED_MODULE_17__.default
+/* harmony export */ });
 /* harmony import */ var _array_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./array/index.js */ "./source/shared/utility/array/index.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "any", function() { return _array_index_js__WEBPACK_IMPORTED_MODULE_0__["any"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "asyncMap", function() { return _array_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "dynamicSort", function() { return _array_index_js__WEBPACK_IMPORTED_MODULE_0__["dynamicSort"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "one", function() { return _array_index_js__WEBPACK_IMPORTED_MODULE_0__["one"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "stableSort", function() { return _array_index_js__WEBPACK_IMPORTED_MODULE_0__["stableSort"]; });
-
 /* harmony import */ var _object_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./object/index.js */ "./source/shared/utility/object/index.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "copyProperty", function() { return _object_index_js__WEBPACK_IMPORTED_MODULE_1__["copyProperty"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "deepCompare", function() { return _object_index_js__WEBPACK_IMPORTED_MODULE_1__["deepCompare"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "define", function() { return _object_index_js__WEBPACK_IMPORTED_MODULE_1__["define"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "forKeysOf", function() { return _object_index_js__WEBPACK_IMPORTED_MODULE_1__["forKeysOf"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "getKeysOf", function() { return _object_index_js__WEBPACK_IMPORTED_MODULE_1__["getKeysOf"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "forSimpleKeysOf", function() { return _object_index_js__WEBPACK_IMPORTED_MODULE_1__["forSimpleKeysOf"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "getSimpleKeysOf", function() { return _object_index_js__WEBPACK_IMPORTED_MODULE_1__["getSimpleKeysOf"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "forOwnKeysOf", function() { return _object_index_js__WEBPACK_IMPORTED_MODULE_1__["forOwnKeysOf"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "getOwnKeysOf", function() { return _object_index_js__WEBPACK_IMPORTED_MODULE_1__["getOwnKeysOf"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "forSpreadableKeysOf", function() { return _object_index_js__WEBPACK_IMPORTED_MODULE_1__["forSpreadableKeysOf"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "getSpreadableKeysOf", function() { return _object_index_js__WEBPACK_IMPORTED_MODULE_1__["getSpreadableKeysOf"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "pick", function() { return _object_index_js__WEBPACK_IMPORTED_MODULE_1__["pick"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "undeclareUndefined", function() { return _object_index_js__WEBPACK_IMPORTED_MODULE_1__["undeclareUndefined"]; });
-
 /* harmony import */ var _string_index_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./string/index.js */ "./source/shared/utility/string/index.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "capitalizeFirstCharacter", function() { return _string_index_js__WEBPACK_IMPORTED_MODULE_2__["capitalizeFirstCharacter"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "escapeRegExp", function() { return _string_index_js__WEBPACK_IMPORTED_MODULE_2__["escapeRegExp"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "spaceIndented", function() { return _string_index_js__WEBPACK_IMPORTED_MODULE_2__["spaceIndented"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "tabIndented", function() { return _string_index_js__WEBPACK_IMPORTED_MODULE_2__["tabIndented"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "replaceAll", function() { return _string_index_js__WEBPACK_IMPORTED_MODULE_2__["replaceAll"]; });
-
 /* harmony import */ var _time_index_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./time/index.js */ "./source/shared/utility/time/index.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "setTimer", function() { return _time_index_js__WEBPACK_IMPORTED_MODULE_3__["setTimer"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "wait", function() { return _time_index_js__WEBPACK_IMPORTED_MODULE_3__["wait"]; });
-
 /* harmony import */ var _uri_index_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./uri/index.js */ "./source/shared/utility/uri/index.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "appendQueryParameters", function() { return _uri_index_js__WEBPACK_IMPORTED_MODULE_4__["appendQueryParameters"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "encodeProperties", function() { return _uri_index_js__WEBPACK_IMPORTED_MODULE_4__["encodeProperties"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "decodeProperties", function() { return _uri_index_js__WEBPACK_IMPORTED_MODULE_4__["decodeProperties"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "encodeList", function() { return _uri_index_js__WEBPACK_IMPORTED_MODULE_4__["encodeList"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "decodeList", function() { return _uri_index_js__WEBPACK_IMPORTED_MODULE_4__["decodeList"]; });
-
 /* harmony import */ var _validation_index_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./validation/index.js */ "./source/shared/utility/validation/index.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "rules", function() { return _validation_index_js__WEBPACK_IMPORTED_MODULE_5__["rules"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "flexTest", function() { return _validation_index_js__WEBPACK_IMPORTED_MODULE_5__["flexTest"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Interface", function() { return _validation_index_js__WEBPACK_IMPORTED_MODULE_5__["Interface"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "SymbolInterface", function() { return _validation_index_js__WEBPACK_IMPORTED_MODULE_5__["SymbolInterface"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Rule", function() { return _validation_index_js__WEBPACK_IMPORTED_MODULE_5__["Rule"]; });
-
 /* harmony import */ var _bool_catch_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./bool-catch.js */ "./source/shared/utility/bool-catch.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "boolCatch", function() { return _bool_catch_js__WEBPACK_IMPORTED_MODULE_6__["default"]; });
-
 /* harmony import */ var _clamp_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./clamp.js */ "./source/shared/utility/clamp.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "clamp", function() { return _clamp_js__WEBPACK_IMPORTED_MODULE_7__["default"]; });
-
 /* harmony import */ var _class_parts_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./class-parts.js */ "./source/shared/utility/class-parts.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "ClassParts", function() { return _class_parts_js__WEBPACK_IMPORTED_MODULE_8__["default"]; });
-
 /* harmony import */ var _combinations_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./combinations.js */ "./source/shared/utility/combinations.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "combinations", function() { return _combinations_js__WEBPACK_IMPORTED_MODULE_9__["default"]; });
-
 /* harmony import */ var _deferred_js__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./deferred.js */ "./source/shared/utility/deferred.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Deferred", function() { return _deferred_js__WEBPACK_IMPORTED_MODULE_10__["default"]; });
-
 /* harmony import */ var _enum_js__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ./enum.js */ "./source/shared/utility/enum.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Enum", function() { return _enum_js__WEBPACK_IMPORTED_MODULE_11__["default"]; });
-
 /* harmony import */ var _format_ms_js__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ./format-ms.js */ "./source/shared/utility/format-ms.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "formatMs", function() { return _format_ms_js__WEBPACK_IMPORTED_MODULE_12__["default"]; });
-
 /* harmony import */ var _constants_js__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ./constants.js */ "./source/shared/utility/constants.js");
-/* harmony reexport (module object) */ __webpack_require__.d(__webpack_exports__, "constants", function() { return _constants_js__WEBPACK_IMPORTED_MODULE_13__; });
 /* harmony import */ var _key_code_js__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! ./key-code.js */ "./source/shared/utility/key-code.js");
-/* harmony reexport (module object) */ __webpack_require__.d(__webpack_exports__, "keyCode", function() { return _key_code_js__WEBPACK_IMPORTED_MODULE_14__; });
 /* harmony import */ var _keyify_js__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! ./keyify.js */ "./source/shared/utility/keyify.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "keyify", function() { return _keyify_js__WEBPACK_IMPORTED_MODULE_15__["default"]; });
-
 /* harmony import */ var _reference_js__WEBPACK_IMPORTED_MODULE_16__ = __webpack_require__(/*! ./reference.js */ "./source/shared/utility/reference.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "reference", function() { return _reference_js__WEBPACK_IMPORTED_MODULE_16__["default"]; });
-
 /* harmony import */ var _repeat_js__WEBPACK_IMPORTED_MODULE_17__ = __webpack_require__(/*! ./repeat.js */ "./source/shared/utility/repeat.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "repeat", function() { return _repeat_js__WEBPACK_IMPORTED_MODULE_17__["default"]; });
-
 // NESTED
 
 
@@ -5259,32 +5100,33 @@ __webpack_require__.r(__webpack_exports__);
 /*!*******************************************!*\
   !*** ./source/shared/utility/key-code.js ***!
   \*******************************************/
-/*! exports provided: characters, create, addTo, verify */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "characters", function() { return characters; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "create", function() { return create; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "addTo", function() { return addTo; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "verify", function() { return verify; });
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "characters": () => /* binding */ characters,
+/* harmony export */   "create": () => /* binding */ create,
+/* harmony export */   "addTo": () => /* binding */ addTo,
+/* harmony export */   "verify": () => /* binding */ verify
+/* harmony export */ });
 /* harmony import */ var _validation_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./validation/index.js */ "./source/shared/utility/validation/index.js");
 /* harmony import */ var _repeat_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./repeat.js */ "./source/shared/utility/repeat.js");
 
 
-const packRule = new _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["Rule"]({
+const packRule = new _validation_index_js__WEBPACK_IMPORTED_MODULE_0__.Rule({
   validator(value) {
-    _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].object.validate(value);
-    _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].string.validate(value.key);
-    _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].nonNegativeInteger.validate(value.timestamp);
-    _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].nonNegativeInteger.validate(value.timeout);
+    _validation_index_js__WEBPACK_IMPORTED_MODULE_0__.rules.object.validate(value);
+    _validation_index_js__WEBPACK_IMPORTED_MODULE_0__.rules.string.validate(value.key);
+    _validation_index_js__WEBPACK_IMPORTED_MODULE_0__.rules.nonNegativeInteger.validate(value.timestamp);
+    _validation_index_js__WEBPACK_IMPORTED_MODULE_0__.rules.nonNegativeInteger.validate(value.timeout);
   }
 
 });
 const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
 function create(length = 10) {
   // Validate input.
-  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].nonNegativeInteger.validate(length); // Create.
+  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__.rules.nonNegativeInteger.validate(length); // Create.
 
   let key = '';
 
@@ -5294,7 +5136,7 @@ function create(length = 10) {
   } // Validate output.
 
 
-  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].string.validate(key); // Return.
+  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__.rules.string.validate(key); // Return.
 
   return key;
 }
@@ -5304,10 +5146,10 @@ const tryLimit = 1000; // Adds a new unique key to the list, returns a pack {key
 
 function addTo(list, timeout = defaultTimeout) {
   // Validate inputs.
-  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].array.validate(list);
-  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].nonNegativeInteger.validate(timeout); // Create.
+  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__.rules.array.validate(list);
+  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__.rules.nonNegativeInteger.validate(timeout); // Create.
 
-  const key = Object(_repeat_js__WEBPACK_IMPORTED_MODULE_1__["default"])(() => create(), {
+  const key = (0,_repeat_js__WEBPACK_IMPORTED_MODULE_1__.default)(() => create(), {
     until: key => !list.includes(key),
     countout: tryLimit,
 
@@ -5331,8 +5173,8 @@ function addTo(list, timeout = defaultTimeout) {
 
 function verify(list, key) {
   // Validate inputs.
-  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].array.validate(list);
-  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].string.validate(key); // Iterate over list.
+  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__.rules.array.validate(list);
+  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__.rules.string.validate(key); // Iterate over list.
 
   for (let i = list.length - 1; i >= 0; i--) {
     const pack = list[i]; // Validate items in the list.
@@ -5366,12 +5208,13 @@ function verify(list, key) {
 /*!*****************************************!*\
   !*** ./source/shared/utility/keyify.js ***!
   \*****************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return keyify; });
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => /* binding */ keyify
+/* harmony export */ });
 /* harmony import */ var _object_keys_of_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./object/keys-of.js */ "./source/shared/utility/object/keys-of.js");
 //G Casts any value as an object key, using the exact same method.
 
@@ -5380,7 +5223,7 @@ function keyify(value) {
   const nullObject = Object.create(null);
   nullObject[value] = true; // Find that objects only key.
 
-  const [keyifiedValue] = Object(_object_keys_of_js__WEBPACK_IMPORTED_MODULE_0__["getKeysOf"])(nullObject, {
+  const [keyifiedValue] = (0,_object_keys_of_js__WEBPACK_IMPORTED_MODULE_0__.getKeysOf)(nullObject, {
     own: true,
     named: true,
     symbol: true,
@@ -5397,12 +5240,13 @@ function keyify(value) {
 /*!*******************************************************!*\
   !*** ./source/shared/utility/object/copy-property.js ***!
   \*******************************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return copyProperty; });
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => /* binding */ copyProperty
+/* harmony export */ });
 function copyProperty(key, from, to) {
   const descriptor = Object.getOwnPropertyDescriptor(key, from);
   Object.defineProperty(to, descriptor);
@@ -5414,14 +5258,15 @@ function copyProperty(key, from, to) {
 /*!******************************************************!*\
   !*** ./source/shared/utility/object/deep-compare.js ***!
   \******************************************************/
-/*! exports provided: defaultOptions, default, compareUnorderedArrays */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "defaultOptions", function() { return defaultOptions; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return deepCompare; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "compareUnorderedArrays", function() { return compareUnorderedArrays; });
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "defaultOptions": () => /* binding */ defaultOptions,
+/* harmony export */   "default": () => /* binding */ deepCompare,
+/* harmony export */   "compareUnorderedArrays": () => /* binding */ compareUnorderedArrays
+/* harmony export */ });
 /* harmony import */ var _validation_rules_objects_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../validation/rules/objects/index.js */ "./source/shared/utility/validation/rules/objects/index.js");
 /* harmony import */ var _validation_rules_arrays_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../validation/rules/arrays.js */ "./source/shared/utility/validation/rules/arrays.js");
 
@@ -5478,7 +5323,7 @@ function deepCompare(a, b, options = {}) {
 
   if (compareFunction(a, b, options)) return true; // compare properties
 
-  if (_validation_rules_objects_index_js__WEBPACK_IMPORTED_MODULE_0__["object"].test(a) && _validation_rules_objects_index_js__WEBPACK_IMPORTED_MODULE_0__["object"].test(b)) {
+  if (_validation_rules_objects_index_js__WEBPACK_IMPORTED_MODULE_0__.object.test(a) && _validation_rules_objects_index_js__WEBPACK_IMPORTED_MODULE_0__.object.test(b)) {
     let result = true; // selected keys
 
     const aSelectedKeys = selectFunction(a);
@@ -5523,7 +5368,7 @@ function deepCompare(a, b, options = {}) {
 function compareUnorderedArrays(a, b, options) {
   //R The 'anywhere' option isn't relevant here because arrays cannot inherit index properties. (Even with a replaced prototype, deleted 'hole', etc.)
   // If a and b are arrays:
-  if (_validation_rules_arrays_js__WEBPACK_IMPORTED_MODULE_1__["array"].test(a) && _validation_rules_arrays_js__WEBPACK_IMPORTED_MODULE_1__["array"].test(b)) {
+  if (_validation_rules_arrays_js__WEBPACK_IMPORTED_MODULE_1__.array.test(a) && _validation_rules_arrays_js__WEBPACK_IMPORTED_MODULE_1__.array.test(b)) {
     // Match if:
     let result = true; // All items of a exist in b.
 
@@ -5557,11 +5402,13 @@ function compareUnorderedArrays(a, b, options) {
 /*!************************************************!*\
   !*** ./source/shared/utility/object/define.js ***!
   \************************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => __WEBPACK_DEFAULT_EXPORT__
+/* harmony export */ });
 /* //! Duplicated functionality avoid circular dependencies:
 	keys-of.js,
 	../validation/rules/objects/object.js,
@@ -5585,7 +5432,7 @@ const ownKeys = function (object) {
 */
 
 
-/* harmony default export */ __webpack_exports__["default"] = ({
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ({
   //G Same as object property assignment.
   //! Can be re-configured.
   writable(target, properties) {
@@ -5845,43 +5692,31 @@ const ownKeys = function (object) {
 /*!***********************************************!*\
   !*** ./source/shared/utility/object/index.js ***!
   \***********************************************/
-/*! exports provided: copyProperty, deepCompare, define, forKeysOf, getKeysOf, forSimpleKeysOf, getSimpleKeysOf, forOwnKeysOf, getOwnKeysOf, forSpreadableKeysOf, getSpreadableKeysOf, pick, undeclareUndefined */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "copyProperty": () => /* reexport safe */ _copy_property_js__WEBPACK_IMPORTED_MODULE_0__.default,
+/* harmony export */   "deepCompare": () => /* reexport safe */ _deep_compare_js__WEBPACK_IMPORTED_MODULE_1__.default,
+/* harmony export */   "define": () => /* reexport safe */ _define_js__WEBPACK_IMPORTED_MODULE_2__.default,
+/* harmony export */   "forKeysOf": () => /* reexport safe */ _keys_of_js__WEBPACK_IMPORTED_MODULE_3__.forKeysOf,
+/* harmony export */   "forOwnKeysOf": () => /* reexport safe */ _keys_of_js__WEBPACK_IMPORTED_MODULE_3__.forOwnKeysOf,
+/* harmony export */   "forSimpleKeysOf": () => /* reexport safe */ _keys_of_js__WEBPACK_IMPORTED_MODULE_3__.forSimpleKeysOf,
+/* harmony export */   "forSpreadableKeysOf": () => /* reexport safe */ _keys_of_js__WEBPACK_IMPORTED_MODULE_3__.forSpreadableKeysOf,
+/* harmony export */   "getKeysOf": () => /* reexport safe */ _keys_of_js__WEBPACK_IMPORTED_MODULE_3__.getKeysOf,
+/* harmony export */   "getOwnKeysOf": () => /* reexport safe */ _keys_of_js__WEBPACK_IMPORTED_MODULE_3__.getOwnKeysOf,
+/* harmony export */   "getSimpleKeysOf": () => /* reexport safe */ _keys_of_js__WEBPACK_IMPORTED_MODULE_3__.getSimpleKeysOf,
+/* harmony export */   "getSpreadableKeysOf": () => /* reexport safe */ _keys_of_js__WEBPACK_IMPORTED_MODULE_3__.getSpreadableKeysOf,
+/* harmony export */   "pick": () => /* reexport safe */ _pick_js__WEBPACK_IMPORTED_MODULE_4__.default,
+/* harmony export */   "undeclareUndefined": () => /* reexport safe */ _undeclare_undefined_js__WEBPACK_IMPORTED_MODULE_5__.default
+/* harmony export */ });
 /* harmony import */ var _copy_property_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./copy-property.js */ "./source/shared/utility/object/copy-property.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "copyProperty", function() { return _copy_property_js__WEBPACK_IMPORTED_MODULE_0__["default"]; });
-
 /* harmony import */ var _deep_compare_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./deep-compare.js */ "./source/shared/utility/object/deep-compare.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "deepCompare", function() { return _deep_compare_js__WEBPACK_IMPORTED_MODULE_1__["default"]; });
-
 /* harmony import */ var _define_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./define.js */ "./source/shared/utility/object/define.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "define", function() { return _define_js__WEBPACK_IMPORTED_MODULE_2__["default"]; });
-
 /* harmony import */ var _keys_of_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./keys-of.js */ "./source/shared/utility/object/keys-of.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "forKeysOf", function() { return _keys_of_js__WEBPACK_IMPORTED_MODULE_3__["forKeysOf"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "getKeysOf", function() { return _keys_of_js__WEBPACK_IMPORTED_MODULE_3__["getKeysOf"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "forSimpleKeysOf", function() { return _keys_of_js__WEBPACK_IMPORTED_MODULE_3__["forSimpleKeysOf"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "getSimpleKeysOf", function() { return _keys_of_js__WEBPACK_IMPORTED_MODULE_3__["getSimpleKeysOf"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "forOwnKeysOf", function() { return _keys_of_js__WEBPACK_IMPORTED_MODULE_3__["forOwnKeysOf"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "getOwnKeysOf", function() { return _keys_of_js__WEBPACK_IMPORTED_MODULE_3__["getOwnKeysOf"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "forSpreadableKeysOf", function() { return _keys_of_js__WEBPACK_IMPORTED_MODULE_3__["forSpreadableKeysOf"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "getSpreadableKeysOf", function() { return _keys_of_js__WEBPACK_IMPORTED_MODULE_3__["getSpreadableKeysOf"]; });
-
 /* harmony import */ var _pick_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./pick.js */ "./source/shared/utility/object/pick.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "pick", function() { return _pick_js__WEBPACK_IMPORTED_MODULE_4__["default"]; });
-
 /* harmony import */ var _undeclare_undefined_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./undeclare-undefined.js */ "./source/shared/utility/object/undeclare-undefined.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "undeclareUndefined", function() { return _undeclare_undefined_js__WEBPACK_IMPORTED_MODULE_5__["default"]; });
-
 
 
 
@@ -5895,19 +5730,20 @@ __webpack_require__.r(__webpack_exports__);
 /*!*************************************************!*\
   !*** ./source/shared/utility/object/keys-of.js ***!
   \*************************************************/
-/*! exports provided: forKeysOf, getKeysOf, forSimpleKeysOf, getSimpleKeysOf, forOwnKeysOf, getOwnKeysOf, forSpreadableKeysOf, getSpreadableKeysOf */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "forKeysOf", function() { return forKeysOf; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getKeysOf", function() { return getKeysOf; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "forSimpleKeysOf", function() { return forSimpleKeysOf; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getSimpleKeysOf", function() { return getSimpleKeysOf; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "forOwnKeysOf", function() { return forOwnKeysOf; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getOwnKeysOf", function() { return getOwnKeysOf; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "forSpreadableKeysOf", function() { return forSpreadableKeysOf; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getSpreadableKeysOf", function() { return getSpreadableKeysOf; });
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "forKeysOf": () => /* binding */ forKeysOf,
+/* harmony export */   "getKeysOf": () => /* binding */ getKeysOf,
+/* harmony export */   "forSimpleKeysOf": () => /* binding */ forSimpleKeysOf,
+/* harmony export */   "getSimpleKeysOf": () => /* binding */ getSimpleKeysOf,
+/* harmony export */   "forOwnKeysOf": () => /* binding */ forOwnKeysOf,
+/* harmony export */   "getOwnKeysOf": () => /* binding */ getOwnKeysOf,
+/* harmony export */   "forSpreadableKeysOf": () => /* binding */ forSpreadableKeysOf,
+/* harmony export */   "getSpreadableKeysOf": () => /* binding */ getSpreadableKeysOf
+/* harmony export */ });
 /* harmony import */ var _validation_flex_test_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../validation/flex-test.js */ "./source/shared/utility/validation/flex-test.js");
 /* harmony import */ var _validation_rules_objects_object_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../validation/rules/objects/object.js */ "./source/shared/utility/validation/rules/objects/object.js");
 /* harmony import */ var _validation_rules_functions_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../validation/rules/functions.js */ "./source/shared/utility/validation/rules/functions.js");
@@ -5922,8 +5758,8 @@ __webpack_require__.r(__webpack_exports__);
 
 
 const rules = {
-  object: _validation_rules_objects_object_js__WEBPACK_IMPORTED_MODULE_1__["default"],
-  func: _validation_rules_functions_js__WEBPACK_IMPORTED_MODULE_2__["func"]
+  object: _validation_rules_objects_object_js__WEBPACK_IMPORTED_MODULE_1__.default,
+  func: _validation_rules_functions_js__WEBPACK_IMPORTED_MODULE_2__.func
 }; // Configurations
 
 const simple = {
@@ -6022,7 +5858,7 @@ function getKeysOf(object, optionsOrFilter = {}) {
 
   forKeysOf(object, {
     callback(object, key) {
-      if (Object(_validation_flex_test_js__WEBPACK_IMPORTED_MODULE_0__["default"])(filter, object, key)) {
+      if ((0,_validation_flex_test_js__WEBPACK_IMPORTED_MODULE_0__.default)(filter, object, key)) {
         keys.push(key);
       }
     },
@@ -6057,12 +5893,13 @@ const getSpreadableKeysOf = (object, filter) => getKeysOf(object, { ...spreadabl
 /*!**********************************************!*\
   !*** ./source/shared/utility/object/pick.js ***!
   \**********************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return pick; });
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => /* binding */ pick
+/* harmony export */ });
 /* harmony import */ var _validation_rules_objects_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../validation/rules/objects/index.js */ "./source/shared/utility/validation/rules/objects/index.js");
 /* harmony import */ var _validation_rules_arrays_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../validation/rules/arrays.js */ "./source/shared/utility/validation/rules/arrays.js");
 // Copies all non-undefined properties of an object onto a new object.
@@ -6074,8 +5911,8 @@ __webpack_require__.r(__webpack_exports__);
 
 
 function pick(oldObject, keys) {
-  _validation_rules_objects_index_js__WEBPACK_IMPORTED_MODULE_0__["object"].validate(oldObject);
-  _validation_rules_arrays_js__WEBPACK_IMPORTED_MODULE_1__["array"].validate(keys); //R Keys can be anything, and will be converted to the proper format.
+  _validation_rules_objects_index_js__WEBPACK_IMPORTED_MODULE_0__.object.validate(oldObject);
+  _validation_rules_arrays_js__WEBPACK_IMPORTED_MODULE_1__.array.validate(keys); //R Keys can be anything, and will be converted to the proper format.
 
   const newObject = {};
 
@@ -6093,12 +5930,13 @@ function pick(oldObject, keys) {
 /*!*************************************************************!*\
   !*** ./source/shared/utility/object/undeclare-undefined.js ***!
   \*************************************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return undeclareUndefined; });
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => /* binding */ undeclareUndefined
+/* harmony export */ });
 /* harmony import */ var _validation_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../validation/index.js */ "./source/shared/utility/validation/index.js");
 /* harmony import */ var _keys_of_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./keys-of.js */ "./source/shared/utility/object/keys-of.js");
 // Copies spreadable properties of an object to a new object if they are not undefined.
@@ -6106,9 +5944,9 @@ __webpack_require__.r(__webpack_exports__);
 
 
 function undeclareUndefined(object) {
-  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].object.validate(object);
+  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__.rules.object.validate(object);
   const newObject = {};
-  Object(_keys_of_js__WEBPACK_IMPORTED_MODULE_1__["forSpreadableKeysOf"])(object, (obj, key) => {
+  (0,_keys_of_js__WEBPACK_IMPORTED_MODULE_1__.forSpreadableKeysOf)(object, (obj, key) => {
     const value = obj[key];
 
     if (value !== undefined) {
@@ -6124,14 +5962,16 @@ function undeclareUndefined(object) {
 /*!********************************************!*\
   !*** ./source/shared/utility/reference.js ***!
   \********************************************/
-/*! exports provided: Reference, default, formReferences, extractValues */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Reference", function() { return Reference; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "formReferences", function() { return formReferences; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "extractValues", function() { return extractValues; });
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "Reference": () => /* binding */ Reference,
+/* harmony export */   "default": () => __WEBPACK_DEFAULT_EXPORT__,
+/* harmony export */   "formReferences": () => /* binding */ formReferences,
+/* harmony export */   "extractValues": () => /* binding */ extractValues
+/* harmony export */ });
 class Reference {
   constructor(value) {
     this.value = value;
@@ -6139,7 +5979,7 @@ class Reference {
   }
 
 }
-/* harmony default export */ __webpack_exports__["default"] = (Reference);
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (Reference);
 function formReferences(values) {
   return values.map(item => item instanceof Reference ? item : new Reference(item));
 }
@@ -6153,11 +5993,13 @@ function extractValues(references) {
 /*!*****************************************!*\
   !*** ./source/shared/utility/repeat.js ***!
   \*****************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => __WEBPACK_DEFAULT_EXPORT__
+/* harmony export */ });
 /* harmony import */ var _validation_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./validation/index.js */ "./source/shared/utility/validation/index.js");
 
 /**
@@ -6185,14 +6027,14 @@ function repeat(func, options = {}) {
       throw new Error('Repeat function call counted out.');
     }
   } = options;
-  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].func.validate(func);
-  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].func.validate(until);
-  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].nonNegativeNumber.validate(timeout); // >= 0
+  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__.rules.func.validate(func);
+  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__.rules.func.validate(until);
+  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__.rules.nonNegativeNumber.validate(timeout); // >= 0
 
-  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].positiveNumber.validate(countout); // >= 1
+  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__.rules.positiveNumber.validate(countout); // >= 1
 
-  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].func.validate(onTimeout);
-  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].func.validate(onCountout);
+  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__.rules.func.validate(onTimeout);
+  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__.rules.func.validate(onCountout);
   let result;
   let counter = 0;
   let time = Date.now();
@@ -6239,14 +6081,14 @@ repeat.async = async function (func, options = {}) {
       throw new Error('Repeat function call counted out.');
     }
   } = options;
-  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].func.validate(func);
-  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].func.validate(until);
-  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].nonNegativeNumber.validate(timeout); // >= 0
+  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__.rules.func.validate(func);
+  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__.rules.func.validate(until);
+  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__.rules.nonNegativeNumber.validate(timeout); // >= 0
 
-  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].positiveNumber.validate(countout); // >= 1
+  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__.rules.positiveNumber.validate(countout); // >= 1
 
-  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].func.validate(onTimeout);
-  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].func.validate(onCountout);
+  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__.rules.func.validate(onTimeout);
+  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__.rules.func.validate(onCountout);
   let result;
   let counter = 0;
   let time = Date.now();
@@ -6275,7 +6117,7 @@ repeat.async = async function (func, options = {}) {
   return result;
 };
 
-/* harmony default export */ __webpack_exports__["default"] = (repeat);
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (repeat);
 
 /***/ }),
 
@@ -6283,12 +6125,13 @@ repeat.async = async function (func, options = {}) {
 /*!********************************************************************!*\
   !*** ./source/shared/utility/string/capitalize-first-character.js ***!
   \********************************************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return capitalizeFirstCharacter; });
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => /* binding */ capitalizeFirstCharacter
+/* harmony export */ });
 function capitalizeFirstCharacter(string) {
   return string.charAt(0).toUpperCase() + string.slice(1);
 }
@@ -6299,12 +6142,13 @@ function capitalizeFirstCharacter(string) {
 /*!********************************************************!*\
   !*** ./source/shared/utility/string/escape-reg-exp.js ***!
   \********************************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return escapeRegExp; });
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => /* binding */ escapeRegExp
+/* harmony export */ });
 function escapeRegExp(string) {
   //L from https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#Escaping
   return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -6316,13 +6160,14 @@ function escapeRegExp(string) {
 /*!***********************************************************!*\
   !*** ./source/shared/utility/string/indented-template.js ***!
   \***********************************************************/
-/*! exports provided: tabIndented, spaceIndented */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "tabIndented", function() { return tabIndented; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "spaceIndented", function() { return spaceIndented; });
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "tabIndented": () => /* binding */ tabIndented,
+/* harmony export */   "spaceIndented": () => /* binding */ spaceIndented
+/* harmony export */ });
 //G VS Code may remove empty whitespace lines inside string templates. This will set the base indentation to 0. To avoid this, un-check the 'trim auto whitespace' setting.
 const tabIndented = (strings, ...expressions) => indented(strings, expressions, '	');
 const spaceIndented = (strings, ...expressions) => indented(strings, expressions, ' ');
@@ -6383,25 +6228,21 @@ function indented(stringsFrozen, expressions, indentCharacter) {
 /*!***********************************************!*\
   !*** ./source/shared/utility/string/index.js ***!
   \***********************************************/
-/*! exports provided: capitalizeFirstCharacter, escapeRegExp, spaceIndented, tabIndented, replaceAll */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "capitalizeFirstCharacter": () => /* reexport safe */ _capitalize_first_character_js__WEBPACK_IMPORTED_MODULE_0__.default,
+/* harmony export */   "escapeRegExp": () => /* reexport safe */ _escape_reg_exp_js__WEBPACK_IMPORTED_MODULE_1__.default,
+/* harmony export */   "spaceIndented": () => /* reexport safe */ _indented_template_js__WEBPACK_IMPORTED_MODULE_2__.spaceIndented,
+/* harmony export */   "tabIndented": () => /* reexport safe */ _indented_template_js__WEBPACK_IMPORTED_MODULE_2__.tabIndented,
+/* harmony export */   "replaceAll": () => /* reexport safe */ _replace_all_js__WEBPACK_IMPORTED_MODULE_3__.default
+/* harmony export */ });
 /* harmony import */ var _capitalize_first_character_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./capitalize-first-character.js */ "./source/shared/utility/string/capitalize-first-character.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "capitalizeFirstCharacter", function() { return _capitalize_first_character_js__WEBPACK_IMPORTED_MODULE_0__["default"]; });
-
 /* harmony import */ var _escape_reg_exp_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./escape-reg-exp.js */ "./source/shared/utility/string/escape-reg-exp.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "escapeRegExp", function() { return _escape_reg_exp_js__WEBPACK_IMPORTED_MODULE_1__["default"]; });
-
 /* harmony import */ var _indented_template_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./indented-template.js */ "./source/shared/utility/string/indented-template.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "spaceIndented", function() { return _indented_template_js__WEBPACK_IMPORTED_MODULE_2__["spaceIndented"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "tabIndented", function() { return _indented_template_js__WEBPACK_IMPORTED_MODULE_2__["tabIndented"]; });
-
 /* harmony import */ var _replace_all_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./replace-all.js */ "./source/shared/utility/string/replace-all.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "replaceAll", function() { return _replace_all_js__WEBPACK_IMPORTED_MODULE_3__["default"]; });
-
 
 
 
@@ -6413,12 +6254,13 @@ __webpack_require__.r(__webpack_exports__);
 /*!*****************************************************!*\
   !*** ./source/shared/utility/string/replace-all.js ***!
   \*****************************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return replaceAll; });
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => /* binding */ replaceAll
+/* harmony export */ });
 function replaceAll(input, search, replace) {
   return input.split(search).join(replace);
 }
@@ -6429,17 +6271,16 @@ function replaceAll(input, search, replace) {
 /*!*********************************************!*\
   !*** ./source/shared/utility/time/index.js ***!
   \*********************************************/
-/*! exports provided: setTimer, wait */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "setTimer": () => /* reexport safe */ _set_timer_js__WEBPACK_IMPORTED_MODULE_0__.default,
+/* harmony export */   "wait": () => /* reexport safe */ _wait_js__WEBPACK_IMPORTED_MODULE_1__.default
+/* harmony export */ });
 /* harmony import */ var _set_timer_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./set-timer.js */ "./source/shared/utility/time/set-timer.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "setTimer", function() { return _set_timer_js__WEBPACK_IMPORTED_MODULE_0__["default"]; });
-
 /* harmony import */ var _wait_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./wait.js */ "./source/shared/utility/time/wait.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "wait", function() { return _wait_js__WEBPACK_IMPORTED_MODULE_1__["default"]; });
-
 
 
 
@@ -6449,12 +6290,13 @@ __webpack_require__.r(__webpack_exports__);
 /*!*************************************************!*\
   !*** ./source/shared/utility/time/set-timer.js ***!
   \*************************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return setTimer; });
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => /* binding */ setTimer
+/* harmony export */ });
 /* harmony import */ var _validation_rules_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../validation/rules/index.js */ "./source/shared/utility/validation/rules/index.js");
 /* harmony import */ var _constants_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../constants.js */ "./source/shared/utility/constants.js");
 /* //! Differences from setTimeout:
@@ -6475,8 +6317,8 @@ __webpack_require__.r(__webpack_exports__);
  */
 
 function setTimer(delay, callback) {
-  _validation_rules_index_js__WEBPACK_IMPORTED_MODULE_0__["nonNegativeNumber"].validate(delay);
-  _validation_rules_index_js__WEBPACK_IMPORTED_MODULE_0__["func"].validate(callback);
+  _validation_rules_index_js__WEBPACK_IMPORTED_MODULE_0__.nonNegativeNumber.validate(delay);
+  _validation_rules_index_js__WEBPACK_IMPORTED_MODULE_0__.func.validate(callback);
 
   if (delay === 0) {
     // Execute callback immediately.
@@ -6492,9 +6334,9 @@ function setTimer(delay, callback) {
   } // Remainder
 
 
-  const remainder = delay % _constants_js__WEBPACK_IMPORTED_MODULE_1__["MAX_32_BIT_INTEGER"]; // Quotient
+  const remainder = delay % _constants_js__WEBPACK_IMPORTED_MODULE_1__.MAX_32_BIT_INTEGER; // Quotient
 
-  let overflowChunkCount = BigInt((delay - remainder) / _constants_js__WEBPACK_IMPORTED_MODULE_1__["MAX_32_BIT_INTEGER"]); // Current timeout ID.
+  let overflowChunkCount = BigInt((delay - remainder) / _constants_js__WEBPACK_IMPORTED_MODULE_1__.MAX_32_BIT_INTEGER); // Current timeout ID.
 
   let timeoutId;
 
@@ -6508,7 +6350,7 @@ function setTimer(delay, callback) {
         overflowChunkCount--; // Evaluate the time state again.
 
         nestTimeout();
-      }, _constants_js__WEBPACK_IMPORTED_MODULE_1__["MAX_32_BIT_INTEGER"]);
+      }, _constants_js__WEBPACK_IMPORTED_MODULE_1__.MAX_32_BIT_INTEGER);
     } else {
       // Else, there are no chunks of overflowed time left:
       // Set a timeout for the remaining time.
@@ -6527,12 +6369,13 @@ function setTimer(delay, callback) {
 /*!********************************************!*\
   !*** ./source/shared/utility/time/wait.js ***!
   \********************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return wait; });
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => /* binding */ wait
+/* harmony export */ });
 /* harmony import */ var _set_timer_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./set-timer.js */ "./source/shared/utility/time/set-timer.js");
 //G Used for basic async waiting.
 //! Cannot be canceled.
@@ -6547,7 +6390,7 @@ __webpack_require__.r(__webpack_exports__);
 
 async function wait(duration) {
   return new Promise(resolve => {
-    Object(_set_timer_js__WEBPACK_IMPORTED_MODULE_0__["default"])(duration, () => {
+    (0,_set_timer_js__WEBPACK_IMPORTED_MODULE_0__.default)(duration, () => {
       resolve();
     });
   });
@@ -6559,21 +6402,22 @@ async function wait(duration) {
 /*!**************************************************************!*\
   !*** ./source/shared/utility/uri/append-query-parameters.js ***!
   \**************************************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return appendQueryParameters; });
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => /* binding */ appendQueryParameters
+/* harmony export */ });
 /* harmony import */ var _validation_rules_strings_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../validation/rules/strings.js */ "./source/shared/utility/validation/rules/strings.js");
 // Appends more query parameters to a URL that may or may not already have query parameters.
 //TODO Consider fully validating.
 
 function appendQueryParameters(url, ...queryParameters) {
-  _validation_rules_strings_js__WEBPACK_IMPORTED_MODULE_0__["string"].validate(url);
+  _validation_rules_strings_js__WEBPACK_IMPORTED_MODULE_0__.string.validate(url);
 
   for (const queryParameter of queryParameters) {
-    _validation_rules_strings_js__WEBPACK_IMPORTED_MODULE_0__["string"].validate(queryParameter);
+    _validation_rules_strings_js__WEBPACK_IMPORTED_MODULE_0__.string.validate(queryParameter);
   }
 
   const appendCharacter = url.includes('?') ? '&' : '?';
@@ -6586,12 +6430,13 @@ function appendQueryParameters(url, ...queryParameters) {
 /*!**************************************************!*\
   !*** ./source/shared/utility/uri/decode-list.js ***!
   \**************************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return decodeList; });
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => /* binding */ decodeList
+/* harmony export */ });
 /* harmony import */ var _decode_properties_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./decode-properties.js */ "./source/shared/utility/uri/decode-properties.js");
 /* harmony import */ var _validation_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../validation/index.js */ "./source/shared/utility/validation/index.js");
 
@@ -6599,7 +6444,7 @@ __webpack_require__.r(__webpack_exports__);
 function decodeList(encoded) {
   // decodes a list of encoded objects with '-i' suffixed property keys
   //! any key not matching the format will be discarded
-  const indexed = Object(_decode_properties_js__WEBPACK_IMPORTED_MODULE_0__["default"])(encoded);
+  const indexed = (0,_decode_properties_js__WEBPACK_IMPORTED_MODULE_0__.default)(encoded);
   const list = [];
   const indexedKeys = Object.keys(indexed);
 
@@ -6614,14 +6459,14 @@ function decodeList(encoded) {
 
     const objectIndex = parseInt(indexedKeys[i].slice(delimiterIndex + 1)); // handles multiple digits & no digits properly
 
-    if (!_validation_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].integer.test(objectIndex)) {
+    if (!_validation_index_js__WEBPACK_IMPORTED_MODULE_1__.rules.integer.test(objectIndex)) {
       break;
     } // get the real key
 
 
     const key = indexedKeys[i].slice(0, delimiterIndex);
 
-    if (_validation_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].object.test(list[objectIndex])) {
+    if (_validation_index_js__WEBPACK_IMPORTED_MODULE_1__.rules.object.test(list[objectIndex])) {
       // otherwise add the prop to the existing object
       list[objectIndex][key] = indexed[indexedKeys[i]];
     } else {
@@ -6641,12 +6486,13 @@ function decodeList(encoded) {
 /*!********************************************************!*\
   !*** ./source/shared/utility/uri/decode-properties.js ***!
   \********************************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return decodeProperties; });
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => /* binding */ decodeProperties
+/* harmony export */ });
 // Decodes every value as a string.
 function decodeProperties(encodedString) {
   const keyValuePairs = encodedString.split('&');
@@ -6664,12 +6510,13 @@ function decodeProperties(encodedString) {
 /*!**************************************************!*\
   !*** ./source/shared/utility/uri/encode-list.js ***!
   \**************************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return encodeList; });
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => /* binding */ encodeList
+/* harmony export */ });
 /* harmony import */ var _array_any_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../array/any.js */ "./source/shared/utility/array/any.js");
 /* harmony import */ var _encode_properties_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./encode-properties.js */ "./source/shared/utility/uri/encode-properties.js");
 
@@ -6678,12 +6525,12 @@ function encodeList(list) {
   // return a string of uri encoded key-value pairs for each property of each item, their keys suffixed with '-[index]'
   //! not called automatically by request() because its useful to see when a encodeList exists as it needs to be unpacked on the other end
   const indexed = {};
-  Object(_array_any_js__WEBPACK_IMPORTED_MODULE_0__["default"])(list).forEach((object, index) => {
+  (0,_array_any_js__WEBPACK_IMPORTED_MODULE_0__.default)(list).forEach((object, index) => {
     Object.keys(object).forEach(key => {
       indexed[`${key}-${index}`] = object[key];
     });
   });
-  return Object(_encode_properties_js__WEBPACK_IMPORTED_MODULE_1__["default"])(indexed);
+  return (0,_encode_properties_js__WEBPACK_IMPORTED_MODULE_1__.default)(indexed);
 }
 
 /***/ }),
@@ -6692,12 +6539,13 @@ function encodeList(list) {
 /*!********************************************************!*\
   !*** ./source/shared/utility/uri/encode-properties.js ***!
   \********************************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return encodeProperties; });
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => /* binding */ encodeProperties
+/* harmony export */ });
 // Encodes values as strings, objects as [object Object] and arrays as comma delimited strings.
 function encodeProperties(object) {
   return Object.keys(object).map(key => `${encodeURIComponent(key)}=${encodeURIComponent(object[key])}`).join('&');
@@ -6709,26 +6557,22 @@ function encodeProperties(object) {
 /*!********************************************!*\
   !*** ./source/shared/utility/uri/index.js ***!
   \********************************************/
-/*! exports provided: appendQueryParameters, encodeProperties, decodeProperties, encodeList, decodeList */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "appendQueryParameters": () => /* reexport safe */ _append_query_parameters_js__WEBPACK_IMPORTED_MODULE_0__.default,
+/* harmony export */   "encodeProperties": () => /* reexport safe */ _encode_properties_js__WEBPACK_IMPORTED_MODULE_1__.default,
+/* harmony export */   "decodeProperties": () => /* reexport safe */ _decode_properties_js__WEBPACK_IMPORTED_MODULE_2__.default,
+/* harmony export */   "encodeList": () => /* reexport safe */ _encode_list_js__WEBPACK_IMPORTED_MODULE_3__.default,
+/* harmony export */   "decodeList": () => /* reexport safe */ _decode_list_js__WEBPACK_IMPORTED_MODULE_4__.default
+/* harmony export */ });
 /* harmony import */ var _append_query_parameters_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./append-query-parameters.js */ "./source/shared/utility/uri/append-query-parameters.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "appendQueryParameters", function() { return _append_query_parameters_js__WEBPACK_IMPORTED_MODULE_0__["default"]; });
-
 /* harmony import */ var _encode_properties_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./encode-properties.js */ "./source/shared/utility/uri/encode-properties.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "encodeProperties", function() { return _encode_properties_js__WEBPACK_IMPORTED_MODULE_1__["default"]; });
-
 /* harmony import */ var _decode_properties_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./decode-properties.js */ "./source/shared/utility/uri/decode-properties.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "decodeProperties", function() { return _decode_properties_js__WEBPACK_IMPORTED_MODULE_2__["default"]; });
-
 /* harmony import */ var _encode_list_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./encode-list.js */ "./source/shared/utility/uri/encode-list.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "encodeList", function() { return _encode_list_js__WEBPACK_IMPORTED_MODULE_3__["default"]; });
-
 /* harmony import */ var _decode_list_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./decode-list.js */ "./source/shared/utility/uri/decode-list.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "decodeList", function() { return _decode_list_js__WEBPACK_IMPORTED_MODULE_4__["default"]; });
-
 
 
 
@@ -6741,12 +6585,13 @@ __webpack_require__.r(__webpack_exports__);
 /*!*******************************************************!*\
   !*** ./source/shared/utility/validation/flex-test.js ***!
   \*******************************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return flexTest; });
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => /* binding */ flexTest
+/* harmony export */ });
 // Executes tests that take either 1 (value) argument or 2 (object, key) arguments with either 1 or 2 arguments.
 // If the test takes 2 arguments but 2 arguments weren't passed, the first argument is simulated as an object property.
 //R Using (length === 2 else) rather than (length === 1 else) because otherwise if no arguments are passed undefined[undefined] won't work.
@@ -6796,24 +6641,21 @@ function flexTest(test, ...args) {
 /*!***************************************************!*\
   !*** ./source/shared/utility/validation/index.js ***!
   \***************************************************/
-/*! exports provided: rules, flexTest, Interface, SymbolInterface, Rule */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "rules": () => /* reexport module object */ _rules_index_js__WEBPACK_IMPORTED_MODULE_0__,
+/* harmony export */   "flexTest": () => /* reexport safe */ _flex_test_js__WEBPACK_IMPORTED_MODULE_1__.default,
+/* harmony export */   "Interface": () => /* reexport safe */ _interface_js__WEBPACK_IMPORTED_MODULE_2__.Interface,
+/* harmony export */   "SymbolInterface": () => /* reexport safe */ _interface_js__WEBPACK_IMPORTED_MODULE_2__.SymbolInterface,
+/* harmony export */   "Rule": () => /* reexport safe */ _rule_js__WEBPACK_IMPORTED_MODULE_3__.default
+/* harmony export */ });
 /* harmony import */ var _rules_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./rules/index.js */ "./source/shared/utility/validation/rules/index.js");
-/* harmony reexport (module object) */ __webpack_require__.d(__webpack_exports__, "rules", function() { return _rules_index_js__WEBPACK_IMPORTED_MODULE_0__; });
 /* harmony import */ var _flex_test_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./flex-test.js */ "./source/shared/utility/validation/flex-test.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "flexTest", function() { return _flex_test_js__WEBPACK_IMPORTED_MODULE_1__["default"]; });
-
 /* harmony import */ var _interface_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./interface.js */ "./source/shared/utility/validation/interface.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Interface", function() { return _interface_js__WEBPACK_IMPORTED_MODULE_2__["Interface"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "SymbolInterface", function() { return _interface_js__WEBPACK_IMPORTED_MODULE_2__["SymbolInterface"]; });
-
 /* harmony import */ var _rule_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./rule.js */ "./source/shared/utility/validation/rule.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Rule", function() { return _rule_js__WEBPACK_IMPORTED_MODULE_3__["default"]; });
-
 
 
 
@@ -6826,13 +6668,14 @@ __webpack_require__.r(__webpack_exports__);
 /*!*******************************************************!*\
   !*** ./source/shared/utility/validation/interface.js ***!
   \*******************************************************/
-/*! exports provided: Interface, SymbolInterface */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Interface", function() { return Interface; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "SymbolInterface", function() { return SymbolInterface; });
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "Interface": () => /* binding */ Interface,
+/* harmony export */   "SymbolInterface": () => /* binding */ SymbolInterface
+/* harmony export */ });
 /* harmony import */ var _object_define_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../object/define.js */ "./source/shared/utility/object/define.js");
 /* harmony import */ var _object_keys_of_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../object/keys-of.js */ "./source/shared/utility/object/keys-of.js");
 /* harmony import */ var _flex_test_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./flex-test.js */ "./source/shared/utility/validation/flex-test.js");
@@ -6844,7 +6687,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-class VirtualInterface extends _rule_js__WEBPACK_IMPORTED_MODULE_3__["default"] {
+class VirtualInterface extends _rule_js__WEBPACK_IMPORTED_MODULE_3__.default {
   constructor(packs, options = {}) {
     // Throw if a validator option is passed.
     if ('validator' in options) {
@@ -6855,7 +6698,7 @@ class VirtualInterface extends _rule_js__WEBPACK_IMPORTED_MODULE_3__["default"] 
     const tests = {};
 
     for (const [key, subKey, test] of packs) {
-      _rules_index_js__WEBPACK_IMPORTED_MODULE_4__["func"].validate(test); // Store subKeys on instance under their original key so that they can be used for implementations: {[interface.keys.<key>]: implementation}
+      _rules_index_js__WEBPACK_IMPORTED_MODULE_4__.func.validate(test); // Store subKeys on instance under their original key so that they can be used for implementations: {[interface.keys.<key>]: implementation}
 
       keys[key] = subKey; // Freeze the test length property so that it can be relied upon to determine if the [value] or [object, key] parameters should be passed.
 
@@ -6869,7 +6712,7 @@ class VirtualInterface extends _rule_js__WEBPACK_IMPORTED_MODULE_3__["default"] 
       //R Converting the tests here preserves the benefit of being able to pass single-argument value tests while also knowing that the stored tests always take two arguments.
 
       tests[key] = (o, k) => {
-        return Object(_flex_test_js__WEBPACK_IMPORTED_MODULE_2__["default"])(test, o, k);
+        return (0,_flex_test_js__WEBPACK_IMPORTED_MODULE_2__.default)(test, o, k);
       };
     }
 
@@ -6881,8 +6724,8 @@ class VirtualInterface extends _rule_js__WEBPACK_IMPORTED_MODULE_3__["default"] 
 
       // Use a custom validator for interfaces.
       validator(object) {
-        _rules_index_js__WEBPACK_IMPORTED_MODULE_4__["object"].validate(object);
-        Object(_object_keys_of_js__WEBPACK_IMPORTED_MODULE_1__["forOwnKeysOf"])(this.tests, (tests, key) => {
+        _rules_index_js__WEBPACK_IMPORTED_MODULE_4__.object.validate(object);
+        (0,_object_keys_of_js__WEBPACK_IMPORTED_MODULE_1__.forOwnKeysOf)(this.tests, (tests, key) => {
           const test = this.tests[key];
           const subKey = this.keys[key];
 
@@ -6916,7 +6759,7 @@ class VirtualInterface extends _rule_js__WEBPACK_IMPORTED_MODULE_3__["default"] 
       }
 
     });
-    _object_define_js__WEBPACK_IMPORTED_MODULE_0__["default"].constant(this, {
+    _object_define_js__WEBPACK_IMPORTED_MODULE_0__.default.constant(this, {
       keys,
       tests
     });
@@ -6948,9 +6791,9 @@ class Interface extends VirtualInterface {
   // Interface accepts both named and symbol keys.
   // The same keys must be used for implementations.
   constructor(properties, options) {
-    _rules_index_js__WEBPACK_IMPORTED_MODULE_4__["object"].validate(properties);
+    _rules_index_js__WEBPACK_IMPORTED_MODULE_4__.object.validate(properties);
     const packs = [];
-    Object(_object_keys_of_js__WEBPACK_IMPORTED_MODULE_1__["forOwnKeysOf"])(properties, (properties, key) => {
+    (0,_object_keys_of_js__WEBPACK_IMPORTED_MODULE_1__.forOwnKeysOf)(properties, (properties, key) => {
       const subKey = key;
       const test = properties[key];
       packs.push([key, subKey, test]);
@@ -6964,9 +6807,9 @@ class SymbolInterface extends VirtualInterface {
   // Implementations must use the substituted symbols as the property keys.
   // This prevents name collision on implementations.
   constructor(properties, options) {
-    _rules_index_js__WEBPACK_IMPORTED_MODULE_4__["object"].validate(properties);
+    _rules_index_js__WEBPACK_IMPORTED_MODULE_4__.object.validate(properties);
     const packs = [];
-    Object(_object_keys_of_js__WEBPACK_IMPORTED_MODULE_1__["forOwnKeysOf"])(properties, (properties, key) => {
+    (0,_object_keys_of_js__WEBPACK_IMPORTED_MODULE_1__.forOwnKeysOf)(properties, (properties, key) => {
       const subKey = Symbol(key); // Create a symbol subKey instead.
 
       const test = properties[key];
@@ -6983,12 +6826,14 @@ class SymbolInterface extends VirtualInterface {
 /*!**************************************************!*\
   !*** ./source/shared/utility/validation/rule.js ***!
   \**************************************************/
-/*! exports provided: Rule, default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Rule", function() { return Rule; });
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "Rule": () => /* binding */ Rule,
+/* harmony export */   "default": () => __WEBPACK_DEFAULT_EXPORT__
+/* harmony export */ });
 /* harmony import */ var _object_define_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../object/define.js */ "./source/shared/utility/object/define.js");
 /* harmony import */ var _reference_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../reference.js */ "./source/shared/utility/reference.js");
 /* harmony import */ var _bool_catch_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../bool-catch.js */ "./source/shared/utility/bool-catch.js");
@@ -7032,8 +6877,8 @@ class Rule {
     if (typeof caster !== 'function') errors.push('caster is not a function');
     if (errors.length > 0) throw new Error(errors.join(' and ')); // store
 
-    _object_define_js__WEBPACK_IMPORTED_MODULE_0__["default"].identity(this, rest);
-    _object_define_js__WEBPACK_IMPORTED_MODULE_0__["default"].constant(this, {
+    _object_define_js__WEBPACK_IMPORTED_MODULE_0__.default.identity(this, rest);
+    _object_define_js__WEBPACK_IMPORTED_MODULE_0__.default.constant(this, {
       validator,
       caster
     }); // false when x.constructor.name === 'AsyncFunction'
@@ -7042,68 +6887,68 @@ class Rule {
     const casterIsSynchronous = this.caster.constructor.name === 'Function'; // Validate/test functions are bound to the instance because they may be copied to another object.
 
     if (validatorIsSynchronous) {
-      _object_define_js__WEBPACK_IMPORTED_MODULE_0__["default"].constant(this, {
+      _object_define_js__WEBPACK_IMPORTED_MODULE_0__.default.constant(this, {
         validate: function validate(...args) {
           this.validator(...args);
           return args;
         }.bind(this),
         test: function test(...args) {
-          return Object(_bool_catch_js__WEBPACK_IMPORTED_MODULE_2__["default"])(() => this.validate(...args));
+          return (0,_bool_catch_js__WEBPACK_IMPORTED_MODULE_2__.default)(() => this.validate(...args));
         }.bind(this)
       });
     } else {
-      _object_define_js__WEBPACK_IMPORTED_MODULE_0__["default"].constant(this, {
+      _object_define_js__WEBPACK_IMPORTED_MODULE_0__.default.constant(this, {
         validate: async function validate(...args) {
           await this.validator(...args);
           return args;
         }.bind(this),
         test: async function test(...args) {
-          return Object(_bool_catch_js__WEBPACK_IMPORTED_MODULE_2__["default"])(async () => this.validate(...args));
+          return (0,_bool_catch_js__WEBPACK_IMPORTED_MODULE_2__.default)(async () => this.validate(...args));
         }.bind(this)
       });
     }
 
     if (validatorIsSynchronous && casterIsSynchronous) {
-      _object_define_js__WEBPACK_IMPORTED_MODULE_0__["default"].constant(this, {
+      _object_define_js__WEBPACK_IMPORTED_MODULE_0__.default.constant(this, {
         validateCast: function validateCast(...args) {
           // If call is the entry-point, will convert values to reference-values. If call is nested, nothing will change.
-          const references = Object(_reference_js__WEBPACK_IMPORTED_MODULE_1__["formReferences"])(args);
+          const references = (0,_reference_js__WEBPACK_IMPORTED_MODULE_1__.formReferences)(args);
 
           try {
             this.caster(...references);
           } catch (e) {} // Suppress casting errors, just get as far as possible.
 
 
-          const values = Object(_reference_js__WEBPACK_IMPORTED_MODULE_1__["extractValues"])(references);
+          const values = (0,_reference_js__WEBPACK_IMPORTED_MODULE_1__.extractValues)(references);
           this.validate(...values);
           return values;
         }.bind(this),
         testCast: function testCast(...args) {
-          return Object(_bool_catch_js__WEBPACK_IMPORTED_MODULE_2__["default"])(() => this.validateCast(...args));
+          return (0,_bool_catch_js__WEBPACK_IMPORTED_MODULE_2__.default)(() => this.validateCast(...args));
         }.bind(this)
       });
     } else {
-      _object_define_js__WEBPACK_IMPORTED_MODULE_0__["default"].constant(this, {
+      _object_define_js__WEBPACK_IMPORTED_MODULE_0__.default.constant(this, {
         validateCast: async function validateCast(...args) {
-          const references = Object(_reference_js__WEBPACK_IMPORTED_MODULE_1__["formReferences"])(args);
+          const references = (0,_reference_js__WEBPACK_IMPORTED_MODULE_1__.formReferences)(args);
 
           try {
             await this.caster(...references);
           } catch (e) {}
 
-          const values = Object(_reference_js__WEBPACK_IMPORTED_MODULE_1__["extractValues"])(references);
+          const values = (0,_reference_js__WEBPACK_IMPORTED_MODULE_1__.extractValues)(references);
           await this.validate(...values);
           return values;
         }.bind(this),
         testCast: async function testCast(...args) {
-          return Object(_bool_catch_js__WEBPACK_IMPORTED_MODULE_2__["default"])(async () => this.validateCast(...args));
+          return (0,_bool_catch_js__WEBPACK_IMPORTED_MODULE_2__.default)(async () => this.validateCast(...args));
         }.bind(this)
       });
     }
   }
 
 }
-/* harmony default export */ __webpack_exports__["default"] = (Rule);
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (Rule);
 
 /***/ }),
 
@@ -7111,15 +6956,16 @@ class Rule {
 /*!**********************************************************!*\
   !*** ./source/shared/utility/validation/rules/arrays.js ***!
   \**********************************************************/
-/*! exports provided: array */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "array", function() { return array; });
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "array": () => /* binding */ array
+/* harmony export */ });
 /* harmony import */ var _rule_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../rule.js */ "./source/shared/utility/validation/rule.js");
 
-const array = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
+const array = new _rule_js__WEBPACK_IMPORTED_MODULE_0__.default({
   //L Why not instanceof? - http://web.mit.edu/jwalden/www/isArray.html
   //TODO Doesn't this then apply to all classes? Should all classes use validators like this or just use instanceof?
   validator(value) {
@@ -7136,14 +6982,16 @@ const array = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
 /*!***********************************************************!*\
   !*** ./source/shared/utility/validation/rules/boolean.js ***!
   \***********************************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => __WEBPACK_DEFAULT_EXPORT__
+/* harmony export */ });
 /* harmony import */ var _rule_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../rule.js */ "./source/shared/utility/validation/rule.js");
 
-/* harmony default export */ __webpack_exports__["default"] = (new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (new _rule_js__WEBPACK_IMPORTED_MODULE_0__.default({
   validator(value) {
     if (typeof value !== 'boolean') {
       throw new Error('Value is not a boolean.');
@@ -7162,18 +7010,19 @@ __webpack_require__.r(__webpack_exports__);
 /*!*************************************************************!*\
   !*** ./source/shared/utility/validation/rules/functions.js ***!
   \*************************************************************/
-/*! exports provided: func */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "func", function() { return func; });
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "func": () => /* binding */ func
+/* harmony export */ });
 /* harmony import */ var _rule_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../rule.js */ "./source/shared/utility/validation/rule.js");
 //L Doesn't seem proper to distinguish async vs sync functions: https://stackoverflow.com/questions/38508420/how-to-know-if-a-function-is-async, async operations can handle sync function returns
 // sync func
 // async func
 
-const func = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
+const func = new _rule_js__WEBPACK_IMPORTED_MODULE_0__.default({
   validator(value) {
     if (typeof value !== 'function') throw new Error('Value is not a function.');
   }
@@ -7186,18 +7035,20 @@ const func = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
 /*!*************************************************************!*\
   !*** ./source/shared/utility/validation/rules/http/body.js ***!
   \*************************************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => __WEBPACK_DEFAULT_EXPORT__
+/* harmony export */ });
 /* harmony import */ var _rule_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../rule.js */ "./source/shared/utility/validation/rule.js");
 /* harmony import */ var _strings_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../strings.js */ "./source/shared/utility/validation/rules/strings.js");
 
 
-/* harmony default export */ __webpack_exports__["default"] = (new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (new _rule_js__WEBPACK_IMPORTED_MODULE_0__.default({
   validator(value) {
-    if (!_strings_js__WEBPACK_IMPORTED_MODULE_1__["string"].test(value)) {
+    if (!_strings_js__WEBPACK_IMPORTED_MODULE_1__.string.test(value)) {
       throw new Error('Request body is not a string.');
     }
   }
@@ -7210,11 +7061,13 @@ __webpack_require__.r(__webpack_exports__);
 /*!****************************************************************!*\
   !*** ./source/shared/utility/validation/rules/http/headers.js ***!
   \****************************************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => __WEBPACK_DEFAULT_EXPORT__
+/* harmony export */ });
 /* harmony import */ var _rule_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../rule.js */ "./source/shared/utility/validation/rule.js");
 /* harmony import */ var _objects_object_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../objects/object.js */ "./source/shared/utility/validation/rules/objects/object.js");
 /* harmony import */ var _strings_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../strings.js */ "./source/shared/utility/validation/rules/strings.js");
@@ -7226,14 +7079,14 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-/* harmony default export */ __webpack_exports__["default"] = (new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (new _rule_js__WEBPACK_IMPORTED_MODULE_0__.default({
   validator(value) {
-    _objects_object_js__WEBPACK_IMPORTED_MODULE_1__["default"].validate(value);
+    _objects_object_js__WEBPACK_IMPORTED_MODULE_1__.default.validate(value);
 
     for (const key in value) {
       const headerValue = value[key]; // Header value must be a string.
 
-      _strings_js__WEBPACK_IMPORTED_MODULE_2__["string"].validate(headerValue); // Header name must not be forbidden.
+      _strings_js__WEBPACK_IMPORTED_MODULE_2__.string.validate(headerValue); // Header name must not be forbidden.
       //L Forbidden header names: https://developer.mozilla.org/en-US/docs/Glossary/Forbidden_header_name
 
       if (key.startsWith('Proxy-')) {
@@ -7260,20 +7113,18 @@ __webpack_require__.r(__webpack_exports__);
 /*!**************************************************************!*\
   !*** ./source/shared/utility/validation/rules/http/index.js ***!
   \**************************************************************/
-/*! exports provided: body, headers, queryParameters */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "body": () => /* reexport safe */ _body_js__WEBPACK_IMPORTED_MODULE_0__.default,
+/* harmony export */   "headers": () => /* reexport safe */ _headers_js__WEBPACK_IMPORTED_MODULE_1__.default,
+/* harmony export */   "queryParameters": () => /* reexport safe */ _query_parameters_js__WEBPACK_IMPORTED_MODULE_2__.default
+/* harmony export */ });
 /* harmony import */ var _body_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./body.js */ "./source/shared/utility/validation/rules/http/body.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "body", function() { return _body_js__WEBPACK_IMPORTED_MODULE_0__["default"]; });
-
 /* harmony import */ var _headers_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./headers.js */ "./source/shared/utility/validation/rules/http/headers.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "headers", function() { return _headers_js__WEBPACK_IMPORTED_MODULE_1__["default"]; });
-
 /* harmony import */ var _query_parameters_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./query-parameters.js */ "./source/shared/utility/validation/rules/http/query-parameters.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "queryParameters", function() { return _query_parameters_js__WEBPACK_IMPORTED_MODULE_2__["default"]; });
-
 
 
 
@@ -7284,11 +7135,13 @@ __webpack_require__.r(__webpack_exports__);
 /*!*************************************************************************!*\
   !*** ./source/shared/utility/validation/rules/http/query-parameters.js ***!
   \*************************************************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => __WEBPACK_DEFAULT_EXPORT__
+/* harmony export */ });
 /* harmony import */ var _rule_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../rule.js */ "./source/shared/utility/validation/rule.js");
 /* harmony import */ var _objects_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../objects/index.js */ "./source/shared/utility/validation/rules/objects/index.js");
 /* harmony import */ var _strings_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../strings.js */ "./source/shared/utility/validation/rules/strings.js");
@@ -7301,13 +7154,13 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-/* harmony default export */ __webpack_exports__["default"] = (new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (new _rule_js__WEBPACK_IMPORTED_MODULE_0__.default({
   validator(value) {
-    if (!_objects_index_js__WEBPACK_IMPORTED_MODULE_1__["object"].test(value)) {
+    if (!_objects_index_js__WEBPACK_IMPORTED_MODULE_1__.object.test(value)) {
       throw new Error('Query parameters is not an object.');
     }
 
-    Object(_object_index_js__WEBPACK_IMPORTED_MODULE_5__["forKeysOf"])(value, {
+    (0,_object_index_js__WEBPACK_IMPORTED_MODULE_5__.forKeysOf)(value, {
       own: true,
       named: true,
       enumerable: true,
@@ -7318,7 +7171,7 @@ __webpack_require__.r(__webpack_exports__);
       callback(obj, key) {
         const parameterValue = obj[key];
 
-        if (!(_strings_js__WEBPACK_IMPORTED_MODULE_2__["string"].test(parameterValue) || _numbers_js__WEBPACK_IMPORTED_MODULE_3__["number"].test(parameterValue) || _boolean_js__WEBPACK_IMPORTED_MODULE_4__["default"].test(parameterValue))) {
+        if (!(_strings_js__WEBPACK_IMPORTED_MODULE_2__.string.test(parameterValue) || _numbers_js__WEBPACK_IMPORTED_MODULE_3__.number.test(parameterValue) || _boolean_js__WEBPACK_IMPORTED_MODULE_4__.default.test(parameterValue))) {
           throw new Error(`Query parameter '${key}' is not a string, number, or boolean.`);
         }
       }
@@ -7334,83 +7187,53 @@ __webpack_require__.r(__webpack_exports__);
 /*!*********************************************************!*\
   !*** ./source/shared/utility/validation/rules/index.js ***!
   \*********************************************************/
-/*! exports provided: body, headers, queryParameters, object, constructor, emptyObject, instanceOf, populatedObject, array, boolean, func, key, nullish, number, nonNaNNumber, integer, nonNegativeNumber, nonPositiveNumber, positiveNumber, negativeNumber, nonNegativeInteger, nonPositiveInteger, positiveInteger, negativeInteger, unitInterval, string, trimmedString, visibleString, invisibleString, populatedString, symbol */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "body": () => /* reexport safe */ _http_index_js__WEBPACK_IMPORTED_MODULE_0__.body,
+/* harmony export */   "headers": () => /* reexport safe */ _http_index_js__WEBPACK_IMPORTED_MODULE_0__.headers,
+/* harmony export */   "queryParameters": () => /* reexport safe */ _http_index_js__WEBPACK_IMPORTED_MODULE_0__.queryParameters,
+/* harmony export */   "constructor": () => /* reexport safe */ _objects_index_js__WEBPACK_IMPORTED_MODULE_1__.constructor,
+/* harmony export */   "emptyObject": () => /* reexport safe */ _objects_index_js__WEBPACK_IMPORTED_MODULE_1__.emptyObject,
+/* harmony export */   "instanceOf": () => /* reexport safe */ _objects_index_js__WEBPACK_IMPORTED_MODULE_1__.instanceOf,
+/* harmony export */   "object": () => /* reexport safe */ _objects_index_js__WEBPACK_IMPORTED_MODULE_1__.object,
+/* harmony export */   "populatedObject": () => /* reexport safe */ _objects_index_js__WEBPACK_IMPORTED_MODULE_1__.populatedObject,
+/* harmony export */   "array": () => /* reexport safe */ _arrays_js__WEBPACK_IMPORTED_MODULE_2__.array,
+/* harmony export */   "boolean": () => /* reexport safe */ _boolean_js__WEBPACK_IMPORTED_MODULE_3__.default,
+/* harmony export */   "func": () => /* reexport safe */ _functions_js__WEBPACK_IMPORTED_MODULE_4__.func,
+/* harmony export */   "key": () => /* reexport safe */ _key_js__WEBPACK_IMPORTED_MODULE_5__.default,
+/* harmony export */   "nullish": () => /* reexport safe */ _nullish_js__WEBPACK_IMPORTED_MODULE_6__.default,
+/* harmony export */   "integer": () => /* reexport safe */ _numbers_js__WEBPACK_IMPORTED_MODULE_7__.integer,
+/* harmony export */   "negativeInteger": () => /* reexport safe */ _numbers_js__WEBPACK_IMPORTED_MODULE_7__.negativeInteger,
+/* harmony export */   "negativeNumber": () => /* reexport safe */ _numbers_js__WEBPACK_IMPORTED_MODULE_7__.negativeNumber,
+/* harmony export */   "nonNaNNumber": () => /* reexport safe */ _numbers_js__WEBPACK_IMPORTED_MODULE_7__.nonNaNNumber,
+/* harmony export */   "nonNegativeInteger": () => /* reexport safe */ _numbers_js__WEBPACK_IMPORTED_MODULE_7__.nonNegativeInteger,
+/* harmony export */   "nonNegativeNumber": () => /* reexport safe */ _numbers_js__WEBPACK_IMPORTED_MODULE_7__.nonNegativeNumber,
+/* harmony export */   "nonPositiveInteger": () => /* reexport safe */ _numbers_js__WEBPACK_IMPORTED_MODULE_7__.nonPositiveInteger,
+/* harmony export */   "nonPositiveNumber": () => /* reexport safe */ _numbers_js__WEBPACK_IMPORTED_MODULE_7__.nonPositiveNumber,
+/* harmony export */   "number": () => /* reexport safe */ _numbers_js__WEBPACK_IMPORTED_MODULE_7__.number,
+/* harmony export */   "positiveInteger": () => /* reexport safe */ _numbers_js__WEBPACK_IMPORTED_MODULE_7__.positiveInteger,
+/* harmony export */   "positiveNumber": () => /* reexport safe */ _numbers_js__WEBPACK_IMPORTED_MODULE_7__.positiveNumber,
+/* harmony export */   "unitInterval": () => /* reexport safe */ _numbers_js__WEBPACK_IMPORTED_MODULE_7__.unitInterval,
+/* harmony export */   "invisibleString": () => /* reexport safe */ _strings_js__WEBPACK_IMPORTED_MODULE_8__.invisibleString,
+/* harmony export */   "populatedString": () => /* reexport safe */ _strings_js__WEBPACK_IMPORTED_MODULE_8__.populatedString,
+/* harmony export */   "string": () => /* reexport safe */ _strings_js__WEBPACK_IMPORTED_MODULE_8__.string,
+/* harmony export */   "trimmedString": () => /* reexport safe */ _strings_js__WEBPACK_IMPORTED_MODULE_8__.trimmedString,
+/* harmony export */   "visibleString": () => /* reexport safe */ _strings_js__WEBPACK_IMPORTED_MODULE_8__.visibleString,
+/* harmony export */   "symbol": () => /* reexport safe */ _symbol_js__WEBPACK_IMPORTED_MODULE_9__.default
+/* harmony export */ });
 /* harmony import */ var _http_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./http/index.js */ "./source/shared/utility/validation/rules/http/index.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "body", function() { return _http_index_js__WEBPACK_IMPORTED_MODULE_0__["body"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "headers", function() { return _http_index_js__WEBPACK_IMPORTED_MODULE_0__["headers"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "queryParameters", function() { return _http_index_js__WEBPACK_IMPORTED_MODULE_0__["queryParameters"]; });
-
 /* harmony import */ var _objects_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./objects/index.js */ "./source/shared/utility/validation/rules/objects/index.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "object", function() { return _objects_index_js__WEBPACK_IMPORTED_MODULE_1__["object"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "constructor", function() { return _objects_index_js__WEBPACK_IMPORTED_MODULE_1__["constructor"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "emptyObject", function() { return _objects_index_js__WEBPACK_IMPORTED_MODULE_1__["emptyObject"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "instanceOf", function() { return _objects_index_js__WEBPACK_IMPORTED_MODULE_1__["instanceOf"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "populatedObject", function() { return _objects_index_js__WEBPACK_IMPORTED_MODULE_1__["populatedObject"]; });
-
 /* harmony import */ var _arrays_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./arrays.js */ "./source/shared/utility/validation/rules/arrays.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "array", function() { return _arrays_js__WEBPACK_IMPORTED_MODULE_2__["array"]; });
-
 /* harmony import */ var _boolean_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./boolean.js */ "./source/shared/utility/validation/rules/boolean.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "boolean", function() { return _boolean_js__WEBPACK_IMPORTED_MODULE_3__["default"]; });
-
 /* harmony import */ var _functions_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./functions.js */ "./source/shared/utility/validation/rules/functions.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "func", function() { return _functions_js__WEBPACK_IMPORTED_MODULE_4__["func"]; });
-
 /* harmony import */ var _key_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./key.js */ "./source/shared/utility/validation/rules/key.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "key", function() { return _key_js__WEBPACK_IMPORTED_MODULE_5__["default"]; });
-
 /* harmony import */ var _nullish_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./nullish.js */ "./source/shared/utility/validation/rules/nullish.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "nullish", function() { return _nullish_js__WEBPACK_IMPORTED_MODULE_6__["default"]; });
-
 /* harmony import */ var _numbers_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./numbers.js */ "./source/shared/utility/validation/rules/numbers.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "number", function() { return _numbers_js__WEBPACK_IMPORTED_MODULE_7__["number"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "nonNaNNumber", function() { return _numbers_js__WEBPACK_IMPORTED_MODULE_7__["nonNaNNumber"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "integer", function() { return _numbers_js__WEBPACK_IMPORTED_MODULE_7__["integer"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "nonNegativeNumber", function() { return _numbers_js__WEBPACK_IMPORTED_MODULE_7__["nonNegativeNumber"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "nonPositiveNumber", function() { return _numbers_js__WEBPACK_IMPORTED_MODULE_7__["nonPositiveNumber"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "positiveNumber", function() { return _numbers_js__WEBPACK_IMPORTED_MODULE_7__["positiveNumber"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "negativeNumber", function() { return _numbers_js__WEBPACK_IMPORTED_MODULE_7__["negativeNumber"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "nonNegativeInteger", function() { return _numbers_js__WEBPACK_IMPORTED_MODULE_7__["nonNegativeInteger"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "nonPositiveInteger", function() { return _numbers_js__WEBPACK_IMPORTED_MODULE_7__["nonPositiveInteger"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "positiveInteger", function() { return _numbers_js__WEBPACK_IMPORTED_MODULE_7__["positiveInteger"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "negativeInteger", function() { return _numbers_js__WEBPACK_IMPORTED_MODULE_7__["negativeInteger"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "unitInterval", function() { return _numbers_js__WEBPACK_IMPORTED_MODULE_7__["unitInterval"]; });
-
 /* harmony import */ var _strings_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./strings.js */ "./source/shared/utility/validation/rules/strings.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "string", function() { return _strings_js__WEBPACK_IMPORTED_MODULE_8__["string"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "trimmedString", function() { return _strings_js__WEBPACK_IMPORTED_MODULE_8__["trimmedString"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "visibleString", function() { return _strings_js__WEBPACK_IMPORTED_MODULE_8__["visibleString"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "invisibleString", function() { return _strings_js__WEBPACK_IMPORTED_MODULE_8__["invisibleString"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "populatedString", function() { return _strings_js__WEBPACK_IMPORTED_MODULE_8__["populatedString"]; });
-
 /* harmony import */ var _symbol_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./symbol.js */ "./source/shared/utility/validation/rules/symbol.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "symbol", function() { return _symbol_js__WEBPACK_IMPORTED_MODULE_9__["default"]; });
-
 //G Include anything here that is possible to implement incorrectly, even for basic types.
 //R Rules for basic types are also useful for custom casting, errors, and consistency.
 
@@ -7430,20 +7253,22 @@ __webpack_require__.r(__webpack_exports__);
 /*!*******************************************************!*\
   !*** ./source/shared/utility/validation/rules/key.js ***!
   \*******************************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => __WEBPACK_DEFAULT_EXPORT__
+/* harmony export */ });
 /* harmony import */ var _rule_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../rule.js */ "./source/shared/utility/validation/rule.js");
 /* harmony import */ var _keyify_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../keyify.js */ "./source/shared/utility/keyify.js");
 
 
-/* harmony default export */ __webpack_exports__["default"] = (new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (new _rule_js__WEBPACK_IMPORTED_MODULE_0__.default({
   // Keys that won't be cast / have already been cast as a result of being used as a property key.
   //! Does not include numbers, those get cast to strings.
   validator(value) {
-    const keyifiedValue = Object(_keyify_js__WEBPACK_IMPORTED_MODULE_1__["default"])(value);
+    const keyifiedValue = (0,_keyify_js__WEBPACK_IMPORTED_MODULE_1__.default)(value);
 
     if (value !== keyifiedValue) {
       throw new Error('Value is not keyified.');
@@ -7451,7 +7276,7 @@ __webpack_require__.r(__webpack_exports__);
   },
 
   caster(reference) {
-    reference.value = Object(_keyify_js__WEBPACK_IMPORTED_MODULE_1__["default"])(reference.value);
+    reference.value = (0,_keyify_js__WEBPACK_IMPORTED_MODULE_1__.default)(reference.value);
   }
 
 }));
@@ -7462,14 +7287,16 @@ __webpack_require__.r(__webpack_exports__);
 /*!***********************************************************!*\
   !*** ./source/shared/utility/validation/rules/nullish.js ***!
   \***********************************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => __WEBPACK_DEFAULT_EXPORT__
+/* harmony export */ });
 /* harmony import */ var _rule_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../rule.js */ "./source/shared/utility/validation/rule.js");
 
-/* harmony default export */ __webpack_exports__["default"] = (new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (new _rule_js__WEBPACK_IMPORTED_MODULE_0__.default({
   validator(value) {
     if (value !== undefined && value !== null) {
       throw new Error('Value is not nullish.');
@@ -7484,28 +7311,29 @@ __webpack_require__.r(__webpack_exports__);
 /*!***********************************************************!*\
   !*** ./source/shared/utility/validation/rules/numbers.js ***!
   \***********************************************************/
-/*! exports provided: number, nonNaNNumber, integer, nonNegativeNumber, nonPositiveNumber, positiveNumber, negativeNumber, nonNegativeInteger, nonPositiveInteger, positiveInteger, negativeInteger, unitInterval */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "number", function() { return number; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "nonNaNNumber", function() { return nonNaNNumber; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "integer", function() { return integer; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "nonNegativeNumber", function() { return nonNegativeNumber; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "nonPositiveNumber", function() { return nonPositiveNumber; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "positiveNumber", function() { return positiveNumber; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "negativeNumber", function() { return negativeNumber; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "nonNegativeInteger", function() { return nonNegativeInteger; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "nonPositiveInteger", function() { return nonPositiveInteger; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "positiveInteger", function() { return positiveInteger; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "negativeInteger", function() { return negativeInteger; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "unitInterval", function() { return unitInterval; });
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "number": () => /* binding */ number,
+/* harmony export */   "nonNaNNumber": () => /* binding */ nonNaNNumber,
+/* harmony export */   "integer": () => /* binding */ integer,
+/* harmony export */   "nonNegativeNumber": () => /* binding */ nonNegativeNumber,
+/* harmony export */   "nonPositiveNumber": () => /* binding */ nonPositiveNumber,
+/* harmony export */   "positiveNumber": () => /* binding */ positiveNumber,
+/* harmony export */   "negativeNumber": () => /* binding */ negativeNumber,
+/* harmony export */   "nonNegativeInteger": () => /* binding */ nonNegativeInteger,
+/* harmony export */   "nonPositiveInteger": () => /* binding */ nonPositiveInteger,
+/* harmony export */   "positiveInteger": () => /* binding */ positiveInteger,
+/* harmony export */   "negativeInteger": () => /* binding */ negativeInteger,
+/* harmony export */   "unitInterval": () => /* binding */ unitInterval
+/* harmony export */ });
 /* harmony import */ var _rule_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../rule.js */ "./source/shared/utility/validation/rule.js");
 //TODO Create a lint rule to warn against ".validateCast(reference.value);" inside casters. This doesn't pass the nested cast value back up to the parent cast function.
 //TODO Create tests for this.
 
-const number = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
+const number = new _rule_js__WEBPACK_IMPORTED_MODULE_0__.default({
   validator(value) {
     if (typeof value !== 'number') {
       throw new Error('Value is not a number.');
@@ -7520,7 +7348,7 @@ const number = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
   }
 
 });
-const nonNaNNumber = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
+const nonNaNNumber = new _rule_js__WEBPACK_IMPORTED_MODULE_0__.default({
   validator(value) {
     number.validate(value);
 
@@ -7534,7 +7362,7 @@ const nonNaNNumber = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
   }
 
 });
-const integer = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
+const integer = new _rule_js__WEBPACK_IMPORTED_MODULE_0__.default({
   validator(value) {
     number.validate(value);
     if (!Number.isInteger(value)) throw new Error('Number is not an integet.');
@@ -7548,7 +7376,7 @@ const integer = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
 }); //! Defining 0 as neither positive or negative.
 //L Don't worry about NaN: https://stackoverflow.com/a/26982925 (//!but be careful about negating comparisons)
 
-const nonNegativeNumber = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
+const nonNegativeNumber = new _rule_js__WEBPACK_IMPORTED_MODULE_0__.default({
   validator(value) {
     number.validate(value);
     if (value < 0) throw new Error('Number is negative.');
@@ -7559,7 +7387,7 @@ const nonNegativeNumber = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
   }
 
 });
-const nonPositiveNumber = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
+const nonPositiveNumber = new _rule_js__WEBPACK_IMPORTED_MODULE_0__.default({
   validator(value) {
     number.validate(value);
     if (value > 0) throw new Error('Number is positive.');
@@ -7570,7 +7398,7 @@ const nonPositiveNumber = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
   }
 
 });
-const positiveNumber = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
+const positiveNumber = new _rule_js__WEBPACK_IMPORTED_MODULE_0__.default({
   validator(value) {
     number.validate(value);
     if (value <= 0) throw new Error('Number is not positive.');
@@ -7581,7 +7409,7 @@ const positiveNumber = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
   }
 
 });
-const negativeNumber = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
+const negativeNumber = new _rule_js__WEBPACK_IMPORTED_MODULE_0__.default({
   validator(value) {
     number.validate(value);
     if (value >= 0) throw new Error('Number is not negative.');
@@ -7592,7 +7420,7 @@ const negativeNumber = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
   }
 
 });
-const nonNegativeInteger = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
+const nonNegativeInteger = new _rule_js__WEBPACK_IMPORTED_MODULE_0__.default({
   validator(value) {
     nonNegativeNumber.validate(value);
     integer.validate(value);
@@ -7604,7 +7432,7 @@ const nonNegativeInteger = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"](
   }
 
 });
-const nonPositiveInteger = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
+const nonPositiveInteger = new _rule_js__WEBPACK_IMPORTED_MODULE_0__.default({
   validator(value) {
     nonPositiveNumber.validate(value);
     integer.validate(value);
@@ -7616,7 +7444,7 @@ const nonPositiveInteger = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"](
   }
 
 });
-const positiveInteger = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
+const positiveInteger = new _rule_js__WEBPACK_IMPORTED_MODULE_0__.default({
   validator(value) {
     positiveNumber.validate(value);
     integer.validate(value);
@@ -7628,7 +7456,7 @@ const positiveInteger = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
   }
 
 });
-const negativeInteger = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
+const negativeInteger = new _rule_js__WEBPACK_IMPORTED_MODULE_0__.default({
   validator(value) {
     negativeNumber.validate(value);
     integer.validate(value);
@@ -7641,7 +7469,7 @@ const negativeInteger = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
 
 }); //? Is there a better name for this?
 
-const unitInterval = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
+const unitInterval = new _rule_js__WEBPACK_IMPORTED_MODULE_0__.default({
   validator(value) {
     if (!(0 <= value && value <= 1)) {
       throw new Error('Value is not a number between 0 and 1.');
@@ -7656,14 +7484,16 @@ const unitInterval = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
 /*!***********************************************************************!*\
   !*** ./source/shared/utility/validation/rules/objects/constructor.js ***!
   \***********************************************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => __WEBPACK_DEFAULT_EXPORT__
+/* harmony export */ });
 /* harmony import */ var _rule_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../rule.js */ "./source/shared/utility/validation/rule.js");
 
-/* harmony default export */ __webpack_exports__["default"] = (new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (new _rule_js__WEBPACK_IMPORTED_MODULE_0__.default({
   validator(value) {
     try {
       class Test extends value {}
@@ -7680,22 +7510,24 @@ __webpack_require__.r(__webpack_exports__);
 /*!************************************************************************!*\
   !*** ./source/shared/utility/validation/rules/objects/empty-object.js ***!
   \************************************************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => __WEBPACK_DEFAULT_EXPORT__
+/* harmony export */ });
 /* harmony import */ var _rule_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../rule.js */ "./source/shared/utility/validation/rule.js");
 /* harmony import */ var _object_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./object.js */ "./source/shared/utility/validation/rules/objects/object.js");
 /* harmony import */ var _object_keys_of_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../../object/keys-of.js */ "./source/shared/utility/object/keys-of.js");
 
 
 
-/* harmony default export */ __webpack_exports__["default"] = (new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (new _rule_js__WEBPACK_IMPORTED_MODULE_0__.default({
   validator(value) {
-    _object_js__WEBPACK_IMPORTED_MODULE_1__["default"].validate(value);
+    _object_js__WEBPACK_IMPORTED_MODULE_1__.default.validate(value);
 
-    if (Object(_object_keys_of_js__WEBPACK_IMPORTED_MODULE_2__["getKeysOf"])(value, {
+    if ((0,_object_keys_of_js__WEBPACK_IMPORTED_MODULE_2__.getKeysOf)(value, {
       own: true,
       enumerable: true,
       nonEnumerable: true,
@@ -7715,26 +7547,22 @@ __webpack_require__.r(__webpack_exports__);
 /*!*****************************************************************!*\
   !*** ./source/shared/utility/validation/rules/objects/index.js ***!
   \*****************************************************************/
-/*! exports provided: object, constructor, emptyObject, instanceOf, populatedObject */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "object": () => /* reexport safe */ _object_js__WEBPACK_IMPORTED_MODULE_0__.default,
+/* harmony export */   "constructor": () => /* reexport safe */ _constructor_js__WEBPACK_IMPORTED_MODULE_1__.default,
+/* harmony export */   "emptyObject": () => /* reexport safe */ _empty_object_js__WEBPACK_IMPORTED_MODULE_2__.default,
+/* harmony export */   "instanceOf": () => /* reexport safe */ _instance_of_js__WEBPACK_IMPORTED_MODULE_3__.default,
+/* harmony export */   "populatedObject": () => /* reexport safe */ _populated_object_js__WEBPACK_IMPORTED_MODULE_4__.default
+/* harmony export */ });
 /* harmony import */ var _object_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./object.js */ "./source/shared/utility/validation/rules/objects/object.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "object", function() { return _object_js__WEBPACK_IMPORTED_MODULE_0__["default"]; });
-
 /* harmony import */ var _constructor_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./constructor.js */ "./source/shared/utility/validation/rules/objects/constructor.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "constructor", function() { return _constructor_js__WEBPACK_IMPORTED_MODULE_1__["default"]; });
-
 /* harmony import */ var _empty_object_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./empty-object.js */ "./source/shared/utility/validation/rules/objects/empty-object.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "emptyObject", function() { return _empty_object_js__WEBPACK_IMPORTED_MODULE_2__["default"]; });
-
 /* harmony import */ var _instance_of_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./instance-of.js */ "./source/shared/utility/validation/rules/objects/instance-of.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "instanceOf", function() { return _instance_of_js__WEBPACK_IMPORTED_MODULE_3__["default"]; });
-
 /* harmony import */ var _populated_object_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./populated-object.js */ "./source/shared/utility/validation/rules/objects/populated-object.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "populatedObject", function() { return _populated_object_js__WEBPACK_IMPORTED_MODULE_4__["default"]; });
-
 
 
 
@@ -7747,18 +7575,20 @@ __webpack_require__.r(__webpack_exports__);
 /*!***********************************************************************!*\
   !*** ./source/shared/utility/validation/rules/objects/instance-of.js ***!
   \***********************************************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => __WEBPACK_DEFAULT_EXPORT__
+/* harmony export */ });
 /* harmony import */ var _rule_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../rule.js */ "./source/shared/utility/validation/rule.js");
 /* harmony import */ var _constructor_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./constructor.js */ "./source/shared/utility/validation/rules/objects/constructor.js");
 
 
-/* harmony default export */ __webpack_exports__["default"] = (new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (new _rule_js__WEBPACK_IMPORTED_MODULE_0__.default({
   validator(value, Class) {
-    _constructor_js__WEBPACK_IMPORTED_MODULE_1__["default"].validate(Class);
+    _constructor_js__WEBPACK_IMPORTED_MODULE_1__.default.validate(Class);
 
     if (!(value instanceof Class)) {
       throw new Error(`Value is not an instance of ${Class.name}`);
@@ -7773,14 +7603,16 @@ __webpack_require__.r(__webpack_exports__);
 /*!******************************************************************!*\
   !*** ./source/shared/utility/validation/rules/objects/object.js ***!
   \******************************************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => __WEBPACK_DEFAULT_EXPORT__
+/* harmony export */ });
 /* harmony import */ var _rule_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../rule.js */ "./source/shared/utility/validation/rule.js");
 
-/* harmony default export */ __webpack_exports__["default"] = (new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (new _rule_js__WEBPACK_IMPORTED_MODULE_0__.default({
   //L https://stackoverflow.com/a/22482737
   validator(value) {
     if (value === null || !(typeof value === 'object' || typeof value === 'function')) {
@@ -7796,22 +7628,24 @@ __webpack_require__.r(__webpack_exports__);
 /*!****************************************************************************!*\
   !*** ./source/shared/utility/validation/rules/objects/populated-object.js ***!
   \****************************************************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => __WEBPACK_DEFAULT_EXPORT__
+/* harmony export */ });
 /* harmony import */ var _rule_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../rule.js */ "./source/shared/utility/validation/rule.js");
 /* harmony import */ var _object_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./object.js */ "./source/shared/utility/validation/rules/objects/object.js");
 /* harmony import */ var _object_keys_of_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../../object/keys-of.js */ "./source/shared/utility/object/keys-of.js");
 
 
 
-/* harmony default export */ __webpack_exports__["default"] = (new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (new _rule_js__WEBPACK_IMPORTED_MODULE_0__.default({
   validator(value) {
-    _object_js__WEBPACK_IMPORTED_MODULE_1__["default"].validate(value);
+    _object_js__WEBPACK_IMPORTED_MODULE_1__.default.validate(value);
 
-    if (Object(_object_keys_of_js__WEBPACK_IMPORTED_MODULE_2__["getKeysOf"])(value, {
+    if ((0,_object_keys_of_js__WEBPACK_IMPORTED_MODULE_2__.getKeysOf)(value, {
       own: true,
       enumerable: true,
       nonEnumerable: true,
@@ -7831,19 +7665,20 @@ __webpack_require__.r(__webpack_exports__);
 /*!***********************************************************!*\
   !*** ./source/shared/utility/validation/rules/strings.js ***!
   \***********************************************************/
-/*! exports provided: string, trimmedString, visibleString, invisibleString, populatedString */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "string", function() { return string; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "trimmedString", function() { return trimmedString; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "visibleString", function() { return visibleString; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "invisibleString", function() { return invisibleString; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "populatedString", function() { return populatedString; });
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "string": () => /* binding */ string,
+/* harmony export */   "trimmedString": () => /* binding */ trimmedString,
+/* harmony export */   "visibleString": () => /* binding */ visibleString,
+/* harmony export */   "invisibleString": () => /* binding */ invisibleString,
+/* harmony export */   "populatedString": () => /* binding */ populatedString
+/* harmony export */ });
 /* harmony import */ var _rule_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../rule.js */ "./source/shared/utility/validation/rule.js");
 
-const string = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
+const string = new _rule_js__WEBPACK_IMPORTED_MODULE_0__.default({
   validator(value) {
     if (typeof value !== 'string') {
       throw new Error('Value is not a string.');
@@ -7862,7 +7697,7 @@ const string = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
   }
 
 });
-const trimmedString = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
+const trimmedString = new _rule_js__WEBPACK_IMPORTED_MODULE_0__.default({
   validator(value) {
     string.validate(value); //TODO Create a thorough test for this.
     //TODO See https://en.wikipedia.org/wiki/Whitespace_character
@@ -7880,7 +7715,7 @@ const trimmedString = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
   }
 
 });
-const visibleString = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
+const visibleString = new _rule_js__WEBPACK_IMPORTED_MODULE_0__.default({
   validator(value) {
     string.validate(value);
 
@@ -7894,7 +7729,7 @@ const visibleString = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
   }
 
 });
-const invisibleString = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
+const invisibleString = new _rule_js__WEBPACK_IMPORTED_MODULE_0__.default({
   validator(value) {
     string.validate(value);
 
@@ -7908,7 +7743,7 @@ const invisibleString = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
   }
 
 });
-const populatedString = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
+const populatedString = new _rule_js__WEBPACK_IMPORTED_MODULE_0__.default({
   validator(value) {
     string.validate(value);
 
@@ -7929,16 +7764,18 @@ const populatedString = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
 /*!**********************************************************!*\
   !*** ./source/shared/utility/validation/rules/symbol.js ***!
   \**********************************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => __WEBPACK_DEFAULT_EXPORT__
+/* harmony export */ });
 /* harmony import */ var _rule_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../rule.js */ "./source/shared/utility/validation/rule.js");
 /* harmony import */ var _strings_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./strings.js */ "./source/shared/utility/validation/rules/strings.js");
 
 
-/* harmony default export */ __webpack_exports__["default"] = (new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (new _rule_js__WEBPACK_IMPORTED_MODULE_0__.default({
   validator(value) {
     //L If transpiling to ES5, an additional check is required: https://stackoverflow.com/questions/46479169/check-if-value-is-a-symbol-in-javascript
     if (typeof value !== 'symbol') {
@@ -7950,7 +7787,7 @@ __webpack_require__.r(__webpack_exports__);
     // Non-symbol values cast as the stringified description of a new symbol.
     if (!this.validate(reference.value)) {
       // Symbol(x) cannot convert symbols to strings, but String(x) in string.validateCast() can.
-      _strings_js__WEBPACK_IMPORTED_MODULE_1__["string"].validateCast(reference.value);
+      _strings_js__WEBPACK_IMPORTED_MODULE_1__.string.validateCast(reference.value);
       reference.value = Symbol(reference.value);
     }
   }
@@ -7963,12 +7800,13 @@ __webpack_require__.r(__webpack_exports__);
 /*!*******************************!*\
   !*** ./source/shared/warn.js ***!
   \*******************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Warn; });
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => /* binding */ Warn
+/* harmony export */ });
 /* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utility/index.js */ "./source/shared/utility/index.js");
 
 class Warn {
@@ -7979,7 +7817,7 @@ class Warn {
       reason,
       content
     } = options;
-    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].writable(this, {
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__.define.writable(this, {
       log,
       message,
       reason,
@@ -7991,25 +7829,59 @@ class Warn {
 
 /***/ }),
 
+/***/ "./source/node-utility/source-path.cjs":
+/*!*********************************************!*\
+  !*** ./source/node-utility/source-path.cjs ***!
+  \*********************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+// Returns an absolute path relative to the source directory.
+//G Use in places where __dirname would normally be required, like config options or non-webpack-recognized imports.
+/* //! Do NOT move this file.
+	If it must be moved,
+		either ensure all references to this file and all relative paths passed to this function are updated,
+		or update the <base path> of this function: resolve(<__dirname, '../',> ...relativePaths)
+*/
+/* //R Workaround for __dirname / import.meta / webpack issues.
+	The __dirname node global doesn't exist in ES Modules, even when run with node.
+		Webpack is supposed to be able to polyfill this with node: {__dirname: true}, however it doesn't seem to be working.
+	The alternative import.meta would normally be the workaround for raw modules.
+		However Webpack doesn't support this yet: //L https://github.com/webpack/webpack/issues/6719
+		@open-wc/webpack-import-meta-loader didn't work because it relies on window which isn't available in node.
+		@bable/plugin-syntax-import-meta just didn't work at all.
+		When webpack is able to parse import.meta, this could be a universal solution:
+			//OLD
+			import path from 'path';
+
+			export default function (metaURL) {
+				return path.dirname(new URL(metaURL.replace(/^file:\/\/\//, '')).pathname);
+			};
+	Current solution is to use __dirname only in a CommonJS Module, and instead import it into ES Modules.
+		//L Solution from: https://medium.com/@almtechhub/es-modules-and-import-meta-dirname-babel-trick-39aad026682
+		Here it was being wrapped in a path call because using the exported __dirname from outside this directory wouldn't make much semantic sense.
+		This initially didn't work because it was actually just using the directory node was being run from.
+			However, with a custom node globals polyfill: //L https://github.com/webpack/webpack/issues/1599#issuecomment-550291610 __dirname can now be properly polyfilled.
+		Even though __dirname will now work properly, this cjs workaround is still the preferred way as it can be used in raw ES Modules.
+	Other links:
+		//L https://stackoverflow.com/questions/46745014/alternative-for-dirname-in-node-when-using-the-experimental-modules-flag
+		//L https://stackoverflow.com/questions/46745014/alternative-for-dirname-in-node-when-using-the-experimental-modules-flag
+*/
+//R Currying this function won't work. __dirname will only apply to the exact file it is used in.
+
+const {resolve} = __webpack_require__(/*! path */ "path");
+module.exports = (...relativePaths) => resolve(__dirname, '../', ...relativePaths);
+
+
+/***/ }),
+
 /***/ "bcryptjs":
 /*!***************************!*\
   !*** external "bcryptjs" ***!
   \***************************/
-/*! no static exports found */
-/***/ (function(module, exports) {
+/***/ ((module) => {
 
-module.exports = require("bcryptjs");
-
-/***/ }),
-
-/***/ "dotenv":
-/*!*************************!*\
-  !*** external "dotenv" ***!
-  \*************************/
-/*! no static exports found */
-/***/ (function(module, exports) {
-
-module.exports = require("dotenv");
+"use strict";
+module.exports = require("bcryptjs");;
 
 /***/ }),
 
@@ -8017,10 +7889,10 @@ module.exports = require("dotenv");
 /*!*************************!*\
   !*** external "events" ***!
   \*************************/
-/*! no static exports found */
-/***/ (function(module, exports) {
+/***/ ((module) => {
 
-module.exports = require("events");
+"use strict";
+module.exports = require("events");;
 
 /***/ }),
 
@@ -8028,10 +7900,10 @@ module.exports = require("events");
 /*!*************************!*\
   !*** external "fclone" ***!
   \*************************/
-/*! no static exports found */
-/***/ (function(module, exports) {
+/***/ ((module) => {
 
-module.exports = require("fclone");
+"use strict";
+module.exports = require("fclone");;
 
 /***/ }),
 
@@ -8039,10 +7911,10 @@ module.exports = require("fclone");
 /*!*********************!*\
   !*** external "fs" ***!
   \*********************/
-/*! no static exports found */
-/***/ (function(module, exports) {
+/***/ ((module) => {
 
-module.exports = require("fs");
+"use strict";
+module.exports = require("fs");;
 
 /***/ }),
 
@@ -8050,10 +7922,10 @@ module.exports = require("fs");
 /*!***********************!*\
   !*** external "http" ***!
   \***********************/
-/*! no static exports found */
-/***/ (function(module, exports) {
+/***/ ((module) => {
 
-module.exports = require("http");
+"use strict";
+module.exports = require("http");;
 
 /***/ }),
 
@@ -8061,10 +7933,10 @@ module.exports = require("http");
 /*!**********************!*\
   !*** external "koa" ***!
   \**********************/
-/*! no static exports found */
-/***/ (function(module, exports) {
+/***/ ((module) => {
 
-module.exports = require("koa");
+"use strict";
+module.exports = require("koa");;
 
 /***/ }),
 
@@ -8072,10 +7944,10 @@ module.exports = require("koa");
 /*!*********************************!*\
   !*** external "koa-bodyparser" ***!
   \*********************************/
-/*! no static exports found */
-/***/ (function(module, exports) {
+/***/ ((module) => {
 
-module.exports = require("koa-bodyparser");
+"use strict";
+module.exports = require("koa-bodyparser");;
 
 /***/ }),
 
@@ -8083,10 +7955,10 @@ module.exports = require("koa-bodyparser");
 /*!*****************************!*\
   !*** external "koa-router" ***!
   \*****************************/
-/*! no static exports found */
-/***/ (function(module, exports) {
+/***/ ((module) => {
 
-module.exports = require("koa-router");
+"use strict";
+module.exports = require("koa-router");;
 
 /***/ }),
 
@@ -8094,10 +7966,10 @@ module.exports = require("koa-router");
 /*!***************************!*\
   !*** external "koa-send" ***!
   \***************************/
-/*! no static exports found */
-/***/ (function(module, exports) {
+/***/ ((module) => {
 
-module.exports = require("koa-send");
+"use strict";
+module.exports = require("koa-send");;
 
 /***/ }),
 
@@ -8105,10 +7977,10 @@ module.exports = require("koa-send");
 /*!******************************!*\
   !*** external "koa-session" ***!
   \******************************/
-/*! no static exports found */
-/***/ (function(module, exports) {
+/***/ ((module) => {
 
-module.exports = require("koa-session");
+"use strict";
+module.exports = require("koa-session");;
 
 /***/ }),
 
@@ -8116,10 +7988,10 @@ module.exports = require("koa-session");
 /*!*****************************!*\
   !*** external "node-fetch" ***!
   \*****************************/
-/*! no static exports found */
-/***/ (function(module, exports) {
+/***/ ((module) => {
 
-module.exports = require("node-fetch");
+"use strict";
+module.exports = require("node-fetch");;
 
 /***/ }),
 
@@ -8127,10 +7999,10 @@ module.exports = require("node-fetch");
 /*!***********************!*\
   !*** external "path" ***!
   \***********************/
-/*! no static exports found */
-/***/ (function(module, exports) {
+/***/ ((module) => {
 
-module.exports = require("path");
+"use strict";
+module.exports = require("path");;
 
 /***/ }),
 
@@ -8138,10 +8010,10 @@ module.exports = require("path");
 /*!*****************************!*\
   !*** external "pg-promise" ***!
   \*****************************/
-/*! no static exports found */
-/***/ (function(module, exports) {
+/***/ ((module) => {
 
-module.exports = require("pg-promise");
+"use strict";
+module.exports = require("pg-promise");;
 
 /***/ }),
 
@@ -8149,10 +8021,10 @@ module.exports = require("pg-promise");
 /*!****************************!*\
   !*** external "socket.io" ***!
   \****************************/
-/*! no static exports found */
-/***/ (function(module, exports) {
+/***/ ((module) => {
 
-module.exports = require("socket.io");
+"use strict";
+module.exports = require("socket.io");;
 
 /***/ }),
 
@@ -8160,10 +8032,10 @@ module.exports = require("socket.io");
 /*!***************************************!*\
   !*** external "spotify-web-api-node" ***!
   \***************************************/
-/*! no static exports found */
-/***/ (function(module, exports) {
+/***/ ((module) => {
 
-module.exports = require("spotify-web-api-node");
+"use strict";
+module.exports = require("spotify-web-api-node");;
 
 /***/ }),
 
@@ -8171,12 +8043,102 @@ module.exports = require("spotify-web-api-node");
 /*!****************************!*\
   !*** external "valid-url" ***!
   \****************************/
-/*! no static exports found */
-/***/ (function(module, exports) {
+/***/ ((module) => {
 
-module.exports = require("valid-url");
+"use strict";
+module.exports = require("valid-url");;
 
 /***/ })
 
-/******/ });
+/******/ 	});
+/************************************************************************/
+/******/ 	// The module cache
+/******/ 	var __webpack_module_cache__ = {};
+/******/ 	
+/******/ 	// The require function
+/******/ 	function __webpack_require__(moduleId) {
+/******/ 		// Check if module is in cache
+/******/ 		if(__webpack_module_cache__[moduleId]) {
+/******/ 			return __webpack_module_cache__[moduleId].exports;
+/******/ 		}
+/******/ 		// Create a new module (and put it into the cache)
+/******/ 		var module = __webpack_module_cache__[moduleId] = {
+/******/ 			// no module.id needed
+/******/ 			// no module.loaded needed
+/******/ 			exports: {}
+/******/ 		};
+/******/ 	
+/******/ 		// Execute the module function
+/******/ 		__webpack_modules__[moduleId](module, module.exports, __webpack_require__);
+/******/ 	
+/******/ 		// Return the exports of the module
+/******/ 		return module.exports;
+/******/ 	}
+/******/ 	
+/************************************************************************/
+/******/ 	/* webpack/runtime/create fake namespace object */
+/******/ 	(() => {
+/******/ 		var getProto = Object.getPrototypeOf ? (obj) => Object.getPrototypeOf(obj) : (obj) => obj.__proto__;
+/******/ 		var leafPrototypes;
+/******/ 		// create a fake namespace object
+/******/ 		// mode & 1: value is a module id, require it
+/******/ 		// mode & 2: merge all properties of value into the ns
+/******/ 		// mode & 4: return value when already ns object
+/******/ 		// mode & 16: return value when it's Promise-like
+/******/ 		// mode & 8|1: behave like require
+/******/ 		__webpack_require__.t = function(value, mode) {
+/******/ 			if(mode & 1) value = this(value);
+/******/ 			if(mode & 8) return value;
+/******/ 			if(typeof value === 'object' && value) {
+/******/ 				if((mode & 4) && value.__esModule) return value;
+/******/ 				if((mode & 16) && typeof value.then === 'function') return value;
+/******/ 			}
+/******/ 			var ns = Object.create(null);
+/******/ 			__webpack_require__.r(ns);
+/******/ 			var def = {};
+/******/ 			leafPrototypes = leafPrototypes || [null, getProto({}), getProto([]), getProto(getProto)];
+/******/ 			for(var current = mode & 2 && value; typeof current == 'object' && !~leafPrototypes.indexOf(current); current = getProto(current)) {
+/******/ 				Object.getOwnPropertyNames(current).forEach(key => def[key] = () => value[key]);
+/******/ 			}
+/******/ 			def['default'] = () => value;
+/******/ 			__webpack_require__.d(ns, def);
+/******/ 			return ns;
+/******/ 		};
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/define property getters */
+/******/ 	(() => {
+/******/ 		// define getter functions for harmony exports
+/******/ 		__webpack_require__.d = (exports, definition) => {
+/******/ 			for(var key in definition) {
+/******/ 				if(__webpack_require__.o(definition, key) && !__webpack_require__.o(exports, key)) {
+/******/ 					Object.defineProperty(exports, key, { enumerable: true, get: definition[key] });
+/******/ 				}
+/******/ 			}
+/******/ 		};
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/hasOwnProperty shorthand */
+/******/ 	(() => {
+/******/ 		__webpack_require__.o = (obj, prop) => Object.prototype.hasOwnProperty.call(obj, prop)
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/make namespace object */
+/******/ 	(() => {
+/******/ 		// define __esModule on exports
+/******/ 		__webpack_require__.r = (exports) => {
+/******/ 			if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
+/******/ 				Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
+/******/ 			}
+/******/ 			Object.defineProperty(exports, '__esModule', { value: true });
+/******/ 		};
+/******/ 	})();
+/******/ 	
+/************************************************************************/
+/******/ 	// startup
+/******/ 	// Load entry module
+/******/ 	__webpack_require__("./source/server/main.js");
+/******/ 	// This entry module used 'exports' so it can't be inlined
+/******/ })()
+;
 //# sourceMappingURL=main.bundle.cjs.map
