@@ -2,11 +2,6 @@
 
 import sourcePath from '../node-utility/source-path.cjs';
 
-// Build (outside source)
-const buildDirectory              = sourcePath('../build');
-export const serverBuildDirectory = sourcePath(buildDirectory, 'server');
-export const clientBuildDirectory = sourcePath(buildDirectory, 'client');
-export const serverBuildFile      = sourcePath(serverBuildDirectory, 'main.bundle.cjs'); //TODO extract filename
 
 // Source
 export const serverDirectory = sourcePath('server');
@@ -14,9 +9,21 @@ export const clientDirectory = sourcePath('client');
 export const serverMainFile  = sourcePath(serverDirectory, 'main.js');
 export const clientMainFile  = sourcePath(clientDirectory, 'main.js');
 
+// Source Build
+const buildDirectory              = sourcePath('../build');
+export const serverBuildDirectory = sourcePath(buildDirectory, 'server');
+export const clientBuildDirectory = sourcePath(buildDirectory, 'client');
+export const serverBuildFile      = sourcePath(serverBuildDirectory, 'main.bundle.cjs'); //TODO extract filename
+
+
 // Config
-const configDirectory   = sourcePath('config');
-export const dotEnvFile = sourcePath(configDirectory, '.env');
+const configDirectory             = sourcePath('config');
+export const dotenvFile           = sourcePath(configDirectory,      '.env');
+
+// Config Build
+export const dotenvBuildDirectory = sourcePath(serverBuildDirectory);
+export const dotenvBuildFile      = sourcePath(dotenvBuildDirectory, '.env');
+
 
 // UI
 const UIDirectory = sourcePath(clientDirectory, 'ui');
@@ -24,8 +31,10 @@ const UIDirectory = sourcePath(clientDirectory, 'ui');
 export const UIMainFileName = 'index.html';
 export const UIMainFile     = sourcePath(UIDirectory, UIMainFileName);
 
+
 // CSS
 export const CSSDirectory = sourcePath(UIDirectory, 'css');
+
 
 // Misc
 // Suffix for test files.

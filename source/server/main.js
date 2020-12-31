@@ -6,8 +6,8 @@
 	errors thrown in some places (like routes) still aren't caught
 */
 
-// TEST
-import '../config/environment-variables-canary.js';
+// TOP
+import '../config/environment-variables.js';
 
 // EXTERNAL
 import Koa from 'koa'; //L https://github.com/koajs

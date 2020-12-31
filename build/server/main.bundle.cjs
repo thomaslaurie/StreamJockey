@@ -1,27 +1,28 @@
 /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
-/***/ "./source/config/environment-variables-canary.js":
-/*!*******************************************************!*\
-  !*** ./source/config/environment-variables-canary.js ***!
-  \*******************************************************/
+/***/ "./source/config/environment-variables.js":
+/*!************************************************!*\
+  !*** ./source/config/environment-variables.js ***!
+  \************************************************/
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-// The CANARY variable tests that environment variables are being defined. Here it is imported and compared against an identical, hard-coded string.
-//TODO Consider creating a test file for this instead?
-if (false) {}
-/* //OLD Using dotenv-webpack now because this broke when upgrading to webpack 5.
-	//! this needs to be in its own file (not at the top of index.js) because imports are hoisted, which causes dotenv.config() to run after any module that uses environment variables immediately, which makes them undefined
-	//L https://stackoverflow.com/questions/42817339/es6-import-happening-before-env-import
-	import dotenv from 'dotenv';
-	import {dotEnvFile} from './project-paths.js';
+/* harmony import */ var dotenv__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! dotenv */ "dotenv");
+/* harmony import */ var _project_paths_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./project-paths.js */ "./source/config/project-paths.js");
+//! this needs to be in its own file (not at the top of index.js) because imports are hoisted, which causes dotenv.config() to run after any module that uses environment variables immediately, which makes them undefined
+//L https://stackoverflow.com/questions/42817339/es6-import-happening-before-env-import
 
-	dotenv.config({
-		path: dotEnvFile,
-	});
-*/
+
+dotenv__WEBPACK_IMPORTED_MODULE_0__.config({
+  path: _project_paths_js__WEBPACK_IMPORTED_MODULE_1__.dotenvBuildFile
+}); // The CANARY variable tests that environment variables are being defined. Here it is imported and compared against an identical, hard-coded string.
+//TODO Consider creating a test file for this instead?
+
+if (process.env.CANARY !== 'canaryString') {
+  throw new Error('Environment variables are not available.');
+}
 
 /***/ }),
 
@@ -34,14 +35,16 @@ if (false) {}
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "serverBuildDirectory": () => /* binding */ serverBuildDirectory,
-/* harmony export */   "clientBuildDirectory": () => /* binding */ clientBuildDirectory,
-/* harmony export */   "serverBuildFile": () => /* binding */ serverBuildFile,
 /* harmony export */   "serverDirectory": () => /* binding */ serverDirectory,
 /* harmony export */   "clientDirectory": () => /* binding */ clientDirectory,
 /* harmony export */   "serverMainFile": () => /* binding */ serverMainFile,
 /* harmony export */   "clientMainFile": () => /* binding */ clientMainFile,
-/* harmony export */   "dotEnvFile": () => /* binding */ dotEnvFile,
+/* harmony export */   "serverBuildDirectory": () => /* binding */ serverBuildDirectory,
+/* harmony export */   "clientBuildDirectory": () => /* binding */ clientBuildDirectory,
+/* harmony export */   "serverBuildFile": () => /* binding */ serverBuildFile,
+/* harmony export */   "dotenvFile": () => /* binding */ dotenvFile,
+/* harmony export */   "dotenvBuildDirectory": () => /* binding */ dotenvBuildDirectory,
+/* harmony export */   "dotenvBuildFile": () => /* binding */ dotenvBuildFile,
 /* harmony export */   "UIMainFileName": () => /* binding */ UIMainFileName,
 /* harmony export */   "UIMainFile": () => /* binding */ UIMainFile,
 /* harmony export */   "CSSDirectory": () => /* binding */ CSSDirectory,
@@ -50,21 +53,24 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony import */ var _node_utility_source_path_cjs__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../node-utility/source-path.cjs */ "./source/node-utility/source-path.cjs");
 //G Put any hard-coded project paths/names here.
- // Build (outside source)
+ // Source
+
+const serverDirectory = _node_utility_source_path_cjs__WEBPACK_IMPORTED_MODULE_0__('server');
+const clientDirectory = _node_utility_source_path_cjs__WEBPACK_IMPORTED_MODULE_0__('client');
+const serverMainFile = _node_utility_source_path_cjs__WEBPACK_IMPORTED_MODULE_0__(serverDirectory, 'main.js');
+const clientMainFile = _node_utility_source_path_cjs__WEBPACK_IMPORTED_MODULE_0__(clientDirectory, 'main.js'); // Source Build
 
 const buildDirectory = _node_utility_source_path_cjs__WEBPACK_IMPORTED_MODULE_0__('../build');
 const serverBuildDirectory = _node_utility_source_path_cjs__WEBPACK_IMPORTED_MODULE_0__(buildDirectory, 'server');
 const clientBuildDirectory = _node_utility_source_path_cjs__WEBPACK_IMPORTED_MODULE_0__(buildDirectory, 'client');
 const serverBuildFile = _node_utility_source_path_cjs__WEBPACK_IMPORTED_MODULE_0__(serverBuildDirectory, 'main.bundle.cjs'); //TODO extract filename
-// Source
-
-const serverDirectory = _node_utility_source_path_cjs__WEBPACK_IMPORTED_MODULE_0__('server');
-const clientDirectory = _node_utility_source_path_cjs__WEBPACK_IMPORTED_MODULE_0__('client');
-const serverMainFile = _node_utility_source_path_cjs__WEBPACK_IMPORTED_MODULE_0__(serverDirectory, 'main.js');
-const clientMainFile = _node_utility_source_path_cjs__WEBPACK_IMPORTED_MODULE_0__(clientDirectory, 'main.js'); // Config
+// Config
 
 const configDirectory = _node_utility_source_path_cjs__WEBPACK_IMPORTED_MODULE_0__('config');
-const dotEnvFile = _node_utility_source_path_cjs__WEBPACK_IMPORTED_MODULE_0__(configDirectory, '.env'); // UI
+const dotenvFile = _node_utility_source_path_cjs__WEBPACK_IMPORTED_MODULE_0__(configDirectory, '.env'); // Config Build
+
+const dotenvBuildDirectory = _node_utility_source_path_cjs__WEBPACK_IMPORTED_MODULE_0__(serverBuildDirectory);
+const dotenvBuildFile = _node_utility_source_path_cjs__WEBPACK_IMPORTED_MODULE_0__(dotenvBuildDirectory, '.env'); // UI
 
 const UIDirectory = _node_utility_source_path_cjs__WEBPACK_IMPORTED_MODULE_0__(clientDirectory, 'ui');
 const UIMainFileName = 'index.html';
@@ -260,11 +266,11 @@ const pgp = pg_promise__WEBPACK_IMPORTED_MODULE_0__({//TODO Initialization optio
 const database = pgp({
   //L https://github.com/vitaly-t/pg-promise/wiki/Connection-Syntax#configuration-object
   //TODO Create new database user with restricted capabilities.
-  host: "localhost" ?? 0,
-  port: "5432" ?? 0,
-  database: "test" ?? 0,
-  user: "postgres" ?? 0,
-  password: "pgPassword" ?? 0
+  host: process.env.DB_HOST ?? 'localhost',
+  port: process.env.DB_PORT ?? '5432',
+  database: process.env.DB_NAME ?? 'test',
+  user: process.env.DB_USERNAME ?? 'postgres',
+  password: process.env.DB_PASSWORD ?? 'pgPassword'
 }); // Create a single database object for entire app.
 
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (database);
@@ -1653,7 +1659,7 @@ _entities_index_js__WEBPACK_IMPORTED_MODULE_3__.Entity.notify = liveDataServer.n
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _config_environment_variables_canary_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../config/environment-variables-canary.js */ "./source/config/environment-variables-canary.js");
+/* harmony import */ var _config_environment_variables_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../config/environment-variables.js */ "./source/config/environment-variables.js");
 /* harmony import */ var koa__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! koa */ "koa");
 /* harmony import */ var koa_bodyparser__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! koa-bodyparser */ "koa-bodyparser");
 /* harmony import */ var koa_session__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! koa-session */ "koa-session");
@@ -1670,7 +1676,7 @@ __webpack_require__.r(__webpack_exports__);
 
 	errors thrown in some places (like routes) still aren't caught
 */
-// TEST
+// TOP
  // EXTERNAL
 
  //L https://github.com/koajs
@@ -1754,10 +1760,10 @@ __webpack_require__.r(__webpack_exports__);
   */
 
   const router = (0,_router_js__WEBPACK_IMPORTED_MODULE_6__.default)(routerOptions);
-  const PORT = {}.PORT ?? 3000; // KOA
+  const PORT = process.env.PORT ?? 3000; // KOA
 
   const app = new koa__WEBPACK_IMPORTED_MODULE_1__();
-  app.keys = ["imJustSomeKey" || 0];
+  app.keys = [process.env.APP_KEY || 'imJustSomeKey'];
   const sessionConfig = {
     //TODO random keys: //L https://randomkeygen.com/
     // (string)(default is koa:sess) cookie key
@@ -2304,9 +2310,9 @@ const spotify = new _server_source_js__WEBPACK_IMPORTED_MODULE_4__.default({
   register: true,
   api: new spotify_web_api_node__WEBPACK_IMPORTED_MODULE_0__({
     // create api object and set credentials in constructor
-    clientId: "ba31691d69c84626a6e762d332060d7a",
-    clientSecret: "b142422ce75343cda3df02807a41b9c1",
-    redirectUri: "http://localhost:3000/api/spotify/authRedirect/"
+    clientId: process.env.SPOTIFY_CLIENT_ID,
+    clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
+    redirectUri: process.env.SPOTIFY_REDIRECT_URI
   }),
 
   get scopes() {
@@ -2429,10 +2435,10 @@ Object.assign(spotify, {
       body: (0,_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__.encodeProperties)({
         grant_type: 'authorization_code',
         code: credentials.authCode,
-        redirect_uri: "http://localhost:3000/api/spotify/authRedirect/",
+        redirect_uri: process.env.SPOTIFY_REDIRECT_URI,
         // only used for validation, no need to make a second redirect handler
-        client_id: "ba31691d69c84626a6e762d332060d7a",
-        client_secret: "b142422ce75343cda3df02807a41b9c1" // alternative to client_id and client_secret properties, put this in header: 'Authorization': `Basic ${btoa(`${process.env.SPOTIFY_CLIENT_ID}:${process.env.SPOTIFY_CLIENT_SECRET}`)}`,
+        client_id: process.env.SPOTIFY_CLIENT_ID,
+        client_secret: process.env.SPOTIFY_CLIENT_SECRET // alternative to client_id and client_secret properties, put this in header: 'Authorization': `Basic ${btoa(`${process.env.SPOTIFY_CLIENT_ID}:${process.env.SPOTIFY_CLIENT_SECRET}`)}`,
 
       }),
       headers: _shared_constants_js__WEBPACK_IMPORTED_MODULE_6__.URL_HEADER
@@ -2476,8 +2482,8 @@ Object.assign(spotify, {
       body: (0,_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__.encodeProperties)({
         grant_type: 'refresh_token',
         refresh_token: refreshToken,
-        client_id: "ba31691d69c84626a6e762d332060d7a",
-        client_secret: "b142422ce75343cda3df02807a41b9c1"
+        client_id: process.env.SPOTIFY_CLIENT_ID,
+        client_secret: process.env.SPOTIFY_CLIENT_SECRET
       }),
       headers: _shared_constants_js__WEBPACK_IMPORTED_MODULE_6__.URL_HEADER
     }).catch(rejected => {
@@ -2529,8 +2535,8 @@ const youtube = new _server_source_js__WEBPACK_IMPORTED_MODULE_0__.default({
 });
 Object.assign(youtube, {
   getCredentials: async () => ({
-    apiKey: "AIzaSyCwPT_DDUqyqWFFo5AMN2MUq_t_LCeU884",
-    clientId: "306280025937-8kpoh42p2vlsmb438591acei5pgopsh7.apps.googleusercontent.com"
+    apiKey: process.env.YOUTUBE_API_KEY,
+    clientId: process.env.YOUTUBE_CLIENT_ID
   })
 });
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (youtube);
@@ -7888,6 +7894,17 @@ module.exports = require("@koa/router");;
 
 "use strict";
 module.exports = require("bcryptjs");;
+
+/***/ }),
+
+/***/ "dotenv":
+/*!*************************!*\
+  !*** external "dotenv" ***!
+  \*************************/
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("dotenv");;
 
 /***/ }),
 
