@@ -16,7 +16,10 @@ import {CustomError, InvalidStateError} from '../../shared/errors/index.js';
 import {
 	runHTMLScript,
 } from '../browser-utility/index.js';
-import moment from 'moment';
+import {
+	parse,
+	toSeconds,
+} from 'iso8601-duration';
 import he from 'he';
 
 const youtube = new Source({
@@ -407,8 +410,7 @@ export const youtubePlayback = new Playback({
 //TODO move inside
 youtube.formatContentDetails = function formatContentDetails(contentDetails) {
 	const pack = {};
-	//TODO Replace moment with something else.
-	pack.duration = moment.duration(contentDetails.duration, moment.ISO_8601).asMilliseconds();
+	pack.duration = toSeconds(parse(contentDetails.duration)) * 1000;
 	return pack;
 };
 youtube.formatSnippet = function formatSnippet(snippet) {
