@@ -253,8 +253,6 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "pgp": () => /* binding */ pgp
 /* harmony export */ });
 /* harmony import */ var pg_promise__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! pg-promise */ "pg-promise");
-var _process$env$DB_HOST, _process$env$DB_PORT, _process$env$DB_NAME, _process$env$DB_USERN, _process$env$DB_PASSW;
-
 
 const pgp = pg_promise__WEBPACK_IMPORTED_MODULE_0__({//TODO Initialization options go here.
   //L http://vitaly-t.github.io/pg-promise/module-pg-promise.html
@@ -262,11 +260,11 @@ const pgp = pg_promise__WEBPACK_IMPORTED_MODULE_0__({//TODO Initialization optio
 const database = pgp({
   //L https://github.com/vitaly-t/pg-promise/wiki/Connection-Syntax#configuration-object
   //TODO Create new database user with restricted capabilities.
-  host: (_process$env$DB_HOST = "localhost") !== null && _process$env$DB_HOST !== void 0 ? _process$env$DB_HOST : 'localhost',
-  port: (_process$env$DB_PORT = "5432") !== null && _process$env$DB_PORT !== void 0 ? _process$env$DB_PORT : '5432',
-  database: (_process$env$DB_NAME = "test") !== null && _process$env$DB_NAME !== void 0 ? _process$env$DB_NAME : 'test',
-  user: (_process$env$DB_USERN = "postgres") !== null && _process$env$DB_USERN !== void 0 ? _process$env$DB_USERN : 'postgres',
-  password: (_process$env$DB_PASSW = "pgPassword") !== null && _process$env$DB_PASSW !== void 0 ? _process$env$DB_PASSW : 'pgPassword'
+  host: "localhost" ?? 0,
+  port: "5432" ?? 0,
+  database: "test" ?? 0,
+  user: "postgres" ?? 0,
+  password: "pgPassword" ?? 0
 }); // Create a single database object for entire app.
 
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (database);
@@ -1383,6 +1381,7 @@ const liveDataServer = {
     this.app = app;
     this.socket = liveDataSocket;
     this.socket.use((socket, next) => {
+      //! //TODO Use is removed in socket io 3, need to find another work around.
       // Give the cookie session to the socket.
       // Uses a temporary koa context to decrypt the session.
       //L https://medium.com/@albertogasparin/sharing-koa-session-with-socket-io-8d36ac877bc2
@@ -1726,8 +1725,6 @@ __webpack_require__.r(__webpack_exports__);
 //TODO top level await
 
 (async function main() {
-  var _process$env$PORT;
-
   // Initialize the database.
   await (0,_database_create_database_js__WEBPACK_IMPORTED_MODULE_8__.default)();
   const routerOptions = {};
@@ -1757,7 +1754,7 @@ __webpack_require__.r(__webpack_exports__);
   */
 
   const router = (0,_router_js__WEBPACK_IMPORTED_MODULE_6__.default)(routerOptions);
-  const PORT = (_process$env$PORT = {}.PORT) !== null && _process$env$PORT !== void 0 ? _process$env$PORT : 3000; // KOA
+  const PORT = {}.PORT ?? 3000; // KOA
 
   const app = new koa__WEBPACK_IMPORTED_MODULE_1__();
   app.keys = ["imJustSomeKey" || 0];
@@ -1878,7 +1875,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony import */ var path__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! path */ "path");
 /* harmony import */ var fs__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! fs */ "fs");
-/* harmony import */ var koa_router__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! koa-router */ "koa-router");
+/* harmony import */ var _koa_router__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @koa/router */ "@koa/router");
 /* harmony import */ var koa_send__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! koa-send */ "koa-send");
 /* harmony import */ var _config_project_paths_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../config/project-paths.js */ "./source/config/project-paths.js");
 /* harmony import */ var _shared_constants_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../shared/constants.js */ "./source/shared/constants.js");
@@ -1967,15 +1964,15 @@ const root = _config_project_paths_js__WEBPACK_IMPORTED_MODULE_4__.clientBuildDi
 const app = `/${_config_project_paths_js__WEBPACK_IMPORTED_MODULE_4__.UIMainFileName}`;
 
 function createAPIRouter() {
-  const apiRouter = new koa_router__WEBPACK_IMPORTED_MODULE_2__(); // Database CRUD and server-side processing.
+  const apiRouter = new _koa_router__WEBPACK_IMPORTED_MODULE_2__(); // Database CRUD and server-side processing.
 
   apiRouter // Catches and propagates all errors, but assigns them to the response body rather than throwing.
-  .all('/*', async (ctx, next) => {
+  .all('/(.*)', async (ctx, next) => {
     await next().catch(rejected => {
       ctx.response.body = (0,_shared_propagate_js__WEBPACK_IMPORTED_MODULE_8__.returnPropagate)(rejected);
     });
   }) // Set GET request bodies as the parsed body parameter (if it exists).
-  .get('/*', async (ctx, next) => {
+  .get('/(.*)', async (ctx, next) => {
     const queryBody = ctx.request.query[_shared_constants_js__WEBPACK_IMPORTED_MODULE_5__.GET_BODY];
 
     try {
@@ -2037,7 +2034,7 @@ function createAPIRouter() {
   }).get('/youtube/credentials', async ctx => {
     ctx.response.body = await _sources_index_js__WEBPACK_IMPORTED_MODULE_11__.youtube.getCredentials();
   }) // catch
-  .all('/*', async ctx => {
+  .all('/(.*)', async ctx => {
     ctx.response.body = new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_6__.InvalidStateError({
       userMessage: 'could not process request',
       message: 'invalid api command',
@@ -2050,7 +2047,7 @@ function createAPIRouter() {
 function createRouter()
 /* {replaceIndex}*/
 {
-  const router = new koa_router__WEBPACK_IMPORTED_MODULE_2__();
+  const router = new _koa_router__WEBPACK_IMPORTED_MODULE_2__();
   const apiRouter = createAPIRouter(); //L nested routers: https://github.com/alexmingoia/koa-router#nested-routers
 
   router.use('/api', apiRouter.routes(), apiRouter.allowedMethods()); // PAGE
@@ -2058,7 +2055,7 @@ function createRouter()
   router.get('/favicon.ico', async ctx => {
     //L Temporarily ignore favicon request: https://stackoverflow.com/questions/35408729/express-js-prevent-get-favicon-ico
     ctx.response.status = 204;
-  }).get('/*', async ctx => {
+  }).get('/(.*)', async ctx => {
     /*
     	// pages are accessed through the base GET method, serve any public files here
     	//! static resource references in index.html should be absolute '/foo', not relative './foo'
@@ -2092,7 +2089,7 @@ function createRouter()
     	else {
     */
 
-  }).all('/*', async ctx => {
+  }).all('/(.*)', async ctx => {
     ctx.body += '.all /* reached'; //G only use	await next();	when we want the request to be further processed down the chain (ie. to finally result at .all)
   });
   return router;
@@ -2204,9 +2201,7 @@ async function logout(ctx) {
 } //TODO This doesn't check if the user exists however, though wouldn't this be expensive? searching the database every time the user wants to know if they're logged in, (every page).
 
 function isLoggedIn(ctx) {
-  var _ctx$session$user;
-
-  return _server_registry_js__WEBPACK_IMPORTED_MODULE_5__.default.autoConstruct(ctx.session.user) instanceof _entities_index_js__WEBPACK_IMPORTED_MODULE_1__.User && _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__.rules.integer.test((_ctx$session$user = ctx.session.user) === null || _ctx$session$user === void 0 ? void 0 : _ctx$session$user.id);
+  return _server_registry_js__WEBPACK_IMPORTED_MODULE_5__.default.autoConstruct(ctx.session.user) instanceof _entities_index_js__WEBPACK_IMPORTED_MODULE_1__.User && _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__.rules.integer.test(ctx.session.user?.id);
 }
 
 /***/ }),
@@ -2603,12 +2598,12 @@ _utility_index_js__WEBPACK_IMPORTED_MODULE_0__.define.constant(ClassRegistry.pro
   },
 
   autoConstruct(value) {
-    const registered = this.registry.find(registered => registered.id === (value === null || value === void 0 ? void 0 : value[this.idKey]));
+    const registered = this.registry.find(registered => registered.id === value?.[this.idKey]);
     return registered === undefined ? value : registered.reconstructor(registered.Class, value);
   },
 
   isRegistered(value) {
-    return this.registry.some(registered => registered.id === (value === null || value === void 0 ? void 0 : value[this.idKey]));
+    return this.registry.some(registered => registered.id === value?.[this.idKey]);
   }
 
 });
@@ -4240,7 +4235,7 @@ __webpack_require__.r(__webpack_exports__);
 
       registered: new _utility_index_js__WEBPACK_IMPORTED_MODULE_2__.Rule({
         validator: function (instance) {
-          if (this.find(instance === null || instance === void 0 ? void 0 : instance.name) === undefined) {
+          if (this.find(instance?.name) === undefined) {
             throw new Error('Source instance is not registered.');
           }
         }.bind(this)
@@ -4617,7 +4612,7 @@ function wrapInstance(initializer) {
 function wrapPrototype(initializer) {
   _validation_index_js__WEBPACK_IMPORTED_MODULE_2__.rules.func.validate(initializer);
   return mark(Class => {
-    _validation_index_js__WEBPACK_IMPORTED_MODULE_2__.rules.object.validate(Class === null || Class === void 0 ? void 0 : Class.prototype);
+    _validation_index_js__WEBPACK_IMPORTED_MODULE_2__.rules.object.validate(Class?.prototype);
     return initializer.call(Class.prototype);
   });
 }
@@ -7874,6 +7869,17 @@ module.exports = (...relativePaths) => resolve(__dirname, '../', ...relativePath
 
 /***/ }),
 
+/***/ "@koa/router":
+/*!******************************!*\
+  !*** external "@koa/router" ***!
+  \******************************/
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("@koa/router");;
+
+/***/ }),
+
 /***/ "bcryptjs":
 /*!***************************!*\
   !*** external "bcryptjs" ***!
@@ -7948,17 +7954,6 @@ module.exports = require("koa");;
 
 "use strict";
 module.exports = require("koa-bodyparser");;
-
-/***/ }),
-
-/***/ "koa-router":
-/*!*****************************!*\
-  !*** external "koa-router" ***!
-  \*****************************/
-/***/ ((module) => {
-
-"use strict";
-module.exports = require("koa-router");;
 
 /***/ }),
 

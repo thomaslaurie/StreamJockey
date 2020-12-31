@@ -61,7 +61,7 @@ import path from 'path';
 import fs from 'fs';
 
 // EXTERNAL
-import KoaRouter from 'koa-router'; //L https://github.com/alexmingoia/koa-router
+import KoaRouter from '@koa/router'; //L https://github.com/alexmingoia/koa-router
 import send from 'koa-send'; //L https://github.com/koajs/send
 
 // INTERNAL
@@ -100,13 +100,13 @@ function createAPIRouter() {
 	// Database CRUD and server-side processing.
 	apiRouter
 		// Catches and propagates all errors, but assigns them to the response body rather than throwing.
-		.all('/*', async (ctx, next) => {
+		.all('/(.*)', async (ctx, next) => {
 			await next().catch((rejected) => {
 				ctx.response.body = returnPropagate(rejected);
 			});
 		})
 		// Set GET request bodies as the parsed body parameter (if it exists).
-		.get('/*', async (ctx, next) => {
+		.get('/(.*)', async (ctx, next) => {
 			const queryBody = ctx.request.query[GET_BODY];
 			try {
 				ctx.request.body = queryBody === undefined ? {} : JSON.parse(queryBody);
@@ -179,7 +179,7 @@ function createAPIRouter() {
 		})
 
 		// catch
-		.all('/*', async (ctx) => {
+		.all('/(.*)', async (ctx) => {
 			ctx.response.body = new InvalidStateError({
 				userMessage: 'could not process request',
 				message: 'invalid api command',
@@ -203,7 +203,7 @@ export default function createRouter(/* {replaceIndex}*/) {
 			//L Temporarily ignore favicon request: https://stackoverflow.com/questions/35408729/express-js-prevent-get-favicon-ico
 			ctx.response.status = 204;
 		})
-		.get('/*', async (ctx) => {
+		.get('/(.*)', async (ctx) => {
 			/*
 				// pages are accessed through the base GET method, serve any public files here
 				//! static resource references in index.html should be absolute '/foo', not relative './foo'
@@ -244,7 +244,7 @@ export default function createRouter(/* {replaceIndex}*/) {
 				else {
 			*/
 		})
-		.all('/*', async (ctx) => {
+		.all('/(.*)', async (ctx) => {
 			ctx.body += '.all /* reached';
 			//G only use	await next();	when we want the request to be further processed down the chain (ie. to finally result at .all)
 		});

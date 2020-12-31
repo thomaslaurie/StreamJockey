@@ -1868,7 +1868,7 @@ function startsWithEndTagOpen(source, tag) {
 }
 
 function hoistStatic(root, context) {
-  walk(root, context, new Map(), // Root node is unfortunately non-hoistable due to potential parent
+  walk(root, context, // Root node is unfortunately non-hoistable due to potential parent
   // fallthrough attributes.
   isSingleElementRoot(root, root.children[0]));
 }
@@ -1882,8 +1882,8 @@ function isSingleElementRoot(root, child) {
   && !isSlotOutlet(child);
 }
 
-function walk(node, context, resultCache) {
-  var doNotHoistNode = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : false;
+function walk(node, context) {
+  var doNotHoistNode = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
   var hasHoistedNode = false; // Some transforms, e.g. transformAssetUrls from @vue/compiler-sfc, replaces
   // static bindings with expressions. These expressions are guaranteed to be
   // constant so they are still eligible for hoisting, but they are only
@@ -1908,7 +1908,7 @@ function walk(node, context, resultCache) {
     ) {
         var constantType = doNotHoistNode ? 0
         /* NOT_CONSTANT */
-        : getConstantType(child, resultCache);
+        : getConstantType(child, context);
 
         if (constantType > 0
         /* NOT_CONSTANT */
@@ -1943,7 +1943,7 @@ function walk(node, context, resultCache) {
               /* NEED_PATCH */
               || flag === 1
               /* TEXT */
-              ) && getGeneratedPropsConstantType(child, resultCache) >= 2
+              ) && getGeneratedPropsConstantType(child, context) >= 2
               /* CAN_HOIST */
               ) {
                   var props = getNodeProps(child);
@@ -1957,7 +1957,7 @@ function walk(node, context, resultCache) {
       } else if (child.type === 12
     /* TEXT_CALL */
     ) {
-        var contentType = getConstantType(child.content, resultCache);
+        var contentType = getConstantType(child.content, context);
 
         if (contentType > 0) {
           if (contentType < 3
@@ -1979,18 +1979,18 @@ function walk(node, context, resultCache) {
     if (child.type === 1
     /* ELEMENT */
     ) {
-        walk(child, context, resultCache);
+        walk(child, context);
       } else if (child.type === 11
     /* FOR */
     ) {
         // Do not hoist v-for single child because it has to be a block
-        walk(child, context, resultCache, child.children.length === 1);
+        walk(child, context, child.children.length === 1);
       } else if (child.type === 9
     /* IF */
     ) {
         for (var _i2 = 0; _i2 < child.branches.length; _i2++) {
           // Do not hoist v-if single child because it has to be a block
-          walk(child.branches[_i2], context, resultCache, child.branches[_i2].children.length === 1);
+          walk(child.branches[_i2], context, child.branches[_i2].children.length === 1);
         }
       }
   }
@@ -2000,8 +2000,10 @@ function walk(node, context, resultCache) {
   }
 }
 
-function getConstantType(node) {
-  var resultCache = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : new Map();
+function getConstantType(node, context) {
+  var {
+    constantCache
+  } = context;
 
   switch (node.type) {
     case 1
@@ -2015,7 +2017,7 @@ function getConstantType(node) {
           ;
         }
 
-      var cached = resultCache.get(node);
+      var cached = constantCache.get(node);
 
       if (cached !== undefined) {
         return cached;
@@ -2042,12 +2044,12 @@ function getConstantType(node) {
         // injected keys or cached event handlers. Therefore we need to always
         // check the codegenNode's props to be sure.
 
-        var generatedPropsType = getGeneratedPropsConstantType(node, resultCache);
+        var generatedPropsType = getGeneratedPropsConstantType(node, context);
 
         if (generatedPropsType === 0
         /* NOT_CONSTANT */
         ) {
-            resultCache.set(node, 0
+            constantCache.set(node, 0
             /* NOT_CONSTANT */
             );
             return 0
@@ -2061,12 +2063,12 @@ function getConstantType(node) {
 
 
         for (var i = 0; i < node.children.length; i++) {
-          var childType = getConstantType(node.children[i], resultCache);
+          var childType = getConstantType(node.children[i], context);
 
           if (childType === 0
           /* NOT_CONSTANT */
           ) {
-              resultCache.set(node, 0
+              constantCache.set(node, 0
               /* NOT_CONSTANT */
               );
               return 0
@@ -2092,12 +2094,12 @@ function getConstantType(node) {
               if (p.type === 7
               /* DIRECTIVE */
               && p.name === 'bind' && p.exp) {
-                var expType = getConstantType(p.exp, resultCache);
+                var expType = getConstantType(p.exp, context);
 
                 if (expType === 0
                 /* NOT_CONSTANT */
                 ) {
-                    resultCache.set(node, 0
+                    constantCache.set(node, 0
                     /* NOT_CONSTANT */
                     );
                     return 0
@@ -2117,12 +2119,13 @@ function getConstantType(node) {
 
         if (codegenNode.isBlock) {
           codegenNode.isBlock = false;
+          context.helper(CREATE_VNODE);
         }
 
-        resultCache.set(node, _returnType);
+        constantCache.set(node, _returnType);
         return _returnType;
       } else {
-        resultCache.set(node, 0
+        constantCache.set(node, 0
         /* NOT_CONSTANT */
         );
         return 0
@@ -2159,7 +2162,7 @@ function getConstantType(node) {
     case 12
     /* TEXT_CALL */
     :
-      return getConstantType(node.content, resultCache);
+      return getConstantType(node.content, context);
 
     case 4
     /* SIMPLE_EXPRESSION */
@@ -2180,7 +2183,7 @@ function getConstantType(node) {
           continue;
         }
 
-        var _childType = getConstantType(child, resultCache);
+        var _childType = getConstantType(child, context);
 
         if (_childType === 0
         /* NOT_CONSTANT */
@@ -2203,7 +2206,7 @@ function getConstantType(node) {
   }
 }
 
-function getGeneratedPropsConstantType(node, resultCache) {
+function getGeneratedPropsConstantType(node, context) {
   var returnType = 3
   /* CAN_STRINGIFY */
   ;
@@ -2221,7 +2224,7 @@ function getGeneratedPropsConstantType(node, resultCache) {
           key,
           value
         } = properties[i];
-        var keyType = getConstantType(key, resultCache);
+        var keyType = getConstantType(key, context);
 
         if (keyType === 0
         /* NOT_CONSTANT */
@@ -2241,7 +2244,7 @@ function getGeneratedPropsConstantType(node, resultCache) {
             ;
           }
 
-        var valueType = getConstantType(value, resultCache);
+        var valueType = getConstantType(value, context);
 
         if (valueType === 0
         /* NOT_CONSTANT */
@@ -2320,6 +2323,7 @@ function createTransformContext(root, _ref) {
     directives: new Set(),
     hoists: [],
     imports: new Set(),
+    constantCache: new Map(),
     temps: 0,
     cached: 0,
     identifiers: Object.create(null),
@@ -3848,6 +3852,8 @@ var transformFor = createStructuralDirectiveTransform('for', (node, dir, context
         if (childBlock.isBlock) {
           helper(OPEN_BLOCK);
           helper(CREATE_BLOCK);
+        } else {
+          helper(CREATE_VNODE);
         }
       }
 
@@ -4410,7 +4416,7 @@ var transformElement = (node, context) => {
         /* COMPOUND_EXPRESSION */
         ;
 
-        if (hasDynamicTextChild && getConstantType(child) === 0
+        if (hasDynamicTextChild && getConstantType(child, context) === 0
         /* NOT_CONSTANT */
         ) {
             patchFlag |= 1
@@ -4541,7 +4547,7 @@ function buildProps(node, context) {
       /* SIMPLE_EXPRESSION */
       || value.type === 8
       /* COMPOUND_EXPRESSION */
-      ) && getConstantType(value) > 0) {
+      ) && getConstantType(value, context) > 0) {
         // skip if the prop is a cached handler or has constant value
         return;
       }
@@ -5161,7 +5167,7 @@ var transformText = (node, context) => {
               } // mark dynamic text with flag so it gets patched inside a block
 
 
-              if (!context.ssr && getConstantType(_child) === 0
+              if (!context.ssr && getConstantType(_child, context) === 0
               /* NOT_CONSTANT */
               ) {
                   callArgs.push(1
@@ -8005,7 +8011,7 @@ var devtoolsComponentRemoved = /*#__PURE__*/createDevtoolsComponentHook("compone
 function createDevtoolsComponentHook(hook) {
   return component => {
     if (!devtools) return;
-    devtools.emit(hook, component.appContext.app, component.uid, component.parent ? component.parent.uid : undefined);
+    devtools.emit(hook, component.appContext.app, component.uid, component.parent ? component.parent.uid : undefined, component);
   };
 }
 
@@ -10445,7 +10451,7 @@ var KeepAliveImpl = {
 
     function pruneCache(filter) {
       cache.forEach((vnode, key) => {
-        var name = getName(vnode.type);
+        var name = getComponentName(vnode.type);
 
         if (name && (!filter || !filter(name))) {
           pruneCacheEntry(key);
@@ -10538,7 +10544,7 @@ var KeepAliveImpl = {
 
       var vnode = getInnerChild(rawVNode);
       var comp = vnode.type;
-      var name = getName(comp);
+      var name = getComponentName(comp);
       var {
         include,
         exclude,
@@ -10608,10 +10614,6 @@ var KeepAliveImpl = {
 // also to avoid inline import() in generated d.ts files
 
 var KeepAlive = KeepAliveImpl;
-
-function getName(comp) {
-  return comp.displayName || comp.name;
-}
 
 function matches(pattern, name) {
   if ((0,_vue_shared__WEBPACK_IMPORTED_MODULE_1__.isArray)(pattern)) {
@@ -12324,7 +12326,9 @@ function baseCreateRenderer(options, createHydrationFns) {
     } else {
       if (patchFlag > 0 && patchFlag & 64
       /* STABLE_FRAGMENT */
-      && dynamicChildren) {
+      && dynamicChildren && // #2715 the previous fragment could've been a BAILed one as a result
+      // of renderSlot() with no valid children
+      n1.dynamicChildren) {
         // a stable fragment (template root or <template v-for>) doesn't need to
         // patch children order, but it may contain dynamicChildren.
         patchBlockChildren(n1.dynamicChildren, dynamicChildren, container, parentComponent, parentSuspense, isSVG);
@@ -12516,8 +12520,9 @@ function baseCreateRenderer(options, createHydrationFns) {
 
 
         if (vnodeHook = props && props.onVnodeMounted) {
+          var scopedInitialVNode = initialVNode;
           queuePostRenderEffect(() => {
-            invokeVNodeHook(vnodeHook, parent, initialVNode);
+            invokeVNodeHook(vnodeHook, parent, scopedInitialVNode);
           }, parentSuspense);
         } // activated hook for keep-alive roots.
         // #1742 activated hook must be accessed after first render
@@ -12534,7 +12539,9 @@ function baseCreateRenderer(options, createHydrationFns) {
             queuePostRenderEffect(a, parentSuspense);
           }
 
-        instance.isMounted = true;
+        instance.isMounted = true; // #2458: deference mount-only object parameters to prevent memleaks
+
+        initialVNode = container = anchor = null;
       } else {
         // updateComponent
         // This is triggered by mutation of component's own state (next: null)
@@ -13685,7 +13692,7 @@ function resolveAsset(type, name) {
         return Component;
       }
 
-      var selfName = Component.displayName || Component.name;
+      var selfName = getComponentName(Component);
 
       if (selfName && (selfName === name || selfName === (0,_vue_shared__WEBPACK_IMPORTED_MODULE_1__.camelize)(name) || selfName === (0,_vue_shared__WEBPACK_IMPORTED_MODULE_1__.capitalize)((0,_vue_shared__WEBPACK_IMPORTED_MODULE_1__.camelize)(name)))) {
         return Component;
@@ -14434,6 +14441,7 @@ function applyOptions(instance, options) {
     }
 
     if (dataOptions) {
+      // @ts-ignore dataOptions is not fully type safe
       resolveData(instance, dataOptions, publicThis);
     }
 
@@ -15424,12 +15432,16 @@ function recordInstanceBoundEffect(effect) {
 var classifyRE = /(?:^|[-_])(\w)/g;
 
 var classify = str => str.replace(classifyRE, c => c.toUpperCase()).replace(/[-_]/g, '');
+
+function getComponentName(Component) {
+  return (0,_vue_shared__WEBPACK_IMPORTED_MODULE_1__.isFunction)(Component) ? Component.displayName || Component.name : Component.name;
+}
 /* istanbul ignore next */
 
 
 function formatComponentName(instance, Component) {
   var isRoot = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
-  var name = (0,_vue_shared__WEBPACK_IMPORTED_MODULE_1__.isFunction)(Component) ? Component.displayName || Component.name : Component.name;
+  var name = getComponentName(Component);
 
   if (!name && Component.__file) {
     var match = Component.__file.match(/([^/\\]+)\.\w+$/);
@@ -15797,7 +15809,7 @@ function createSlots(slots, dynamicSlots) {
 } // Core API ------------------------------------------------------------------
 
 
-var version = "3.0.4";
+var version = "3.0.5";
 /**
  * SSR utils for \@vue/server-renderer. Only exposed in cjs builds.
  * @internal
@@ -16567,14 +16579,14 @@ function resolveTransitionProps(rawProps) {
   return (0,_vue_shared__WEBPACK_IMPORTED_MODULE_1__.extend)(baseProps, {
     onBeforeEnter(el) {
       onBeforeEnter && onBeforeEnter(el);
-      addTransitionClass(el, enterActiveClass);
       addTransitionClass(el, enterFromClass);
+      addTransitionClass(el, enterActiveClass);
     },
 
     onBeforeAppear(el) {
       onBeforeAppear && onBeforeAppear(el);
-      addTransitionClass(el, appearActiveClass);
       addTransitionClass(el, appearFromClass);
+      addTransitionClass(el, appearActiveClass);
     },
 
     onEnter: makeEnterHook(false),
@@ -16583,17 +16595,11 @@ function resolveTransitionProps(rawProps) {
     onLeave(el, done) {
       var resolve = () => finishLeave(el, done);
 
-      addTransitionClass(el, leaveActiveClass);
-      addTransitionClass(el, leaveFromClass); // ref #2531, #2593
-      // disabling the transition before nextFrame ensures styles from
-      // *-leave-from and *-enter-from classes are applied instantly before
-      // the transition starts. This is applied for enter transition as well
-      // so that it accounts for `visibility: hidden` cases.
+      addTransitionClass(el, leaveFromClass); // force reflow so *-leave-from classes immediately take effect (#2593)
 
-      var cachedTransition = el.style.transitionProperty;
-      el.style.transitionProperty = 'none';
+      forceReflow();
+      addTransitionClass(el, leaveActiveClass);
       nextFrame(() => {
-        el.style.transitionProperty = cachedTransition;
         removeTransitionClass(el, leaveFromClass);
         addTransitionClass(el, leaveToClass);
 
@@ -16777,6 +16783,11 @@ function getTimeout(delays, durations) {
 
 function toMs(s) {
   return Number(s.slice(0, -1).replace(',', '.')) * 1000;
+} // synchronously force layout to put elements into a certain state
+
+
+function forceReflow() {
+  return document.body.offsetHeight;
 }
 
 var positionMap = new WeakMap();
@@ -16896,11 +16907,6 @@ function applyTranslation(c) {
     s.transitionDuration = '0s';
     return c;
   }
-} // this is put in a dedicated function to avoid the line from being treeshaken
-
-
-function forceReflow() {
-  return document.body.offsetHeight;
 }
 
 function hasCSSTransform(el, root, moveClass) {
@@ -17432,8 +17438,12 @@ var createApp = function createApp() {
 
     container.innerHTML = '';
     var proxy = mount(container);
-    container.removeAttribute('v-cloak');
-    container.setAttribute('data-v-app', '');
+
+    if (container instanceof Element) {
+      container.removeAttribute('v-cloak');
+      container.setAttribute('data-v-app', '');
+    }
+
     return proxy;
   };
 
@@ -17476,10 +17486,14 @@ function normalizeContainer(container) {
     var res = document.querySelector(container);
 
     if ( true && !res) {
-      (0,_vue_runtime_core__WEBPACK_IMPORTED_MODULE_0__.warn)("Failed to mount app: mount target selector returned null.");
+      (0,_vue_runtime_core__WEBPACK_IMPORTED_MODULE_0__.warn)("Failed to mount app: mount target selector \"".concat(container, "\" returned null."));
     }
 
     return res;
+  }
+
+  if ( true && container instanceof ShadowRoot && container.mode === 'closed') {
+    (0,_vue_runtime_core__WEBPACK_IMPORTED_MODULE_0__.warn)("mounting on a ShadowRoot with `{mode: \"closed\"}` may lead to unpredictable bugs");
   }
 
   return container;
@@ -21161,9 +21175,9 @@ function load() {
 
   try {
     r = exports.storage.getItem('debug');
-  } catch (error) {} // Swallow
-  // XXX (@Qix-) should we be logging these?
-  // If debug isn't set in LS, and we're in Electron, try to load $DEBUG
+  } catch (error) {// Swallow
+    // XXX (@Qix-) should we be logging these?
+  } // If debug isn't set in LS, and we're in Electron, try to load $DEBUG
 
 
   if (!r && typeof process !== 'undefined' && 'env' in process) {
@@ -45608,9 +45622,9 @@ function load() {
 
   try {
     r = exports.storage.getItem('debug');
-  } catch (error) {} // Swallow
-  // XXX (@Qix-) should we be logging these?
-  // If debug isn't set in LS, and we're in Electron, try to load $DEBUG
+  } catch (error) {// Swallow
+    // XXX (@Qix-) should we be logging these?
+  } // If debug isn't set in LS, and we're in Electron, try to load $DEBUG
 
 
   if (!r && typeof process !== 'undefined' && 'env' in process) {
@@ -48494,7 +48508,7 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
     },
 
     input() {
-      if (this.entityType === 'track') return _objectSpread({}, this.defaultTrack, {}, this.inputTrack);else if (this.entityType === 'playlist') return _objectSpread({}, this.defaultPlaylist, {}, this.inputPlaylist);else if (this.entityType === 'user') return _objectSpread({}, this.defaultUser, {}, this.inputUser);
+      if (this.entityType === 'track') return _objectSpread(_objectSpread({}, this.defaultTrack), this.inputTrack);else if (this.entityType === 'playlist') return _objectSpread(_objectSpread({}, this.defaultPlaylist), this.inputPlaylist);else if (this.entityType === 'user') return _objectSpread(_objectSpread({}, this.defaultUser), this.inputUser);
     },
 
     subscriptionData() {
@@ -58473,7 +58487,7 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__.define.vueConstant(Command
     var sentState = (_this$sentCommand$sta = (_this$sentCommand = this.sentCommand) === null || _this$sentCommand === void 0 ? void 0 : _this$sentCommand.state) !== null && _this$sentCommand$sta !== void 0 ? _this$sentCommand$sta : new PlaybackState();
     var states = [currentState, sentState, ...this.queue.map(command => command.state)];
     var desiredStateProperties = states.reduce((previousStates, state) => {
-      return _objectSpread({}, previousStates, {}, (0,_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__.undeclareUndefined)(state));
+      return _objectSpread(_objectSpread({}, previousStates), (0,_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__.undeclareUndefined)(state));
     });
     return new PlaybackState(desiredStateProperties);
   }
@@ -59590,7 +59604,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         } // create a new subscription
 
 
-        var subscription = new _shared_live_data_js__WEBPACK_IMPORTED_MODULE_3__.Subscription(_objectSpread({}, options, {
+        var subscription = new _shared_live_data_js__WEBPACK_IMPORTED_MODULE_3__.Subscription(_objectSpread(_objectSpread({}, options), {}, {
           liveQuery // parent reference
 
         })); // push and return
@@ -60463,7 +60477,7 @@ var store = (0,vuex_dist_vuex_esm_bundler_js__WEBPACK_IMPORTED_MODULE_17__.creat
   modules: {
     liveData: _live_data_client_js__WEBPACK_IMPORTED_MODULE_2__.default,
     //TODO consider name-spacing liveData module, just remember to add the namespace where its functions are used
-    player: _objectSpread({}, _universal_playback_module_js__WEBPACK_IMPORTED_MODULE_3__.default, {
+    player: _objectSpread(_objectSpread({}, _universal_playback_module_js__WEBPACK_IMPORTED_MODULE_3__.default), {}, {
       namespaced: true
     })
   },
@@ -60534,11 +60548,11 @@ class Playback {
     } = options; //! New property objects must be created here so that instances do not all use the same reference.
 
     _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__.define.vueConstant(this, {
-      state: _objectSpread({}, this.constructor.baseState, {}, state),
-      actions: _objectSpread({}, this.constructor.baseActions, {}, actions),
-      mutations: _objectSpread({}, this.constructor.baseMutations, {}, mutations),
-      getters: _objectSpread({}, this.constructor.baseGetters, {}, getters),
-      modules: _objectSpread({}, this.constructor.baseModules, {}, modules)
+      state: _objectSpread(_objectSpread({}, this.constructor.baseState), state),
+      actions: _objectSpread(_objectSpread({}, this.constructor.baseActions), actions),
+      mutations: _objectSpread(_objectSpread({}, this.constructor.baseMutations), mutations),
+      getters: _objectSpread(_objectSpread({}, this.constructor.baseGetters), getters),
+      modules: _objectSpread(_objectSpread({}, this.constructor.baseModules), modules)
     });
   }
 
@@ -60792,7 +60806,7 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__.define.constant(Playback, 
               };
             }()).catch(_shared_errors_index_js__WEBPACK_IMPORTED_MODULE_4__.MultipleErrors.throw); // Change startingTrackSubscription to subscription of the new track.
 
-            context.commit('setStartingTrackSubscription', (yield context.dispatch('resubscribe', {
+            context.commit('setStartingTrackSubscription', yield context.dispatch('resubscribe', {
               subscription: context.state.startingTrackSubscription,
               Entity: _entities_index_js__WEBPACK_IMPORTED_MODULE_0__.Track,
               query: {
@@ -60803,7 +60817,7 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__.define.constant(Playback, 
             }, {
               //L https://vuex.vuejs.org/guide/modules.html#accessing-global-assets-in-namespaced-modules
               root: true
-            }))); // Start target.
+            })); // Start target.
 
             yield context.dispatch("".concat(track.source.name, "/start"), track); // Transfer subscription from starting to current.
 
@@ -61082,7 +61096,7 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__.define.constant(Playback, 
       var progress = getters.sourceOrBase('progress');
       var source = state === null || state === void 0 ? void 0 : state[state === null || state === void 0 ? void 0 : (_state$source = state.source) === null || _state$source === void 0 ? void 0 : _state$source.name];
 
-      if (_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__.rules.object.test(source === null || source === void 0 ? void 0 : source.track) && (source === null || source === void 0 ? void 0 : source.isPlaying)) {
+      if (_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__.rules.object.test(source === null || source === void 0 ? void 0 : source.track) && source !== null && source !== void 0 && source.isPlaying) {
         // If playing, return inferred progress.
         var elapsedTime = state.clock - state[state.source.name].timestamp;
         var elapsedProgress = elapsedTime / state[state.source.name].track.duration;
@@ -61124,7 +61138,7 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__.define.constant(Playback, 
 
     for (var playback of playbacks) {
       var source = playback.state.source;
-      modules[source.name] = _objectSpread({}, playback, {
+      modules[source.name] = _objectSpread(_objectSpread({}, playback), {}, {
         namespaced: true
       });
       sourceInstances.push(source);
@@ -61201,7 +61215,7 @@ function _serverRequest() {
         throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_2__.HTTPError({
           message: "Server request URL cannot use the query parameter '".concat(_shared_constants_js__WEBPACK_IMPORTED_MODULE_3__.GET_BODY, "' as it is reserved.")
         });
-      } // Encode as flatted JSON.
+      } // Encode as flatted JSON. //? Where is flatted used?
 
 
       var flattedBody = encodeURIComponent((0,_shared_derived_utility_index_js__WEBPACK_IMPORTED_MODULE_1__.safeStringify)(body));
@@ -61507,7 +61521,7 @@ var spotify = new _source_js__WEBPACK_IMPORTED_MODULE_6__.default({
 
 
       var token = yield _this2.getAccessToken();
-      options.headers = _objectSpread({}, _shared_constants_js__WEBPACK_IMPORTED_MODULE_5__.JSON_HEADER, {
+      options.headers = _objectSpread(_objectSpread({}, _shared_constants_js__WEBPACK_IMPORTED_MODULE_5__.JSON_HEADER), {}, {
         Authorization: "Bearer ".concat(token)
       });
       return yield (0,_shared_request_js__WEBPACK_IMPORTED_MODULE_1__.default)(method, url, options);
@@ -61708,7 +61722,7 @@ var spotifyPlayback = new _playback_js__WEBPACK_IMPORTED_MODULE_7__.default({
                       if (!resolved) {
                         _this4.removeListener('player_state_changed', callback);
 
-                        reject(new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_8__.InvalidStateError(_objectSpread({}, error, {
+                        reject(new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_8__.InvalidStateError(_objectSpread(_objectSpread({}, error), {}, {
                           state: rejected
                         })));
                         resolved = true;
@@ -62105,7 +62119,7 @@ var spotifyPlayback = new _playback_js__WEBPACK_IMPORTED_MODULE_7__.default({
 
         var volume = yield context.state.player.getVolume();
 
-        var newState = _objectSpread({}, formattedState, {
+        var newState = _objectSpread(_objectSpread({}, formattedState), {}, {
           volume
         });
         /*
@@ -62471,7 +62485,7 @@ var youtube = new _source_js__WEBPACK_IMPORTED_MODULE_4__.default({
 
       // check that user is authorized (signedIn)
       //TODO how do I check that the client library is loaded?
-      if (!((_window = window) === null || _window === void 0 ? void 0 : (_window$gapi = _window.gapi) === null || _window$gapi === void 0 ? void 0 : (_window$gapi$auth = _window$gapi.auth2) === null || _window$gapi$auth === void 0 ? void 0 : (_window$gapi$auth$get = _window$gapi$auth.getAuthInstance) === null || _window$gapi$auth$get === void 0 ? void 0 : (_window$gapi$auth$get2 = _window$gapi$auth$get.call(_window$gapi$auth)) === null || _window$gapi$auth$get2 === void 0 ? void 0 : (_window$gapi$auth$get3 = _window$gapi$auth$get2.isSignedIn) === null || _window$gapi$auth$get3 === void 0 ? void 0 : (_window$gapi$auth$get4 = _window$gapi$auth$get3.get) === null || _window$gapi$auth$get4 === void 0 ? void 0 : _window$gapi$auth$get4.call(_window$gapi$auth$get3))) {
+      if (!((_window = window) !== null && _window !== void 0 && (_window$gapi = _window.gapi) !== null && _window$gapi !== void 0 && (_window$gapi$auth = _window$gapi.auth2) !== null && _window$gapi$auth !== void 0 && (_window$gapi$auth$get = _window$gapi$auth.getAuthInstance) !== null && _window$gapi$auth$get !== void 0 && (_window$gapi$auth$get2 = _window$gapi$auth$get.call(_window$gapi$auth)) !== null && _window$gapi$auth$get2 !== void 0 && (_window$gapi$auth$get3 = _window$gapi$auth$get2.isSignedIn) !== null && _window$gapi$auth$get3 !== void 0 && (_window$gapi$auth$get4 = _window$gapi$auth$get3.get) !== null && _window$gapi$auth$get4 !== void 0 && _window$gapi$auth$get4.call(_window$gapi$auth$get3))) {
         yield _this.auth();
       }
 
@@ -62485,7 +62499,7 @@ var youtube = new _source_js__WEBPACK_IMPORTED_MODULE_4__.default({
       }).catch(rejected => {
         var _rejected$result, _rejected$result$erro, _rejected$result$erro2, _rejected$result$erro3, _rejected$result$erro4;
 
-        if ((rejected === null || rejected === void 0 ? void 0 : rejected.code) === 403 && (rejected === null || rejected === void 0 ? void 0 : (_rejected$result = rejected.result) === null || _rejected$result === void 0 ? void 0 : (_rejected$result$erro = _rejected$result.error) === null || _rejected$result$erro === void 0 ? void 0 : (_rejected$result$erro2 = _rejected$result$erro.errors[0]) === null || _rejected$result$erro2 === void 0 ? void 0 : (_rejected$result$erro3 = _rejected$result$erro2.message) === null || _rejected$result$erro3 === void 0 ? void 0 : (_rejected$result$erro4 = _rejected$result$erro3.startsWith) === null || _rejected$result$erro4 === void 0 ? void 0 : _rejected$result$erro4.call(_rejected$result$erro3, 'Access Not Configured.'))) {
+        if ((rejected === null || rejected === void 0 ? void 0 : rejected.code) === 403 && rejected !== null && rejected !== void 0 && (_rejected$result = rejected.result) !== null && _rejected$result !== void 0 && (_rejected$result$erro = _rejected$result.error) !== null && _rejected$result$erro !== void 0 && (_rejected$result$erro2 = _rejected$result$erro.errors[0]) !== null && _rejected$result$erro2 !== void 0 && (_rejected$result$erro3 = _rejected$result$erro2.message) !== null && _rejected$result$erro3 !== void 0 && (_rejected$result$erro4 = _rejected$result$erro3.startsWith) !== null && _rejected$result$erro4 !== void 0 && _rejected$result$erro4.call(_rejected$result$erro3, 'Access Not Configured.')) {
           /* The key has probably been invalidated.
           	If the API is still enabled, try resetting the API by:
           		1. Deleting the API keys.
@@ -62589,12 +62603,12 @@ youtube.search = /*#__PURE__*/function () {
         snippet,
         contentDetails
       } = _ref2;
-      return new _client_entities_index_js__WEBPACK_IMPORTED_MODULE_2__.Track(_objectSpread({
+      return new _client_entities_index_js__WEBPACK_IMPORTED_MODULE_2__.Track(_objectSpread(_objectSpread({
         source: youtube,
         //! this is causing issues with fClone, its throwing a cross origin error
         sourceId: id,
         link: youtube.idPrefix + id
-      }, this.formatSnippet(snippet), {}, this.formatContentDetails(contentDetails)));
+      }, this.formatSnippet(snippet)), this.formatContentDetails(contentDetails)));
     });
   });
 
@@ -62795,7 +62809,8 @@ var youtubePlayback = new _playback_js__WEBPACK_IMPORTED_MODULE_5__.default({
 }); //TODO move inside
 
 youtube.formatContentDetails = function formatContentDetails(contentDetails) {
-  var pack = {};
+  var pack = {}; //TODO Replace moment with something else.
+
   pack.duration = moment__WEBPACK_IMPORTED_MODULE_8__.duration(contentDetails.duration, moment__WEBPACK_IMPORTED_MODULE_8__.ISO_8601).asMilliseconds();
   return pack;
 };
@@ -63250,7 +63265,7 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
             });
           });
         });
-        this.filters = _objectSpread({}, this.filters, {}, schemaFilters);
+        this.filters = _objectSpread(_objectSpread({}, this.filters), schemaFilters);
       }
 
     });
@@ -64594,7 +64609,7 @@ function _request() {
     //L When fetch throws: https://www.tjvantoll.com/2015/09/13/fetch-and-errors
 
 
-    var result = yield (0,_derived_utility_index_js__WEBPACK_IMPORTED_MODULE_1__.fetch)(URL, _objectSpread({}, rest, {
+    var result = yield (0,_derived_utility_index_js__WEBPACK_IMPORTED_MODULE_1__.fetch)(URL, _objectSpread(_objectSpread({}, rest), {}, {
       method,
       headers,
       body
@@ -65762,7 +65777,7 @@ var compareDeeper = function compareDeeper(a, b, options) {
   var {
     depth
   } = options;
-  return deepCompare(a, b, _objectSpread({}, options, {
+  return deepCompare(a, b, _objectSpread(_objectSpread({}, options), {}, {
     depth: depth - 1
   }));
 };
@@ -65803,7 +65818,7 @@ function deepCompare(a, b) {
     subset,
     resultIfTooDeep,
     logDifference
-  } = _objectSpread({}, defaultOptions, {}, options); // limit to depth
+  } = _objectSpread(_objectSpread({}, defaultOptions), options); // limit to depth
 
 
   if (depth < 0) return resultIfTooDeep; // compare values
@@ -66381,22 +66396,22 @@ function getKeysOf(object) {
   return keys;
 } // Same as the default, but explicit.
 
-var forSimpleKeysOf = (object, callback) => forKeysOf(object, _objectSpread({}, simple, {
+var forSimpleKeysOf = (object, callback) => forKeysOf(object, _objectSpread(_objectSpread({}, simple), {}, {
   callback
 }));
-var getSimpleKeysOf = (object, filter) => getKeysOf(object, _objectSpread({}, simple, {
+var getSimpleKeysOf = (object, filter) => getKeysOf(object, _objectSpread(_objectSpread({}, simple), {}, {
   filter
 }));
-var forOwnKeysOf = (object, callback) => forKeysOf(object, _objectSpread({}, own, {
+var forOwnKeysOf = (object, callback) => forKeysOf(object, _objectSpread(_objectSpread({}, own), {}, {
   callback
 }));
-var getOwnKeysOf = (object, filter) => getKeysOf(object, _objectSpread({}, own, {
+var getOwnKeysOf = (object, filter) => getKeysOf(object, _objectSpread(_objectSpread({}, own), {}, {
   filter
 }));
-var forSpreadableKeysOf = (object, callback) => forKeysOf(object, _objectSpread({}, spreadable, {
+var forSpreadableKeysOf = (object, callback) => forKeysOf(object, _objectSpread(_objectSpread({}, spreadable), {}, {
   callback
 }));
-var getSpreadableKeysOf = (object, filter) => getKeysOf(object, _objectSpread({}, spreadable, {
+var getSpreadableKeysOf = (object, filter) => getKeysOf(object, _objectSpread(_objectSpread({}, spreadable), {}, {
   filter
 }));
 
@@ -67287,7 +67302,7 @@ class VirtualInterface extends _rule_js__WEBPACK_IMPORTED_MODULE_3__.default {
     Object.freeze(keys);
     Object.freeze(tests); // Create an pass validator to Rule constructor.
 
-    super(_objectSpread({}, options, {
+    super(_objectSpread(_objectSpread({}, options), {}, {
       // Use a custom validator for interfaces.
       validator(object) {
         _rules_index_js__WEBPACK_IMPORTED_MODULE_4__.object.validate(object);

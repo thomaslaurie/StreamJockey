@@ -59,7 +59,7 @@ const liveDataServer = {
 		this.app = app;
 		this.socket = liveDataSocket;
 
-		this.socket.use((socket, next) => {
+		this.socket.use((socket, next) => { //! //TODO Use is removed in socket io 3, need to find another work around.
 			// Give the cookie session to the socket.
 			// Uses a temporary koa context to decrypt the session.
 			//L https://medium.com/@albertogasparin/sharing-koa-session-with-socket-io-8d36ac877bc2

@@ -46,7 +46,7 @@ export default async function serverRequest(method, url, body) {
 			});
 		}
 
-		// Encode as flatted JSON.
+		// Encode as flatted JSON. //? Where is flatted used?
 		const flattedBody = encodeURIComponent(safeStringify(body));
 		workingURL = appendQueryParameters(workingURL, `${GET_BODY}=${flattedBody}`);
 

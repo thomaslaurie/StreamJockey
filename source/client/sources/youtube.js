@@ -407,6 +407,7 @@ export const youtubePlayback = new Playback({
 //TODO move inside
 youtube.formatContentDetails = function formatContentDetails(contentDetails) {
 	const pack = {};
+	//TODO Replace moment with something else.
 	pack.duration = moment.duration(contentDetails.duration, moment.ISO_8601).asMilliseconds();
 	return pack;
 };

@@ -91,16 +91,7 @@ const common = {
 				loader: 'babel-loader',
 				options: {
 					presets: [
-						[
-							'@babel/preset-env',
-							{
-								targets,
-							},
-						],
-					],
-					plugins: [
-						'@babel/plugin-proposal-export-namespace-from',
-						'@babel/plugin-proposal-optional-chaining',
+						['@babel/preset-env', {targets}],
 					],
 					sourceMaps: true,
 				},
