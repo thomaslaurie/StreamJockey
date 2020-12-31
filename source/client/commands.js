@@ -141,7 +141,8 @@ export class PlaybackState {
 			volume,
 		} = options;
 
-		define.constant(this, {
+		// vue-proxy-workaround
+		define.vueConstant(this, {
 			source,
 			track,
 			isPlaying,
@@ -152,7 +153,7 @@ export class PlaybackState {
 		Object.freeze(this);
 	}
 }
-define.constant(PlaybackState.prototype, {
+define.vueConstant(PlaybackState.prototype, {
 	isValueEqual(otherState, key) {
 		return (key === 'track')
 			? this[key]?.sourceId === otherState[key]?.sourceId
@@ -178,10 +179,10 @@ class Command {
 		define.writable(this, {
 			state: new PlaybackState({source}),
 		});
-		define.constant(this, {trigger});
+		define.vueConstant(this, {trigger});
 
 
-		define.constant(this, {
+		define.vueConstant(this, {
 			// Stores dequeued commands so that they may be resolved when this command resolves.
 			dequeuedPrevCommands: [],
 			dequeuedNextCommands: [],
@@ -206,7 +207,7 @@ class Command {
 		});
 	}
 }
-define.constant(Command.prototype, {
+define.vueConstant(Command.prototype, {
 	resolve() {
 		// Resolve prev commands backwards.
 		for (let i = this.dequeuedPrevCommands.length - 1; i >= 0; i--) {
@@ -238,7 +239,7 @@ define.constant(Command.prototype, {
 	},
 
 	extendState(properties) {
-		define.constant(this, {
+		define.vueConstant(this, {
 			state: new PlaybackState({
 				source: this.state.source,
 				...properties,
@@ -255,7 +256,7 @@ export class Toggle extends Command {
 		this.extendState({isPlaying});
 	}
 }
-define.constant(Toggle.prototype, {
+define.vueConstant(Toggle.prototype, {
 	overwrites(otherCommand) {
 		return this.state.encapsulates(otherCommand.state, 'isPlaying');
 	},
@@ -268,7 +269,7 @@ export class Seek extends Command {
 		this.extendState({progress});
 	}
 }
-define.constant(Seek.prototype, {
+define.vueConstant(Seek.prototype, {
 	overwrites(otherCommand) {
 		return this.state.encapsulates(otherCommand.state, 'progress');
 	},
@@ -281,7 +282,7 @@ export class Volume extends Command {
 		this.extendState({volume});
 	}
 }
-define.constant(Volume.prototype, {
+define.vueConstant(Volume.prototype, {
 	overwrites(otherCommand) {
 		return this.state.encapsulates(otherCommand.state, 'volume');
 	},
@@ -312,7 +313,7 @@ export class Start extends Command {
 		});
 	}
 }
-define.constant(Start.prototype, {
+define.vueConstant(Start.prototype, {
 	overwrites(otherCommand) {
 		return this.state.encapsulates(otherCommand.state, 'track', 'isPlaying', 'progress');
 	},
@@ -333,7 +334,7 @@ export class CommandQueue {
 	constructor({getCurrentState} = {}) {
 		//! getCurrentState must be synchronous.
 		rules.func.validate(getCurrentState);
-		define.constant(this, {
+		define.vueConstant(this, {
 			getCurrentState,
 			queue: [],
 		});
@@ -345,7 +346,7 @@ export class CommandQueue {
 		});
 	}
 }
-define.constant(CommandQueue.prototype, {
+define.vueConstant(CommandQueue.prototype, {
 	pushCommand(command) {
 		// Validate command.
 		if (!(command instanceof Command)) {

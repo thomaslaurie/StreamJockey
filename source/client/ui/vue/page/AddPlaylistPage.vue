@@ -3,7 +3,7 @@ import {
 	one,
 } from '../../../../shared/utility/index.js';
 import * as session from '../../../session-methods.js';
-import VueX, {mapState} from '../../../vendor/vuex.esm.browser.js';
+import {mapState} from 'vuex';
 
 import {
 	Playlist,

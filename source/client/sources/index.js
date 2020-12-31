@@ -1,2 +1,2 @@
-export {default as spotify} from './spotify.js';
-export {default as youtube} from './youtube.js';
+export {default as spotify, spotifyPlayback} from './spotify.js';
+export {default as youtube, youtubePlayback} from './youtube.js';

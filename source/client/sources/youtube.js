@@ -254,7 +254,8 @@ youtube.search = async function search({
 		...this.formatContentDetails(contentDetails),
 	}));
 };
-youtube.playback = new Playback({
+
+export const youtubePlayback = new Playback({
 	state: {
 		source: youtube,
 	},

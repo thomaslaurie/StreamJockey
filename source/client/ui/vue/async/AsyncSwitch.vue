@@ -14,6 +14,7 @@ export default {
 
 	name: 'async-switch',
 	mixins: [emitRefresh],
+	emits: ['refresh'],
 	props: {
 		state: String,
 		error: [Object, Error], //TODO will warn if not Object or Error, any way to catch stray data types?

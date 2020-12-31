@@ -9,9 +9,9 @@ export default {
 	},
 	data() {
 		return {
-		// just use the first source instance
-			source: Source.instances[0],
-			Source,
+			sources: Source.instances,
+			targetSource: Source.instances[0],
+			x: Source,
 		};
 	},
 	props: {
@@ -23,22 +23,23 @@ export default {
 <template>
 	<div>
 		<!-- //!//G two v-for directives at the same level, cannot use the same keys, just differentiate them by adding onto the string -->
-		<div v-for='(sourceInstance, index) in Source.instances' :key='`${sourceInstance.name}Radio`'>
+		<div v-for='source of sources' :key='`${source.name}Radio`'>
 			<input
 				type='radio'
-				:id='`${sourceInstance.name}SearchRadio`'
-				:value='sourceInstance'
-				v-model='source'
+				:id='`${source.name}SearchRadio`'
+				:value='source'
+				v-model='targetSource'
 			>
-        	<label
-				:for='`${sourceInstance.name}SearchRadio`'
-			>
-				{{sourceInstance.name}}
+        	<label :for='`${source.name}SearchRadio`'>
+				{{source.name}}
 			</label>
 		</div>
-
-		<div v-for='sourceInstance in Source.instances' :key='`${sourceInstance.name}Search`'>
-			<search-results v-show='sourceInstance === source' :source='sourceInstance' :playlistId='playlistId'></search-results>
+		<div v-for='(source, index) of sources' :key='`${source.name}Search`'>
+			<search-results
+				v-show='source === targetSource'
+				:source='x.instances[index]'
+				:playlistId='playlistId'
+			></search-results>
 		</div>
 	</div>
 </template>

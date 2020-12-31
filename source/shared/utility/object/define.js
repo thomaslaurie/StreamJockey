@@ -220,4 +220,18 @@ export default {
 		}
 		return target;
 	},
+
+	//G Intended to be used in places where 'constant' should be used but cannot because of issues with Vue proxies. Works the same as 'nonWritable'.
+	//R Defining non-configurable properties causes issues with Vue proxies. Not sure if this is a bug or as designed. Using this temporary property definition to separate areas that have this issue.
+	vueConstant(target, properties) {
+		for (const key of ownKeys(properties)) {
+			Object.defineProperty(target, key, {
+				value: properties[key],
+				writable:     false,
+				enumerable:   true,
+				configurable: true,
+			});
+		}
+		return target;
+	},
 };

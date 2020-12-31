@@ -1,5 +1,4 @@
-//! Sources must manually set their playback.state.source as themselves.
-//R This caused a bug earlier when the playback got externalized and was no longer available in the initial afterInitialize step.
+//R Sources should not include a reference to their playback as playback already includes a reference to the source. This recursive reference worked for a while but eventually caused a stack-overflow issue with Vue's reactivity system. Removing the playback reference was fine because it was never really used.
 
 /* TODO
 	Workout api keys & info storage between server & client, its kind of a mixed bag right now between youtube and spotify
@@ -27,7 +26,6 @@ export default class Source {
 
 			player,
 			loadPlayer,
-			playback,
 		}] = args;
 
 		define.constant(this, {
@@ -39,10 +37,9 @@ export default class Source {
 			loadPlayer,
 		});
 
-		//TODO Make these constant.
+		//TODO Make this constant.
 		define.writable(this, {
 			search,
-			playback,
 		});
 	}
 }

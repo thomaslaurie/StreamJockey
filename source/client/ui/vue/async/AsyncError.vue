@@ -4,6 +4,7 @@ import emitRefresh from '../mixins/emitRefresh.js';
 export default {
 	name: 'async-error',
 	mixins: [emitRefresh],
+	emits: ['refresh'],
 	props: {
 		error: [Object, Error],
 	},

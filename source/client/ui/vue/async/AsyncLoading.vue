@@ -4,6 +4,7 @@ import emitRefresh from '../mixins/emitRefresh.js';
 export default {
 	name: 'async-loading',
 	mixins: [emitRefresh],
+	emits: ['refresh'],
 };
 </script>
 

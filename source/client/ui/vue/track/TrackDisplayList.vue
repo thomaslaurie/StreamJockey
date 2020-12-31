@@ -37,7 +37,7 @@ export default {
                 :key='track.id'
                 :display='track'
             >
-				<track-display :p-content='track' v-bind='attrs' v-on='listeners'></track-display>
+				<track-display :p-content='track' v-bind='attrs'></track-display>
             </li>
         </ul>
     </async-switch>

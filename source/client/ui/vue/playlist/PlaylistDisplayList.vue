@@ -37,7 +37,7 @@ export default {
                 :key='playlist.id'
                 :display='playlist'
             >
-				<playlist-display :p-content='playlist' v-bind='attrs' v-on='listeners'></playlist-display>
+				<playlist-display :p-content='playlist' v-bind='attrs'></playlist-display>
             </li>
         </ul>
     </async-switch>

@@ -54,7 +54,8 @@ import webpack from 'webpack';
 import CWP from 'clean-webpack-plugin';
 const {CleanWebpackPlugin} = CWP;
 import HtmlWebpackPlugin from 'html-webpack-plugin';
-import VueLoaderPlugin from 'vue-loader/lib/plugin.js';
+import VLP from 'vue-loader/dist/plugin.js';
+const {default: VueLoaderPlugin} = VLP; //? Not sure why this can't be imported as default.
 import nodeExternals from 'webpack-node-externals';
 
 // INTERNAL
@@ -171,6 +172,11 @@ export const clientOptions = (env, argv) => ({
 		new VueLoaderPlugin(),
 		new HtmlWebpackPlugin({
 			template: UIMainFile,
+		}),
+		new webpack.DefinePlugin({
+			//L https://github.com/vuejs/vue-next/tree/master/packages/vue#bundler-build-feature-flags
+			__VUE_OPTIONS_API__: true,
+			__VUE_PROD_DEVTOOLS__: false,
 		}),
 	],
 });

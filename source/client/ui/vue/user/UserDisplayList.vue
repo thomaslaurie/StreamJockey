@@ -38,7 +38,7 @@ export default {
                 :key='user.id'
                 :display='user'
             >
-				<user-display :p-content='user' v-bind='attrs' v-on='listeners'></user-display>
+				<user-display :p-content='user' v-bind='attrs'></user-display>
             </li>
         </ul>
     </async-switch>

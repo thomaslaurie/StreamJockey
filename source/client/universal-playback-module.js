@@ -1,10 +1,10 @@
 import Playback from './playback.js';
 import {
-	spotify,
-	youtube,
+	spotifyPlayback,
+	youtubePlayback,
 } from './sources/index.js';
 
 export default Playback.createUniversalModule([
-	spotify,
-	youtube,
+	spotifyPlayback,
+	youtubePlayback,
 ]);

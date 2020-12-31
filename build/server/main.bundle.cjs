@@ -4316,6 +4316,7 @@ __webpack_require__.r(__webpack_exports__);
   instance(options = {}) {
     const {
       name,
+      //! Should be unique. This is used to identify registered sources.
       register = false,
       nullPrefix = '',
       idPrefix = '',
@@ -4327,7 +4328,7 @@ __webpack_require__.r(__webpack_exports__);
       makeAuthRequestURL = () => {},
       ...rest
     } = options;
-    _utility_index_js__WEBPACK_IMPORTED_MODULE_2__["define"].constant(this, {
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_2__["define"].vueConstant(this, {
       name,
       register,
       nullPrefix,
@@ -4364,16 +4365,13 @@ __webpack_require__.r(__webpack_exports__);
         return this.instances.find(instance => instance.name === name);
       },
 
-      isRegistered(name) {
-        return this.find(name) !== undefined;
-      },
-
-      validateRegistration(value) {
-        if (!this.isRegistered(value)) {
-          throw new Error('Source is not registered.');
-        }
-      }
-
+      registered: new _utility_index_js__WEBPACK_IMPORTED_MODULE_2__["Rule"]({
+        validator: function (instance) {
+          if (this.find(instance === null || instance === void 0 ? void 0 : instance.name) === undefined) {
+            throw new Error('Source instance is not registered.');
+          }
+        }.bind(this)
+      })
     });
   }
 
@@ -5818,6 +5816,21 @@ const ownKeys = function (object) {
 
         enumerable: true,
         configurable: false
+      });
+    }
+
+    return target;
+  },
+
+  //G Intended to be used in places where 'constant' should be used but cannot because of issues with Vue proxies. Works the same as 'nonWritable'.
+  //R Defining non-configurable properties causes issues with Vue proxies. Not sure if this is a bug or as designed. Using this temporary property definition to separate areas that have this issue.
+  vueConstant(target, properties) {
+    for (const key of ownKeys(properties)) {
+      Object.defineProperty(target, key, {
+        value: properties[key],
+        writable: false,
+        enumerable: true,
+        configurable: true
       });
     }
 

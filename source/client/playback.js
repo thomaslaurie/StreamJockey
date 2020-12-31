@@ -42,7 +42,7 @@ export default class Playback {
 		} = options;
 
 		//! New property objects must be created here so that instances do not all use the same reference.
-		define.constant(this, {
+		define.vueConstant(this, {
 			state:     {...this.constructor.baseState,     ...state},
 			actions:   {...this.constructor.baseActions,   ...actions},
 			mutations: {...this.constructor.baseMutations, ...mutations},
@@ -550,14 +550,17 @@ define.constant(Playback, {
 		},
 	}),
 
-	createUniversalModule(sourceInstances) {
+	createUniversalModule(playbacks) {
 		// Add source instance playback modules as sub-module of the universal module.
 		const modules = {};
-		for (const sourceInstance of sourceInstances) {
-			modules[sourceInstance.name] = {
-				...sourceInstance.playback,
+		const sourceInstances = [];
+		for (const playback of playbacks) {
+			const source = playback.state.source;
+			modules[source.name] = {
+				...playback,
 				namespaced: true,
 			};
+			sourceInstances.push(source);
 		}
 
 		return new Playback({

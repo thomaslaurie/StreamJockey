@@ -204,7 +204,8 @@ spotify.search = async function search({
 		});
 	});
 };
-spotify.playback = new Playback({
+
+export const spotifyPlayback = new Playback({
 	//G source-specific playback should be the basic playback functions that connects this app to the source's api
 	state: {
 		source: spotify,

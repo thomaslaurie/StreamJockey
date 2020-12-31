@@ -3,12 +3,13 @@ import Credentials from './credentials.js';
 import {
 	define,
 	ClassParts,
+	Rule,
 } from './utility/index.js';
 
 export default new ClassParts({
 	instance(options = {}) {
 		const {
-			name,
+			name, //! Should be unique. This is used to identify registered sources.
 			register = false,
 			nullPrefix = '',
 			idPrefix = '',
@@ -24,7 +25,7 @@ export default new ClassParts({
 			...rest
 		} = options;
 
-		define.constant(this, {
+		define.vueConstant(this, {
 			name,
 			register,
 			nullPrefix,
@@ -60,14 +61,13 @@ export default new ClassParts({
 			find(name) {
 				return this.instances.find(instance => instance.name === name);
 			},
-			isRegistered(name) {
-				return this.find(name) !== undefined;
-			},
-			validateRegistration(value) {
-				if (!this.isRegistered(value)) {
-					throw new Error('Source is not registered.');
-				}
-			},
+			registered: new Rule({
+				validator: (function (instance) {
+					if (this.find(instance?.name) === undefined) {
+						throw new Error('Source instance is not registered.');
+					}
+				}).bind(this),
+			}),
 		});
 	},
 });

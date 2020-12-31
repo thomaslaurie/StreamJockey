@@ -8,6 +8,7 @@ import {
 export default {
 	name: 'track-display',
 	extends: AsyncDisplay,
+	emits: ['add', 'update'],
 	props: {
 		addButton: Boolean,
 		removeButton: Boolean,

@@ -1,5 +1,4 @@
 <script>
-import {mapState} from '../../../vendor/vuex.esm.browser.js';
 import * as session from '../../../session-methods.js';
 
 export default {

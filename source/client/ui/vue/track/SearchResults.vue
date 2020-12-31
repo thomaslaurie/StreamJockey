@@ -25,7 +25,7 @@ export default {
 		source: {
 			default: null,
 			validator(value) {
-				return Source.instances.includes(value);
+				return Source.registered.test(value);
 			},
 		},
 		// target playlist to add to
