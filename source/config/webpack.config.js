@@ -106,6 +106,14 @@ const common = {
 };
 
 // TARGETS
+
+const cssLoader = {
+	loader: 'css-loader',
+	options: {
+		esModule: false, // True breaks styles for some reason.
+	},
+};
+
 export const clientOptions = (env, argv) => ({
 	...common.options(env, argv),
 	target: 'web',
@@ -136,7 +144,7 @@ export const clientOptions = (env, argv) => ({
 				test: /\.css$/u,
 				use: [
 					'vue-style-loader',
-					'css-loader',
+					cssLoader,
 				],
 			},
 			{
@@ -144,7 +152,7 @@ export const clientOptions = (env, argv) => ({
 				test: /\.scss$/u,
 				use: [
 					'vue-style-loader',
-					'css-loader',
+					cssLoader,
 					{
 						loader: 'sass-loader',
 						options: {
