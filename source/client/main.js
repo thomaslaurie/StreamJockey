@@ -1,12 +1,6 @@
 // EXTERNAL
-//L https://cdn.jsdelivr.net/npm/vue@2.6.8/dist/vue.esm.browser.js
-// import Vue from './vendor/vue.esm.browser.js';
 import {createApp} from 'vue/dist/vue.esm-bundler.js'; //TODO Figure out how to get the runtime-only version working.
-//L https://unpkg.com/vue-router@3.0.2/ //! manually converted to esm (remove closure & export default instead of return)
-// import VueRouter from './vendor/vue-router.esm.browser.js';
 import {createRouter, createWebHistory} from 'vue-router';
-//L https://unpkg.com/vuex@3.1.0/dist/vuex.esm.js //! manually converted to browser (removed process.env.NODE_ENV !== 'production' references)
-// import VueX from './vendor/vuex.esm.browser.js';
 import {createStore} from 'vuex/dist/vuex.esm-bundler.js';
 
 import SocketIO from 'socket.io-client';

@@ -105,7 +105,7 @@ export default {
 			if (!isSubclass(this.Entity, Entity)) {
 				throw new InvalidStateError({
 					message: 'attempting to use a query but Entity is not a child class of Entity',
-					state: this.fclone(this.Entity),
+					state: fclone(this.Entity),
 				});
 			}
 			return Boolean((this.usingParent && this.pQuery)
@@ -180,17 +180,17 @@ export default {
 			});
 		},
 		clearTimeouts() {
-				// clear
-				this.clearDelay?.();
-				this.clearTimeout?.();
-				if (this.refreshPromise instanceof Deferred) {
-					this.refreshPromise.cancel();
-				}
+			// clear
+			this.clearDelay?.();
+			this.clearTimeout?.();
+			if (this.refreshPromise instanceof Deferred) {
+				this.refreshPromise.cancel();
+			}
 
-				// reset
-				this.clearDelay = null;
-				this.clearTimeout = null;
-				this.refreshPromise = null;
+			// reset
+			this.clearDelay = null;
+			this.clearTimeout = null;
+			this.refreshPromise = null;
 		},
 
 		async liveRefresh() {

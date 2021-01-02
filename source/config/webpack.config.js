@@ -174,6 +174,9 @@ export const clientOptions = (env, argv) => ({
 		new VueLoaderPlugin(),
 		new HtmlWebpackPlugin({
 			template: UIMainFile,
+			// Cache buster. Needed because Webpack's watch mode doesn't track html files.
+			//L https://github.com/webpack/webpack/issues/10761
+			hash: true,
 		}),
 		new webpack.DefinePlugin({
 			//L https://github.com/vuejs/vue-next/tree/master/packages/vue#bundler-build-feature-flags
