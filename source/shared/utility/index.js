@@ -18,5 +18,6 @@ export *        as constants        from './constants.js';
 //TODO constants aren't exported, find an elegant way to do this.
 export *        as keyCode          from './key-code.js';
 export {default as keyify}          from './keyify.js';
+export {default as promiseStates}   from './promise-states.js';
 export {default as reference}       from './reference.js';
 export {default as repeat}          from './repeat.js';

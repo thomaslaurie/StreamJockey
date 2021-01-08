@@ -5,6 +5,7 @@ export {default as InternalError}         from './internal-error.js';
 export {default as InvalidStateError}     from './invalid-state-error.js';
 export {default as MultipleErrors}        from './multiple-errors.js';
 export {default as ParseError}            from './parse-error.js';
+export {default as TimeoutError}          from './timeout-error.js';
 export {default as UnexpectedValueThrown} from './unexpected-value-thrown.js';
 export {default as UnknownError}          from './unknown-error.js';
 export {default as UnreachableError}      from './unreachable-error.js';

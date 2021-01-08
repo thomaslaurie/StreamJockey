@@ -1,3 +1,5 @@
+//TODO How to prevent non-valid enum values from being referenced? If Enum.notInEnum is referenced, it resolves to undefined, which would equal all the other invalid enum key values.
+
 import define      from './object/define.js';
 import Rule        from './validation/rule.js';
 import {getKeysOf} from './object/keys-of.js';
@@ -60,7 +62,7 @@ define.constant(Enum, {
 		const enumKeys = getKeysOf(e, this.keyAttributes);
 		const foundKey = enumKeys.find(key => e[key] === value);
 
-		if (typeof foundKey !== 'symbol') {
+		if (foundKey === undefined) {
 			throw new Error('Enum does not contain the passed value.');
 		}
 
