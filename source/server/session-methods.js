@@ -26,9 +26,9 @@ export async function login(db, ctx, user) {
 	const existingPassword = await db.one(
 		'SELECT password FROM "sj"."users" WHERE "name" = $1',
 		[user.name],
-	).then((resolved) => {
+	).then(resolved => {
 		return resolved.password;
-	}).catch((rejected) => {
+	}).catch(rejected => {
 		throw new PostgresError({
 			postgresError: rejected,
 			userMessage: 'Could not login, a database error has occurred.',
@@ -36,7 +36,7 @@ export async function login(db, ctx, user) {
 	});
 
 	// Check password.
-	const isMatch = await bcrypt.compare(user.password, existingPassword).catch((rejected) => {
+	const isMatch = await bcrypt.compare(user.password, existingPassword).catch(rejected => {
 		throw new InvalidStateError({
 			userMessage: 'server error',
 			message: 'hash compare failed',
@@ -50,7 +50,7 @@ export async function login(db, ctx, user) {
 	}
 
 	// Get user
-	const retrievedUser = await db.one('SELECT * FROM "sj"."users_self" WHERE "name" = $1', user.name).catch((rejected) => {
+	const retrievedUser = await db.one('SELECT * FROM "sj"."users_self" WHERE "name" = $1', user.name).catch(rejected => {
 		throw new PostgresError({
 			postgresError: rejected,
 			userMessage: 'Could not login, a database error has occurred.',

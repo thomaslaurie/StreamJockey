@@ -4,7 +4,7 @@ import {unlink} from 'fs';
 
 export default async function deleteFile(path) {
 	return new Promise((resolve, reject) => {
-		unlink(path, (error) => {
+		unlink(path, error => {
 			if (error != null && error !== 'ENOENT') {
 				reject(error);
 			} else {

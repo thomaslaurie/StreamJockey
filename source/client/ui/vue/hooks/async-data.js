@@ -47,19 +47,19 @@ function usePromiseData(getter) {
 	const error = ref();
 	const state = ref(promiseStates.pending);
 
-	watch(promise, (promiseValue) => {
+	watch(promise, promiseValue => {
 		state.value = promiseStates.pending;
 
 		// Upon settling, update only if this is the last promise.
 		promiseValue.then(
-			(nextFulfilled) => {
+			nextFulfilled => {
 				if (promise.value === promiseValue) {
 					data.value = nextFulfilled;
 					// Keep the existing error value.
 					state.value = promiseStates.fulfilled;
 				}
 			},
-			(nextRejected) => {
+			nextRejected => {
 				if (promise.value === promiseValue) {
 					// Keep the existing result value.
 					error.value = nextRejected;
@@ -99,7 +99,7 @@ export function useAsyncData(getter) {
 	const hasFulfilled = ref(false);
 	const hasRejected = ref(false);
 
-	watch(state, (stateValue) => {
+	watch(state, stateValue => {
 		if (stateValue === promiseStates.pending) {
 			pending.value = true;
 			fulfilled.value = false;
@@ -151,7 +151,7 @@ export function useTimedAsyncData(getter, {
 	let clearDelay;
 	let clearTimeout;
 
-	watch(state, (value) => {
+	watch(state, value => {
 		if (value === promiseStates.pending) {
 			delayed.value = true;
 			timedOut.value = false;

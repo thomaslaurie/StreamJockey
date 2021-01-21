@@ -149,7 +149,7 @@ const youtube = new Source({
 				path: `/youtube/v3/${path}`,
 				params: content,
 			}).then(resolve, reject);
-		}).catch((rejected) => {
+		}).catch(rejected => {
 			if (
 				rejected?.code === 403
 				&& rejected?.result?.error?.errors[0]?.message?.startsWith?.('Access Not Configured.')

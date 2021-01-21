@@ -12,7 +12,7 @@ import {
 
 /* eslint-disable no-magic-numbers */
 
-test('updates upon fulfillment', async (t) => {
+test('updates upon fulfillment', async t => {
 	t.plan(16);
 
 	const dataValue = 'foo';
@@ -69,7 +69,7 @@ test('updates upon fulfillment', async (t) => {
 	await Promise.all(steps);
 });
 
-test('updates upon rejection', async (t) => {
+test('updates upon rejection', async t => {
 	t.plan(16);
 
 	const errorValue = 'foo';
@@ -128,7 +128,7 @@ test('updates upon rejection', async (t) => {
 	await Promise.all(steps);
 });
 
-test('updates twice', async (t) => {
+test('updates twice', async t => {
 	t.plan(32);
 
 	const dataValue = 'foo';
@@ -219,7 +219,7 @@ test('updates twice', async (t) => {
 	await Promise.all([steps[2], steps[3]]);
 });
 
-test('old updates do not overwrite new updates', async (t) => {
+test('old updates do not overwrite new updates', async t => {
 	t.plan(24);
 
 	const delay = 200;
@@ -311,7 +311,7 @@ test('old updates do not overwrite new updates', async (t) => {
 	t.is(hasRejected.value, false);
 });
 
-test('promise is updated synchronously', async (t) => {
+test('promise is updated synchronously', async t => {
 	t.plan(3);
 
 	const dataValue = 'foo';
@@ -333,7 +333,7 @@ test('promise is updated synchronously', async (t) => {
 	t.not(promise2, promise1);
 });
 
-test('refresh calls getter, updates state, and changes promise', async (t) => {
+test('refresh calls getter, updates state, and changes promise', async t => {
 	t.plan(35);
 
 	const dataValue = 'foo';
@@ -437,7 +437,7 @@ test('refresh calls getter, updates state, and changes promise', async (t) => {
 	t.not(promise1, promise2);
 });
 
-test('synchronously thrown value rejects just like async rejection', async (t) => {
+test('synchronously thrown value rejects just like async rejection', async t => {
 	t.plan(16);
 
 	const errorValue = 'foo';

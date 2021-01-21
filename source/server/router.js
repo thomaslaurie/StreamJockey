@@ -101,7 +101,7 @@ function createAPIRouter() {
 	apiRouter
 		// Catches and propagates all errors, but assigns them to the response body rather than throwing.
 		.all('/(.*)', async (ctx, next) => {
-			await next().catch((rejected) => {
+			await next().catch(rejected => {
 				ctx.response.body = returnPropagate(rejected);
 			});
 		})
@@ -124,7 +124,7 @@ function createAPIRouter() {
 
 	function addCRUD(router, Entity) {
 		const path = `/${Entity.table}`;
-		const action = method => async (ctx) => {
+		const action = method => async ctx => {
 			ctx.response.body = await method(ctx.request.body, {includeMetadata: true});
 		};
 		return router
@@ -142,44 +142,44 @@ function createAPIRouter() {
 		// SESSION
 		//R //L login/logout are create/remove for sessions: https://stackoverflow.com/questions/31089221/what-is-the-difference-between-put-post-and-patch, https://stackoverflow.com/questions/5868786/what-method-should-i-use-for-a-login-authentication-request
 		//? what is the 'update' equivalent of user session? isn't this all done server-side by refreshing the cookie? or is this just the login put because there is no post equivalent instead
-		.post('/session', async (ctx) => {
+		.post('/session', async ctx => {
 			ctx.response.body = await session.login(database, ctx, ctx.request.body);
 		})
-		.get('/session', async (ctx) => {
+		.get('/session', async ctx => {
 			//R thought about moving this to user, but with 'self' permissions, but if its a me request, the user specifically needs to know who they are - in get user cases, the user already knows what they're searching for an just needs the rest of the information
 			ctx.response.body = await session.get(ctx);
 		})
-		.delete('/session', async (ctx) => {
+		.delete('/session', async ctx => {
 			ctx.response.body = await session.logout(ctx);
 		})
 
 		// AUTH
-		.get('/spotify/authRequestStart', async (ctx) => {
+		.get('/spotify/authRequestStart', async ctx => {
 			// Retrieves an auth request URL and it's respective local key (for event handling).
 			ctx.response.body = await spotify.startAuthRequest();
 		})
-		.get('/spotify/authRedirect', async (ctx) => {
+		.get('/spotify/authRedirect', async ctx => {
 			// Receives credentials sent from spotify, emits an event & payload that can then be sent back to the original client.
 			//! This URL is sensitive to the url given to spotify developer site (I think).
 			await spotify.receiveAuthRequest(ctx.request.query);
 			await send(ctx, app, {root});
 		})
-		.post('/spotify/authRequestEnd', async (ctx) => {
+		.post('/spotify/authRequestEnd', async ctx => {
 			ctx.response.body = await spotify.endAuthRequest(ctx.request.body);
 		})
-		.post('/spotify/exchangeToken', async (ctx) => {
+		.post('/spotify/exchangeToken', async ctx => {
 			ctx.response.body = await spotify.exchangeToken(ctx, ctx.request.body);
 		})
-		.get('/spotify/refreshToken', async (ctx) => {
+		.get('/spotify/refreshToken', async ctx => {
 			ctx.response.body = await spotify.refreshToken(ctx);
 		})
 
-		.get('/youtube/credentials', async (ctx) => {
+		.get('/youtube/credentials', async ctx => {
 			ctx.response.body = await youtube.getCredentials();
 		})
 
 		// catch
-		.all('/(.*)', async (ctx) => {
+		.all('/(.*)', async ctx => {
 			ctx.response.body = new InvalidStateError({
 				userMessage: 'could not process request',
 				message: 'invalid api command',
@@ -199,11 +199,11 @@ export default function createRouter(/* {replaceIndex}*/) {
 
 	// PAGE
 	router
-		.get('/favicon.ico', async (ctx) => {
+		.get('/favicon.ico', async ctx => {
 			//L Temporarily ignore favicon request: https://stackoverflow.com/questions/35408729/express-js-prevent-get-favicon-ico
 			ctx.response.status = 204;
 		})
-		.get('/(.*)', async (ctx) => {
+		.get('/(.*)', async ctx => {
 			/*
 				// pages are accessed through the base GET method, serve any public files here
 				//! static resource references in index.html should be absolute '/foo', not relative './foo'
@@ -244,7 +244,7 @@ export default function createRouter(/* {replaceIndex}*/) {
 				else {
 			*/
 		})
-		.all('/(.*)', async (ctx) => {
+		.all('/(.*)', async ctx => {
 			ctx.body += '.all /* reached';
 			//G only use	await next();	when we want the request to be further processed down the chain (ie. to finally result at .all)
 		});

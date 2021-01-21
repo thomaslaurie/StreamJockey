@@ -26,7 +26,7 @@ export default {
 			const playlist = await Playlist.add({
 				userId: currentUser.id,
 				...this,
-			}).then(one).catch((rejected) => {
+			}).then(one).catch(rejected => {
 				//TODO handle error
 				console.error(rejected);
 			});

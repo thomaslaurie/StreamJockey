@@ -14,13 +14,13 @@ export default class Deferred extends Promise {
 			isCanceled: false,
 		};
 		const interceptedExecutor = (resolve, reject) => {
-			closure.resolve = (resolved) => {
+			closure.resolve = resolved => {
 				if (!closure.isCanceled) {
 					closure.isPending = false;
 					resolve(resolved);
 				}
 			};
-			closure.reject = (rejected) => {
+			closure.reject = rejected => {
 				if (!closure.isCanceled) {
 					closure.isPending = false;
 					reject(rejected);

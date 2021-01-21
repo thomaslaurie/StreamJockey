@@ -278,7 +278,7 @@ define.constant(Playback, {
 					await dispatch('initPlayer', track.source);
 
 					// Pause all.
-					await asyncMap(sourceInstances, async (source) => {
+					await asyncMap(sourceInstances, async source => {
 						if (context.state[source.name].player !== null) {
 							await context.dispatch(`${source.name}/pause`);
 						}
@@ -321,7 +321,7 @@ define.constant(Playback, {
 					await dispatch('initPlayer', desiredSource);
 
 					// Pause all sources if their player is initialized.
-					await asyncMap(sourceInstances, async (otherSource) => {
+					await asyncMap(sourceInstances, async otherSource => {
 						if (context.state[otherSource.name].player !== null) {
 							await context.dispatch(`${otherSource.name}/pause`);
 						}
@@ -340,7 +340,7 @@ define.constant(Playback, {
 				async trigger() {
 					await dispatch('initPlayer', desiredSource);
 
-					await asyncMap(sourceInstances, async (otherSource) => {
+					await asyncMap(sourceInstances, async otherSource => {
 						if (otherSource === desiredSource) {
 							// Resume target if resuming.
 							await context.dispatch(`${otherSource.name}/resume`);
@@ -379,7 +379,7 @@ define.constant(Playback, {
 					await dispatch('initPlayer', desiredSource);
 
 					// Adjust volume on all sources.
-					await asyncMap(sourceInstances, async (otherSource) => {
+					await asyncMap(sourceInstances, async otherSource => {
 						if (context.state[otherSource.name].player !== null) {
 							await context.dispatch(`${otherSource.name}/volume`, volume);
 						}
@@ -489,14 +489,14 @@ define.constant(Playback, {
 		commandQueue: state => state.commandQueue,
 
 		// ACTUAL
-		sourceOrBase: state => (key) => {
+		sourceOrBase: state => key => {
 			if (state.source === null) {
 				return Playback.baseState[key];
 			}
 			return state[state.source.name][key];
 		},
 
-		actualSource:    (state) => {
+		actualSource:    state => {
 			return state.source;
 		},
 		actualTrack:     (state, getters) => {

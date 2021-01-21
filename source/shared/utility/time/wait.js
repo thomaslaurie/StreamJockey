@@ -11,7 +11,7 @@ import setTimer from './set-timer.js';
  * @returns {Promise} Promise that resolves after wait duration.
  */
 export default async function wait(duration) {
-	return new Promise((resolve) => {
+	return new Promise(resolve => {
 		setTimer(duration, () => {
 			resolve();
 		});

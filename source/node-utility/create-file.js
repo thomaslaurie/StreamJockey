@@ -4,7 +4,7 @@ import {writeFile} from 'fs';
 
 export default async function createFile(path, data) {
 	return new Promise((resolve, reject) => {
-		writeFile(path, data, {flag: 'wx'}, (error) => {
+		writeFile(path, data, {flag: 'wx'}, error => {
 			if (error != null && error.code !== 'EEXIST') {
 				reject(error);
 			} else {

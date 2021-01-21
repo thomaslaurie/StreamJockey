@@ -455,9 +455,9 @@ define.vueConstant(CommandQueue.prototype, {
 		this.sentCommand = this.pullCommand();
 
 		// Trigger and attach to the command promise handlers.
-		await this.sentCommand.trigger().then((resolved) => {
+		await this.sentCommand.trigger().then(resolved => {
 			this.sentCommand.resolve(resolved);
-		}, (rejected) => {
+		}, rejected => {
 			this.sentCommand.reject(rejected);
 		});
 

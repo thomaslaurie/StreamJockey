@@ -289,7 +289,7 @@ export default {
 	},
 	getters: {
 		// FINDERS //! return undefined when not found
-		findTable: state => (Entity) => {
+		findTable: state => Entity => {
 			return state.tables.get(Entity); //? Where is .get defined?
 		},
 		findCachedEntity: () => ({table, entity}) => {
@@ -299,7 +299,7 @@ export default {
 			return table.liveQueries.find(liveQuery => deepCompare(liveQuery.query, query, {compareFunction: compareUnorderedArrays}));
 		},
 
-		getLiveData: () => (subscription) => {
+		getLiveData: () => subscription => {
 			// validate
 			if (!(subscription instanceof Subscription)) {
 				throw new InvalidStateError({
@@ -320,7 +320,7 @@ export default {
 			// get all liveQuery.cachedEntityRefs.entity
 
 			//TODO Race condition here.
-			return liveQuery.cachedEntityRefs.map((cachedEntityRef) => {
+			return liveQuery.cachedEntityRefs.map(cachedEntityRef => {
 				if (!(cachedEntityRef instanceof CachedEntity)) {
 					throw new InvalidStateError({
 						message: 'cachedEntityRef is not a cachedEntity',
@@ -330,7 +330,7 @@ export default {
 				return cachedEntityRef.entity;
 			});
 		},
-		isSingle: () => (subscription) => {
+		isSingle: () => subscription => {
 			const query = subscription.liveQuery.query;
 			return query.length === 1 && Object.keys(query[0]) === 1 && rules.integer.test(query[0].id);
 		},
@@ -868,7 +868,7 @@ export default {
 					}));
 				});
 
-				context.state.socket.emit('subscribe', {table: table.Entity.table, query}, (result) => {
+				context.state.socket.emit('subscribe', {table: table.Entity.table, query}, result => {
 					clearTimer();
 					if (sharedRegistry.autoConstruct(result) instanceof Error) {
 						reject(result);
@@ -886,7 +886,7 @@ export default {
 					}));
 				});
 
-				context.state.socket.emit('unsubscribe', {table: table.Entity.table, query}, (result) => {
+				context.state.socket.emit('unsubscribe', {table: table.Entity.table, query}, result => {
 					clearTimer();
 					if (sharedRegistry.autoConstruct(result) instanceof Error) {
 						reject(result);

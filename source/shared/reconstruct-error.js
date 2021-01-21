@@ -6,7 +6,7 @@ export default function reconstructError(Class, error) {
 	const newError = new Class(error.message);
 
 	// Copy all properties.
-	forOwnKeysOf(error, (key) => {
+	forOwnKeysOf(error, key => {
 		if (key !== 'message') {
 			copyProperty(key, error, newError);
 		}

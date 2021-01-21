@@ -236,7 +236,7 @@ export const serverOptions = (env, argv) => ({
 			//G //! Works with default node-global config settings (replaces node: {__dirname: true}).
 			apply(compiler) {
 				function setModuleConstant(expressionName, fn) {
-					compiler.hooks.normalModuleFactory.tap('MyPlugin', (factory) => {
+					compiler.hooks.normalModuleFactory.tap('MyPlugin', factory => {
 						factory.hooks.parser.for('javascript/auto').tap('MyPlugin', (parser, _options) => {
 							parser.hooks.expression.for(expressionName).tap('MyPlugin', () => {
 								parser.state.current.addVariable(expressionName, JSON.stringify(fn(parser.state.module)));

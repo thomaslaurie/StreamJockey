@@ -148,7 +148,7 @@ Object.assign(spotify, {
 		return new Promise((resolve, reject) => {
 			//! needs to be a promise wrapper because emitter.once uses a callback function
 			// setup listener for authRequestKey
-			emitter.once(credentials.authRequestKey, (result) => {
+			emitter.once(credentials.authRequestKey, result => {
 				resolve(result);
 			});
 
@@ -179,7 +179,7 @@ Object.assign(spotify, {
 				// alternative to client_id and client_secret properties, put this in header: 'Authorization': `Basic ${btoa(`${process.env.SPOTIFY_CLIENT_ID}:${process.env.SPOTIFY_CLIENT_SECRET}`)}`,
 			}),
 			headers: URL_HEADER,
-		}).catch((rejected) => {
+		}).catch(rejected => {
 			throw new InvalidStateError({
 				userMessage: 'failed to authorize spotify',
 				message: 'token exchange failed',
@@ -223,7 +223,7 @@ Object.assign(spotify, {
 				client_secret: process.env.SPOTIFY_CLIENT_SECRET,
 			}),
 			headers: URL_HEADER,
-		}).catch((rejected) => {
+		}).catch(rejected => {
 			throw new InvalidStateError({
 				userMessage: 'failed to authorize spotify',
 				message: 'token refresh failed',

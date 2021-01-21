@@ -38,7 +38,7 @@ async function basePrepare(t, user) {
 	// Hash password.
 	//TODO might be a vulnerability here with this string check
 	if (rules.string.test(newUser.password)) {
-		newUser.password = await bcrypt.hash(newUser.password, PASSWORD_SALT_ROUNDS).catch((rejected) => {
+		newUser.password = await bcrypt.hash(newUser.password, PASSWORD_SALT_ROUNDS).catch(rejected => {
 			throw new InvalidStateError({
 				userMessage: 'failed to add user',
 				message: 'hash failed',

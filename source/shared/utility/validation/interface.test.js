@@ -6,7 +6,7 @@ import {
 	SymbolInterface,
 } from './interface.js';
 
-test('complete interface', (t) => {
+test('complete interface', t => {
 	t.assert((new Interface({
 		jump: Interface.exists,
 		swim: Interface.exists,
@@ -18,7 +18,7 @@ test('complete interface', (t) => {
 	}));
 });
 
-test('incomplete interface', (t) => {
+test('incomplete interface', t => {
 	t.assert(!(new Interface({
 		jump: Interface.exists,
 		swim: Interface.exists,
@@ -29,7 +29,7 @@ test('incomplete interface', (t) => {
 	}));
 });
 
-test('exists succeeds', (t) => {
+test('exists succeeds', t => {
 	t.assert((new Interface({
 		foo: Interface.exists,
 	})).test({
@@ -37,13 +37,13 @@ test('exists succeeds', (t) => {
 	}));
 });
 
-test('exists fails', (t) => {
+test('exists fails', t => {
 	t.assert(!(new Interface({
 		foo: Interface.exists,
 	})).test({}));
 });
 
-test('validator succeeds', (t) => {
+test('validator succeeds', t => {
 	t.assert((new Interface({
 		foo: (o, k) => o[k] === 'foo',
 	})).test({
@@ -51,7 +51,7 @@ test('validator succeeds', (t) => {
 	}));
 });
 
-test('validator fails', (t) => {
+test('validator fails', t => {
 	t.assert(!(new Interface({
 		foo: (o, k) => o[k] === 'foo',
 	})).test({
@@ -59,13 +59,13 @@ test('validator fails', (t) => {
 	}));
 });
 
-test('full undefined succeeds', (t) => {
+test('full undefined succeeds', t => {
 	t.assert((new Interface({
 		foo: (o, k) => o[k] === undefined,
 	})).test({}));
 });
 
-test('full undefined fails', (t) => {
+test('full undefined fails', t => {
 	t.assert(!(new Interface({
 		foo: (o, k) => o[k] === undefined,
 	})).test({
@@ -73,7 +73,7 @@ test('full undefined fails', (t) => {
 	}));
 });
 
-test('partial undefined succeeds', (t) => {
+test('partial undefined succeeds', t => {
 	t.assert((new Interface({
 		foo: (o, k) => o[k] === undefined,
 		bar: (o, k) => o[k] === 'bar',
@@ -82,7 +82,7 @@ test('partial undefined succeeds', (t) => {
 	}));
 });
 
-test('partial undefined fails', (t) => {
+test('partial undefined fails', t => {
 	t.assert(!(new Interface({
 		foo: (o, k) => o[k] === undefined,
 		bar: (o, k) => o[k] === 'bar',
@@ -92,13 +92,13 @@ test('partial undefined fails', (t) => {
 	}));
 });
 
-test('full undeclared succeeds', (t) => {
+test('full undeclared succeeds', t => {
 	t.assert((new Interface({
 		foo: (o, k) => !(k in o),
 	})).test({}));
 });
 
-test('full declared fails', (t) => {
+test('full declared fails', t => {
 	t.assert(!(new Interface({
 		foo: (o, k) => !(k in o),
 	})).test({
@@ -106,7 +106,7 @@ test('full declared fails', (t) => {
 	}));
 });
 
-test('partial undeclared succeeds', (t) => {
+test('partial undeclared succeeds', t => {
 	t.assert((new Interface({
 		foo: (o, k) => !(k in o),
 		bar: (o, k) => o[k] === 'bar',
@@ -115,7 +115,7 @@ test('partial undeclared succeeds', (t) => {
 	}));
 });
 
-test('partial undeclared fails', (t) => {
+test('partial undeclared fails', t => {
 	t.assert(!(new Interface({
 		foo: (o, k) => !(k in o),
 		bar: (o, k) => o[k] === 'bar',
@@ -125,7 +125,7 @@ test('partial undeclared fails', (t) => {
 	}));
 });
 
-test('all fails', (t) => {
+test('all fails', t => {
 	t.assert(!(new Interface({
 		foo: (o, k) => o[k] === 'foo',
 		bar: (o, k) => o[k] === 'bar',
@@ -134,7 +134,7 @@ test('all fails', (t) => {
 	}, 'all'));
 });
 
-test('any fails', (t) => {
+test('any fails', t => {
 	t.assert(!(new Interface({
 		foo: (o, k) => o[k] === 'foo',
 		bar: (o, k) => o[k] === 'bar',
@@ -143,36 +143,36 @@ test('any fails', (t) => {
 	}, 'any'));
 });
 
-test('empty', (t) => {
+test('empty', t => {
 	t.assert((new Interface({
 	})).test({
 	}));
 });
 
-test.beforeEach((t) => {
+test.beforeEach(t => {
 	t.context.symbolInterface = new SymbolInterface({
 		foo: (o, k) => o[k] === 'foo',
 	});
 });
 
-test('SymbolInterface by value succeeds', (t) => {
+test('SymbolInterface by value succeeds', t => {
 	t.assert(t.context.symbolInterface.test({
 		[t.context.symbolInterface.keys.foo]: 'foo',
 	}));
 });
 
-test('SymbolInterface by key fails', (t) => {
+test('SymbolInterface by key fails', t => {
 	t.assert(!t.context.symbolInterface.test({
 		foo: 'foo',
 	}));
 });
 
-test('throws validator option', (t) => {
+test('throws validator option', t => {
 	t.throws(() => {
 		new Interface({}, {validator: () => {}});
 	});
 });
-test('options are passed to Rule constructor', (t) => {
+test('options are passed to Rule constructor', t => {
 	const caster = () => {};
 	const foo = new Interface({}, {caster});
 	t.is(foo.caster, caster);

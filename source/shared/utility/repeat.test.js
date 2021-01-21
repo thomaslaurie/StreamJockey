@@ -2,7 +2,7 @@ import test from 'ava';
 import repeat from './repeat.js';
 import wait from './time/wait.js';
 
-test('function runs at least once', async (t) => {
+test('function runs at least once', async t => {
 	t.plan(3);
 
 	repeat(() => t.pass(), {
@@ -29,7 +29,7 @@ test('function runs at least once', async (t) => {
 		onCountout() {},
 	});
 });
-test('function runs until', async (t) => {
+test('function runs until', async t => {
 	let count1 = 0;
 	repeat(() => {
 		count1++;
@@ -54,7 +54,7 @@ test('function runs until', async (t) => {
 	});
 	t.assert(count3 === 19);
 });
-test('function runs for specified count', async (t) => {
+test('function runs for specified count', async t => {
 	t.plan(60);
 
 	repeat(() => t.pass(), {
@@ -72,7 +72,7 @@ test('function runs for specified count', async (t) => {
 		onCountout() {},
 	});
 });
-test('function runs for specified time', async (t) => { //! Flakey, x3
+test('function runs for specified time', async t => { //! Flakey, x3
 	const timeout = 500;
 
 	let startTime1 = null;
@@ -111,7 +111,7 @@ test('function runs for specified time', async (t) => { //! Flakey, x3
 		},
 	});
 });
-test('async runs in series', async (t) => {
+test('async runs in series', async t => {
 	const start = Date.now();
 	await repeat.async(async () => {
 		await wait(100);
@@ -122,7 +122,7 @@ test('async runs in series', async (t) => {
 		},
 	});
 });
-test('throws on invalid inputs', async (t) => {
+test('throws on invalid inputs', async t => {
 	t.throws(() => {
 		repeat(undefined);
 	});
@@ -210,11 +210,11 @@ test('throws on invalid inputs', async (t) => {
 		});
 	});
 });
-test('previous result is passed to function', async (t) => {
+test('previous result is passed to function', async t => {
 	t.plan(3);
 
 	const value1 = Symbol();
-	repeat((previousResult) => {
+	repeat(previousResult => {
 		if (previousResult !== undefined) t.is(previousResult, value1);
 		return value1;
 	}, {
@@ -223,7 +223,7 @@ test('previous result is passed to function', async (t) => {
 	});
 
 	const value2 = Symbol();
-	repeat.sync((previousResult) => {
+	repeat.sync(previousResult => {
 		if (previousResult !== undefined) t.is(previousResult, value2);
 		return value2;
 	}, {
@@ -232,7 +232,7 @@ test('previous result is passed to function', async (t) => {
 	});
 
 	const value3 = Symbol();
-	await repeat.async(async (previousResult) => {
+	await repeat.async(async previousResult => {
 		if (previousResult !== undefined) t.is(previousResult, value3);
 		return value3;
 	}, {

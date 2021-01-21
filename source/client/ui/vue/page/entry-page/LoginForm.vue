@@ -16,7 +16,7 @@ export default {
 	},
 	methods: {
 		async submit() {
-			const result = await session.login(this).catch((rejected) => {
+			const result = await session.login(this).catch(rejected => {
 				//TODO handle error
 				throw rejected;
 				// console.error(rejected); //TODO//! If the login is invalid or the quest fails for some reason, this would've still continue to the home page.

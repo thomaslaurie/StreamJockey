@@ -32,19 +32,19 @@ const populatedString = new Rule({
 	},
 });
 
-test('validate pass', (t) => {
+test('validate pass', t => {
 	t.assert(boolCatch(() => string.validate('asdf')));
 });
-test('validate fail', (t) => {
+test('validate fail', t => {
 	t.assert(!boolCatch(() => string.validate(12345)));
 });
-test('test pass', (t) => {
+test('test pass', t => {
 	t.assert(string.test('asdf'));
 });
-test('test fail', (t) => {
+test('test fail', t => {
 	t.assert(!string.test(12345));
 });
-test('validate cast pass', (t) => {
+test('validate cast pass', t => {
 	t.assert(boolCatch(() => {
 		const [result] = populatedString.validateCast('  asdf  ');
 		if (typeof result !== 'string' || result.trim() === '') {
@@ -52,12 +52,12 @@ test('validate cast pass', (t) => {
 		}
 	}));
 });
-test('validate cast fail', (t) => {
+test('validate cast fail', t => {
 	t.assert(!boolCatch(() => populatedString.validateCast('')));
 });
-test('test cast pass', (t) => {
+test('test cast pass', t => {
 	t.assert(populatedString.test('   asdf   '));
 });
-test('test cast fail', (t) => {
+test('test cast fail', t => {
 	t.assert(!populatedString.test(''));
 });

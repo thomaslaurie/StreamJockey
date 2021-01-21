@@ -16,7 +16,7 @@ export default class UnknownError extends Error {
 		super(error.message);
 
 		// Copy all properties.
-		forOwnKeysOf(error, (key) => {
+		forOwnKeysOf(error, key => {
 			if (key !== 'message') {
 				copyProperty(key, error, this);
 			}

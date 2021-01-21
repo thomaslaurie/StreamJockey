@@ -75,13 +75,13 @@ optionsObjects.forEach((optionsObject, index) => {
 
 	let objectCombinations = [];
 
-	test(`options object ${index} - no runtime errors`, (t) => {
+	test(`options object ${index} - no runtime errors`, t => {
 		t.notThrows(() => {
 			objectCombinations = combinations(optionsObject);
 		});
 	});
 
-	test(`options object ${index} - number of combinations`, (t) => {
+	test(`options object ${index} - number of combinations`, t => {
 		t.assert(objectCombinations.length === numberOfCombinations);
 	});
 });

@@ -46,7 +46,7 @@ define.constant(Track.prototype, {
 // CRUD
 async function baseBefore(t, entities) {
 	const newEntities = entities.slice();
-	newEntities.forEach((entity) => {
+	newEntities.forEach(entity => {
 		//TODO Possible issue here where the condition following && could evaluate first. Not sure what the precedent is.
 		entity.source = rules.object.test(entity.source) && rules.string.test(entity.source.name)
 			? entity.source.name
@@ -81,7 +81,7 @@ async function baseAccommodate(t, tracks) {
 	//L pg-promise transactions https://github.com/vitaly-t/pg-promise#transactions
 	//L deferrable constraints  https://www.postgresql.org/docs/9.1/static/sql-set-constraints.html
 	//L https://stackoverflow.com/questions/2679854/postgresql-disabling-constraints
-	await t.none(`SET CONSTRAINTS "sj"."tracks_playlistId_position_key" DEFERRED`).catch((rejected) => {
+	await t.none(`SET CONSTRAINTS "sj"."tracks_playlistId_position_key" DEFERRED`).catch(rejected => {
 		throw new PostgresError({
 			postgresError: rejected,
 			userMessage: 'Could not order tracks, a database error has occurred.',
@@ -98,7 +98,7 @@ define.constant(Track, {
 async function baseAfter(t, entities) {
 	const newEntities = entities.slice();
 
-	newEntities.forEach((entity) => {
+	newEntities.forEach(entity => {
 		entity.source = Source.instances.find(source => source.name === entity.source);
 	});
 
@@ -142,7 +142,7 @@ define.constant(Track, {
 
 		// console.log('inputTracks.length:', inputTracks.length, '\n ---');
 
-		return db.tx(async (t) => {
+		return db.tx(async t => {
 			const playlists = [];
 			const influencedTracks = [];
 			const inputIndex = Symbol();
@@ -211,7 +211,7 @@ define.constant(Track, {
 							WHERE "id" = $1
 						)
 				`, track.id);
-				const currentPlaylist = await t.any('$1:raw', currentQuery).catch((rejected) => {
+				const currentPlaylist = await t.any('$1:raw', currentQuery).catch(rejected => {
 					throw new PostgresError({
 						postgresError: rejected,
 						userMessage: 'Could not move tracks.',
@@ -222,7 +222,7 @@ define.constant(Track, {
 				// store
 				const currentPlaylistStored = storePlaylist(action === 'Add' ? track.playlistId : currentPlaylist[0].playlistId, currentPlaylist); //! track.playlistId might not be currentPlaylistId
 				// strip playlistId from playlist, this is done so that only modified properties will remain on the track objects
-				currentPlaylistStored.original.forEach((t) => {
+				currentPlaylistStored.original.forEach(t => {
 					delete t.playlistId;
 				});
 
@@ -238,7 +238,7 @@ define.constant(Track, {
 						SELECT "id", "position", "playlistId"
 						FROM "sj"."tracks" 
 						WHERE "playlistId" = $1
-					`, track.playlistId).catch((rejected) => {
+					`, track.playlistId).catch(rejected => {
 						throw new PostgresError({
 							postgresError: rejected,
 							userMessage: 'Could not move tracks.',
@@ -246,7 +246,7 @@ define.constant(Track, {
 					});
 
 					const anotherPlaylistStored = storePlaylist(track.playlistId, anotherPlaylist);
-					anotherPlaylistStored.original.forEach((t) => {
+					anotherPlaylistStored.original.forEach(t => {
 						delete t.playlistId;
 					});
 
@@ -254,7 +254,7 @@ define.constant(Track, {
 					currentPlaylistStored.inputsToRemove.push(track);
 					anotherPlaylistStored.inputsToAdd.push(track);
 				}
-			}).catch((rejected) => {
+			}).catch(rejected => {
 				throw new MultipleErrors({
 					userMessage: `could not retrieve some track's playlist`,
 					errors: rejected,
@@ -264,7 +264,7 @@ define.constant(Track, {
 			// console.log('playlists.length:', playlists.length, '\n ---');
 
 			// calculate new track positions required to accommodate input tracks' positions
-			playlists.forEach((playlist) => {
+			playlists.forEach(playlist => {
 				// populate others with tracks in original that are not in inputsTo Add, Remove, or Move
 				//! inputsToRemove can be ignored from this point on, these tracks aren't included in others and wont be added to the final ordered list
 				playlist.others = playlist.original.filter(originalTrack => !playlist.inputsToAdd.some(addingTrack => addingTrack.id === originalTrack.id)
@@ -276,7 +276,7 @@ define.constant(Track, {
 				// combine both adding and moving,
 				playlist.inputsToPosition = [...playlist.inputsToAdd, ...playlist.inputsToMove];
 				// give tracks with no position an Infinite position so they get added to the bottom of the playlist
-				playlist.inputsToPosition.forEach((trackToPosition) => {
+				playlist.inputsToPosition.forEach(trackToPosition => {
 					if (!rules.number.test(trackToPosition.position)) {
 						trackToPosition.position === Infinity;
 					}
@@ -296,10 +296,10 @@ define.constant(Track, {
 
 
 				// inputIndex is no longer needed, remove it from anything it was added to
-				playlist.inputsToPosition.forEach((trackToPosition) => {
+				playlist.inputsToPosition.forEach(trackToPosition => {
 					delete trackToPosition[inputIndex];
 				});
-				playlist.inputsToRemove.forEach((trackToRemove) => {
+				playlist.inputsToRemove.forEach(trackToRemove => {
 					delete trackToRemove[inputIndex];
 				});
 
@@ -351,7 +351,7 @@ define.constant(Track, {
 			});
 
 			// remove temporary symbol id from add tracks and null position from delete tracks
-			inputTracks.forEach((inputTrack) => {
+			inputTracks.forEach(inputTrack => {
 				if (typeof inputTrack.id === 'symbol') {
 					delete inputTrack.id;
 				}

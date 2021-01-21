@@ -37,7 +37,7 @@ const isFilePath = new RegExp(`${escapeRegExp(testSuffix)}$`, 'u');
 
 	// Run tests with ava.
 	await asyncSpawn(`npx ava ${fullPath} ${verboseFlag} ${watchFlag}`);
-})().catch((error) => {
+})().catch(error => {
 	if (error && error.code === 1 && error.signal === null) {
 		// Do nothing, error will be logged by ava.
 	} else {

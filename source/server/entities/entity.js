@@ -97,7 +97,7 @@ define.constant(Entity, {
 		const accessory = {};
 
 
-		const after = await db.tx(async (t) => {
+		const after = await db.tx(async t => {
 			// process
 			const beforeEntities = await this[methodName + 'Before'](t, entities, accessory);
 
@@ -129,7 +129,7 @@ define.constant(Entity, {
 			const inputBefore = [];
 			const inputAfter = isGetMimic ? inputMapped : [];
 			if (!isGetMimic) {
-				await asyncMap(inputMapped, async (entity) => {
+				await asyncMap(inputMapped, async entity => {
 					// before, ignore add
 					if (!isGet && methodName !== 'add') {
 						const before = await this.getQuery(t, pick(entity, this.filters.id)).then(any).catch(propagate);
@@ -146,7 +146,7 @@ define.constant(Entity, {
 			const influencedBefore = [];
 			const influencedAfter = [];
 			if (!isGet) {
-				await asyncMap(influencedMapped, async (influencedEntity) => {
+				await asyncMap(influencedMapped, async influencedEntity => {
 					const before = await this.getQuery(t, pick(influencedEntity, this.filters.id)).then(any).catch(propagate);
 					influencedBefore.push(...before);
 
@@ -177,7 +177,7 @@ define.constant(Entity, {
 
 		// if get, don't notify
 		if (!isGet) {
-			shookGet.forEach((list) => {
+			shookGet.forEach(list => {
 				this.notify(this, list, timestamp, methodName);
 			});
 		} else if (isGetMimic) {
@@ -215,7 +215,7 @@ define.constant(Entity, {
 	// Validates each using Entity.schema
 	async validate(entity, methodName) {
 		const validated = {};
-		await asyncMap(Object.keys(this.schema), async (key) => {
+		await asyncMap(Object.keys(this.schema), async key => {
 			const {
 				rule: validator,
 				[methodName]: {check},
@@ -261,9 +261,9 @@ define.constant(Entity, {
 	// Maps js property names to database column names.
 	mapColumns(entities) {
 		// Switches entities' js named keys for column named keys based on schema.
-		return entities.map((entity) => { // For each entity.
+		return entities.map(entity => { // For each entity.
 			const mappedEntity = {};
-			Object.keys(entity).forEach((key) => { // For each property.
+			Object.keys(entity).forEach(key => { // For each property.
 				if (rules.object.test(this.schema[key]) && rules.string.test(this.schema[key].columnName)) { // If schema has property.
 					mappedEntity[this.schema[key].columnName] = entity[key]; // Set mappedEntity[columnName] as property value.
 				} else {
@@ -275,9 +275,9 @@ define.constant(Entity, {
 	},
 	unmapColumns(mappedEntities) {
 		// Inverse of mapColumns().
-		return mappedEntities.map((mappedEntity) => { // For each entity.
+		return mappedEntities.map(mappedEntity => { // For each entity.
 			const entity = {};
-			Object.keys(mappedEntity).forEach((columnName) => { // For each columnName.
+			Object.keys(mappedEntity).forEach(columnName => { // For each columnName.
 				const key = Object.keys(this.schema).find(key => this.schema[key].columnName === columnName); // Find key in schema with same columnName.
 				if (rules.string.test(key)) {
 					// Set entity[key] as value of mappedEntity[columnName].
@@ -303,7 +303,7 @@ define.constant(Entity, {
 			INSERT INTO "sj"."${this.table}" 
 			$1:raw 
 			RETURNING *
-		`, [values]).catch((rejected) => {
+		`, [values]).catch(rejected => {
 			throw new PostgresError({
 				postgresError: rejected,
 				userMessage: `Could not add ${this.name}s.`,
@@ -318,7 +318,7 @@ define.constant(Entity, {
 			FROM "sj"."${this.table}" 
 			WHERE $1:raw
 			${this.queryOrder}
-		`, [where]).catch((rejected) => {
+		`, [where]).catch(rejected => {
 			throw new PostgresError({
 				postgresError: rejected,
 				userMessage: `Could not get ${this.name}s.`,
@@ -335,7 +335,7 @@ define.constant(Entity, {
 			SET $1:raw 
 			WHERE $2:raw 
 			RETURNING *
-		`, [set, where]).catch((rejected) => {
+		`, [set, where]).catch(rejected => {
 			throw new PostgresError({
 				postgresError: rejected,
 				userMessage: `Could not edit ${this.name}s.`,
@@ -349,7 +349,7 @@ define.constant(Entity, {
 			DELETE FROM "sj"."${this.table}" 
 			WHERE $1:raw 
 			RETURNING *
-		`, where).catch((rejected) => {
+		`, where).catch(rejected => {
 			throw new PostgresError({
 				postgresError: rejected,
 				userMessage: `Could not remove ${this.name}s.`,

@@ -34,7 +34,7 @@ define.constant(ClassRegistry.prototype, {
 		rules.string.validate(id);
 		rules.func.validate(reconstructor);
 
-		this.registry.forEach((registered) => {
+		this.registry.forEach(registered => {
 			if (registered.Class === Class) {
 				throw new Error('Cannot register auto constructable class, as the class has already been registered.');
 			}

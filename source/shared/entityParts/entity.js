@@ -21,7 +21,7 @@ export default new ClassParts({
 		//TODO Refactor this, filters shouldn't be using the same name, its a bit confusing.
 		const that = this;
 		const staticFilters = this.constructor.filters;
-		getKeysOf(staticFilters).forEach((key) => {
+		getKeysOf(staticFilters).forEach(key => {
 			define.getter(this.filters, {
 				get [key]() {
 					return pick(that, staticFilters[key]);
@@ -49,9 +49,9 @@ export default new ClassParts({
 
 				const schemaFilters = {};
 
-				Object.keys(this.schema).forEach((key) => { // For each property,
-					methodNames.forEach((methodName) => {   // for each crud method,
-						types.forEach((type) => {           // for each filter type:
+				Object.keys(this.schema).forEach(key => { // For each property,
+					methodNames.forEach(methodName => {   // for each crud method,
+						types.forEach(type => {           // for each filter type:
 							if (this.schema[key][methodName][type]) { // If property is optional or required:
 								const filterName = methodName + type.charAt(0).toUpperCase() + type.slice(1); // Add it to the specific filter.
 								if (!schemaFilters[filterName]) schemaFilters[filterName] = [];

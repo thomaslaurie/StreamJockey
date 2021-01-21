@@ -152,7 +152,7 @@ const fulfilled = Symbol();
 const rejected  = Symbol();
 const reject    = Symbol();
 
-test.beforeEach((t) => {
+test.beforeEach(t => {
 	t.context.source = {};
 
 	t.context.commandQueue = new CommandQueue({
@@ -286,7 +286,7 @@ test.beforeEach((t) => {
 // SIMPLE INTERACTIONS
 
 // Start
-test('start overwrites start', async (t) => {
+test('start overwrites start', async t => {
 	t.deepEqual(await t.context.trackActions([
 		[0, t.context.start, new Track()],
 		[1, t.context.start, new Track()],
@@ -296,7 +296,7 @@ test('start overwrites start', async (t) => {
 		[1, fulfilled],
 	]);
 });
-test('start overwrites pause', async (t) => {
+test('start overwrites pause', async t => {
 	t.deepEqual(await t.context.trackActions([
 		[0, t.context.pause],
 		[1, t.context.start, new Track()],
@@ -306,7 +306,7 @@ test('start overwrites pause', async (t) => {
 		[1, fulfilled],
 	]);
 });
-test('start overwrites resume', async (t) => {
+test('start overwrites resume', async t => {
 	t.deepEqual(await t.context.trackActions([
 		[0, t.context.resume],
 		[1, t.context.start, new Track()],
@@ -316,7 +316,7 @@ test('start overwrites resume', async (t) => {
 		[1, fulfilled],
 	]);
 });
-test('start overwrites seek', async (t) => {
+test('start overwrites seek', async t => {
 	t.deepEqual(await t.context.trackActions([
 		[0, t.context.seek, 0.1],
 		[1, t.context.start, new Track()],
@@ -326,7 +326,7 @@ test('start overwrites seek', async (t) => {
 		[1, fulfilled],
 	]);
 });
-test('start ignores volume', async (t) => {
+test('start ignores volume', async t => {
 	t.deepEqual(await t.context.trackActions([
 		[0, t.context.volume, 0.1],
 		[1, t.context.start, new Track()],
@@ -339,7 +339,7 @@ test('start ignores volume', async (t) => {
 });
 
 // Pause
-test('pause ignores start', async (t) => {
+test('pause ignores start', async t => {
 	t.deepEqual(await t.context.trackActions([
 		[0, t.context.start, new Track()],
 		[1, t.context.pause],
@@ -350,7 +350,7 @@ test('pause ignores start', async (t) => {
 		[1, fulfilled],
 	]);
 });
-test('pause overwrites pause', async (t) => {
+test('pause overwrites pause', async t => {
 	t.deepEqual(await t.context.trackActions([
 		[0, t.context.pause],
 		[1, t.context.pause],
@@ -360,7 +360,7 @@ test('pause overwrites pause', async (t) => {
 		[1, fulfilled],
 	]);
 });
-test('pause overwrites resume', async (t) => {
+test('pause overwrites resume', async t => {
 	t.deepEqual(await t.context.trackActions([
 		[0, t.context.resume],
 		[1, t.context.pause],
@@ -370,7 +370,7 @@ test('pause overwrites resume', async (t) => {
 		[1, fulfilled],
 	]);
 });
-test('pause ignores seek', async (t) => {
+test('pause ignores seek', async t => {
 	t.deepEqual(await t.context.trackActions([
 		[0, t.context.seek, 0.1],
 		[1, t.context.pause],
@@ -381,7 +381,7 @@ test('pause ignores seek', async (t) => {
 		[1, fulfilled],
 	]);
 });
-test('pause ignores volume', async (t) => {
+test('pause ignores volume', async t => {
 	t.deepEqual(await t.context.trackActions([
 		[0, t.context.volume, 0.1],
 		[1, t.context.pause],
@@ -394,7 +394,7 @@ test('pause ignores volume', async (t) => {
 });
 
 // Resume
-test('resume compacts into start', async (t) => {
+test('resume compacts into start', async t => {
 	t.deepEqual(await t.context.trackActions([
 		[0, t.context.start, new Track()],
 		[1, t.context.resume],
@@ -404,7 +404,7 @@ test('resume compacts into start', async (t) => {
 		[1, fulfilled],
 	]);
 });
-test('resume overwrites pause', async (t) => {
+test('resume overwrites pause', async t => {
 	t.deepEqual(await t.context.trackActions([
 		[0, t.context.pause],
 		[1, t.context.resume],
@@ -414,7 +414,7 @@ test('resume overwrites pause', async (t) => {
 		[1, fulfilled],
 	]);
 });
-test('resume overwrites resume', async (t) => {
+test('resume overwrites resume', async t => {
 	t.deepEqual(await t.context.trackActions([
 		[0, t.context.resume],
 		[1, t.context.resume],
@@ -424,7 +424,7 @@ test('resume overwrites resume', async (t) => {
 		[1, fulfilled],
 	]);
 });
-test('resume ignores seek', async (t) => {
+test('resume ignores seek', async t => {
 	t.deepEqual(await t.context.trackActions([
 		[0, t.context.seek, 0.1],
 		[1, t.context.resume],
@@ -435,7 +435,7 @@ test('resume ignores seek', async (t) => {
 		[1, fulfilled],
 	]);
 });
-test('resume ignores volume', async (t) => {
+test('resume ignores volume', async t => {
 	t.deepEqual(await t.context.trackActions([
 		[0, t.context.volume, 0.1],
 		[1, t.context.resume],
@@ -448,7 +448,7 @@ test('resume ignores volume', async (t) => {
 });
 
 // Seek
-test('seek ignores start', async (t) => {
+test('seek ignores start', async t => {
 	t.deepEqual(await t.context.trackActions([
 		[0, t.context.start, new Track()],
 		[1, t.context.seek, 0.1],
@@ -459,7 +459,7 @@ test('seek ignores start', async (t) => {
 		[1, fulfilled],
 	]);
 });
-test('seek ignores pause', async (t) => {
+test('seek ignores pause', async t => {
 	t.deepEqual(await t.context.trackActions([
 		[0, t.context.pause],
 		[1, t.context.seek, 0.1],
@@ -470,7 +470,7 @@ test('seek ignores pause', async (t) => {
 		[1, fulfilled],
 	]);
 });
-test('seek ignores resume', async (t) => {
+test('seek ignores resume', async t => {
 	t.deepEqual(await t.context.trackActions([
 		[0, t.context.resume],
 		[1, t.context.seek, 0.1],
@@ -481,7 +481,7 @@ test('seek ignores resume', async (t) => {
 		[1, fulfilled],
 	]);
 });
-test('seek overwrites seek', async (t) => {
+test('seek overwrites seek', async t => {
 	t.deepEqual(await t.context.trackActions([
 		[0, t.context.seek, 0.2],
 		[1, t.context.seek, 0.1],
@@ -491,7 +491,7 @@ test('seek overwrites seek', async (t) => {
 		[1, fulfilled],
 	]);
 });
-test('seek ignores volume', async (t) => {
+test('seek ignores volume', async t => {
 	t.deepEqual(await t.context.trackActions([
 		[0, t.context.volume, 0.1],
 		[1, t.context.seek, 0.1],
@@ -503,7 +503,7 @@ test('seek ignores volume', async (t) => {
 	]);
 });
 
-test('seek 0 compacts into start', async (t) => {
+test('seek 0 compacts into start', async t => {
 	t.deepEqual(await t.context.trackActions([
 		[0, t.context.start, new Track()],
 		[1, t.context.seek, 0],
@@ -515,7 +515,7 @@ test('seek 0 compacts into start', async (t) => {
 });
 
 // Volume
-test('volume ignores start', async (t) => {
+test('volume ignores start', async t => {
 	t.deepEqual(await t.context.trackActions([
 		[0, t.context.start, new Track()],
 		[1, t.context.volume, 0.1],
@@ -526,7 +526,7 @@ test('volume ignores start', async (t) => {
 		[1, fulfilled],
 	]);
 });
-test('volume ignores pause', async (t) => {
+test('volume ignores pause', async t => {
 	t.deepEqual(await t.context.trackActions([
 		[0, t.context.pause],
 		[1, t.context.volume, 0.1],
@@ -537,7 +537,7 @@ test('volume ignores pause', async (t) => {
 		[1, fulfilled],
 	]);
 });
-test('volume ignores resume', async (t) => {
+test('volume ignores resume', async t => {
 	t.deepEqual(await t.context.trackActions([
 		[0, t.context.resume],
 		[1, t.context.volume, 0.1],
@@ -548,7 +548,7 @@ test('volume ignores resume', async (t) => {
 		[1, fulfilled],
 	]);
 });
-test('volume overwrites volume', async (t) => {
+test('volume overwrites volume', async t => {
 	t.deepEqual(await t.context.trackActions([
 		[0, t.context.volume, 0.1],
 		[1, t.context.volume, 0.1],
@@ -558,7 +558,7 @@ test('volume overwrites volume', async (t) => {
 		[1, fulfilled],
 	]);
 });
-test('volume ignores seek', async (t) => {
+test('volume ignores seek', async t => {
 	t.deepEqual(await t.context.trackActions([
 		[0, t.context.seek, 0.2],
 		[1, t.context.volume, 0.1],
@@ -572,7 +572,7 @@ test('volume ignores seek', async (t) => {
 
 
 // Resolution
-test('one command fulfills', async (t) => {
+test('one command fulfills', async t => {
 	t.deepEqual(await t.context.trackActions([
 		[0, t.context.pause],
 	]), [
@@ -580,7 +580,7 @@ test('one command fulfills', async (t) => {
 		[0, fulfilled],
 	]);
 });
-test('one command rejects', async (t) => {
+test('one command rejects', async t => {
 	t.deepEqual(await t.context.trackActions([
 		[0, t.context.pause, , reject],
 	]), [
@@ -591,7 +591,7 @@ test('one command rejects', async (t) => {
 
 
 // Rejections
-test('prev command rejects if compacted into rejected command', async (t) => {
+test('prev command rejects if compacted into rejected command', async t => {
 	t.deepEqual(await t.context.trackActions([
 		[0, t.context.pause],
 		[1, t.context.resume, , reject],
@@ -601,7 +601,7 @@ test('prev command rejects if compacted into rejected command', async (t) => {
 		[1, rejected],
 	]);
 });
-test('prev command fulfills if compacted into fulfilled command', async (t) => {
+test('prev command fulfills if compacted into fulfilled command', async t => {
 	t.deepEqual(await t.context.trackActions([
 		[0, t.context.pause, , reject],
 		[1, t.context.resume],
@@ -611,7 +611,7 @@ test('prev command fulfills if compacted into fulfilled command', async (t) => {
 		[1, fulfilled],
 	]);
 });
-test('next command rejects if compacted into rejected command', async (t) => {
+test('next command rejects if compacted into rejected command', async t => {
 	t.deepEqual(await t.context.trackActions([
 		[0, t.context.start, new Track(), reject],
 		[1, t.context.resume],
@@ -621,7 +621,7 @@ test('next command rejects if compacted into rejected command', async (t) => {
 		[1, rejected],
 	]);
 });
-test('next command fulfills if compacted into fulfilled command', async (t) => {
+test('next command fulfills if compacted into fulfilled command', async t => {
 	t.deepEqual(await t.context.trackActions([
 		[0, t.context.start, new Track()],
 		[1, t.context.resume, , reject],
@@ -634,7 +634,7 @@ test('next command fulfills if compacted into fulfilled command', async (t) => {
 
 
 // Different Source
-test('different source does not overwrite', async (t) => {
+test('different source does not overwrite', async t => {
 	async function differentResume(trigger) {
 		const deferred = t.context.commandQueue.pushCommand(new Toggle({
 			trigger,
@@ -656,7 +656,7 @@ test('different source does not overwrite', async (t) => {
 		[1, fulfilled],
 	]);
 });
-test('different source does not compact into prev command', async (t) => {
+test('different source does not compact into prev command', async t => {
 	async function differentResume(trigger) {
 		const deferred = t.context.commandQueue.pushCommand(new Toggle({
 			trigger,
@@ -680,7 +680,7 @@ test('different source does not compact into prev command', async (t) => {
 });
 
 // MISC
-test('commands trigger and resolve sequentially', async (t) => {
+test('commands trigger and resolve sequentially', async t => {
 	const order = await t.context.trackActions([
 		[0, t.context.seek, 0.1],
 		[1, t.context.pause],
@@ -704,7 +704,7 @@ test('commands trigger and resolve sequentially', async (t) => {
 		[5, fulfilled],
 	]);
 });
-test('multiple overwrites of different properties', async (t) => {
+test('multiple overwrites of different properties', async t => {
 	t.deepEqual(await t.context.trackActions([
 		[0, t.context.resume],
 		[1, t.context.seek, 0.1],
@@ -723,7 +723,7 @@ test('multiple overwrites of different properties', async (t) => {
 	]);
 });
 
-test('compacted command does not trigger or fulfill before sent command', async (t) => {
+test('compacted command does not trigger or fulfill before sent command', async t => {
 	const order = [];
 
 	const deferred = new Deferred();
@@ -765,7 +765,7 @@ test('compacted command does not trigger or fulfill before sent command', async 
 	]);
 });
 
-test('desired state properly represents queue', async (t) => {
+test('desired state properly represents queue', async t => {
 	const trigger = () => Promise.resolve();
 	const trackA = new Track();
 	const trackB = new Track();

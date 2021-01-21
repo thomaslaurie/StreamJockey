@@ -70,7 +70,7 @@ const liveDataServer = {
 			next();
 		});
 
-		this.socket.on('connect', (socket) => {
+		this.socket.on('connect', socket => {
 			try {
 				console.log('CONNECT', socket.id);
 
@@ -84,7 +84,7 @@ const liveDataServer = {
 					try {
 						console.log('DISCONNECT', socket.id);
 
-						await this.disconnect(socket.id).catch((rejected) => {
+						await this.disconnect(socket.id).catch(rejected => {
 							//TODO handle better
 							console.error('subscription disconnect error:', rejected);
 						});
@@ -134,7 +134,7 @@ const liveDataServer = {
 					}
 				});
 
-				socket.on('error', (reason) => {
+				socket.on('error', reason => {
 					try {
 						console.error('ERROR', socket.id, reason);
 					} catch (error) {

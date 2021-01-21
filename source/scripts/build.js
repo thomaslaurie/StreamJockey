@@ -113,7 +113,7 @@ import {
 	// TIMER
 	const [buildTime] = process.hrtime(startTime);
 	console.log(`\nBuild Time: ${buildTime} seconds\n`);
-})().catch((error) => {
+})().catch(error => {
 	console.error(error);
 	process.exitCode = 1;
 });

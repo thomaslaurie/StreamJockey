@@ -35,14 +35,14 @@ function wrapInstance(initializer) {
 }
 function wrapPrototype(initializer) {
 	rules.func.validate(initializer);
-	return mark((Class) => {
+	return mark(Class => {
 		rules.object.validate(Class?.prototype);
 		return initializer.call(Class.prototype);
 	});
 }
 function wrapStatic(initializer) {
 	rules.func.validate(initializer);
-	return mark((Class) => {
+	return mark(Class => {
 		rules.object.validate(Class);
 		return initializer.call(Class);
 	});

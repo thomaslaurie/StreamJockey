@@ -351,11 +351,8 @@ const rules = {
 		'no-useless-call':          [off],
 		arrow:                      {
 			'implicit-arrow-linebreak': [on, 'beside'],
-			// Requires parentheses in all cases except when there is one parameter and an implicit return.
-			//TODO Reconsider this, curried functions where the last one has a block looks ugly: foo => (bar) => {...}
-			'arrow-parens':             [on, 'as-needed', {
-				requireForBlockBody: true,
-			}],
+			// Only use parentheses if needed. This is similar to how two body styles are allowed.
+			'arrow-parens':             [on, 'as-needed'],
 			'prefer-arrow-callback':    [on, {
 				allowNamedFunctions: false,
 				allowUnboundThis:    true,

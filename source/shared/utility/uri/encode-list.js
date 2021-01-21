@@ -6,7 +6,7 @@ export default function encodeList(list) {
 	//! not called automatically by request() because its useful to see when a encodeList exists as it needs to be unpacked on the other end
 	const indexed = {};
 	any(list).forEach((object, index) => {
-		Object.keys(object).forEach((key) => {
+		Object.keys(object).forEach(key => {
 			indexed[`${key}-${index}`] = object[key];
 		});
 	});

@@ -2,7 +2,7 @@ import database from './database.js';
 import propagate from '../../shared/propagate.js';
 import {InvalidStateError} from '../../shared/errors/index.js';
 
-export default async () => database.tx(async (t) => {
+export default async () => database.tx(async t => {
 	//TODO This will not alter tables if they do already exist (save this for migration).
 
 	//L schema: https://www.postgresql.org/docs/9.3/static/sql-createschema.html
@@ -86,7 +86,7 @@ export default async () => database.tx(async (t) => {
 			CONSTRAINT "tracks_playlistId_position_key" UNIQUE ("playlistId", "position") DEFERRABLE INITIALLY IMMEDIATE 
 		);
 	`);
-}).catch((rejected) => {
+}).catch(rejected => {
 	throw new InvalidStateError({
 		userMessage: 'database error',
 		message: rejected.message,

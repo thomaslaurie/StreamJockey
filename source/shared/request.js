@@ -106,7 +106,7 @@ export default async function request(method, URL, {
 
 	// Extract raw and parsed results.
 	//L fetch parsing: https://developer.mozilla.org/en-US/docs/Web/API/Body/json
-	const rawResult = await result.clone().text().catch((rejected) => {
+	const rawResult = await result.clone().text().catch(rejected => {
 		// Record the raw result for easier debugging.
 		throw new CustomError({
 			message: 'Failed to parse fetch response as raw text.',

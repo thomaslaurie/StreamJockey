@@ -5,7 +5,7 @@ import {getKeysOf} from './keys-of.js';
 import combinations from '../combinations.js';
 import deepCompare from './deep-compare.js';
 
-test('correct combinations', (t) => {
+test('correct combinations', t => {
 	const locations = {
 		one: {
 			k: 'one',
@@ -101,7 +101,7 @@ test('correct combinations', (t) => {
 
 	for (const propertyCombination of propertyCombinations) {
 		const keys = getKeysOf(child, propertyCombination);
-		const retrievedLocations = keys.map((p) => {
+		const retrievedLocations = keys.map(p => {
 			if (typeof p === 'symbol') {
 				return p.toString().slice(7, -1);
 			}
@@ -119,7 +119,7 @@ test('correct combinations', (t) => {
 		}
 	}
 });
-test('long chain', (t) => {
+test('long chain', t => {
 	const same = 'same';
 
 	const grandparent = {};
@@ -147,7 +147,7 @@ test('long chain', (t) => {
 		t.assert(keys.includes(testKey));
 	}
 });
-test('duplicate', (t) => {
+test('duplicate', t => {
 	const same = 'same';
 
 	const grandparent = {};

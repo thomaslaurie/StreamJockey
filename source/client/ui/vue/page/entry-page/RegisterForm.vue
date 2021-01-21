@@ -16,12 +16,12 @@ export default {
 	},
 	methods: {
 		async submit() {
-			await User.add(this).catch((rejected) => {
+			await User.add(this).catch(rejected => {
 				//TODO handle error
 				console.error(rejected);
 			});
 
-			const me = await session.login(this).catch((rejected) => {
+			const me = await session.login(this).catch(rejected => {
 				//TODO handle error
 				console.error(rejected);
             	});

@@ -14,7 +14,7 @@ import {
 
 const timeUnit = 50;
 
-test('0 time', async (t) => {
+test('0 time', async t => {
 	t.plan(12);
 
 	const getterRef = ref(() => {});
@@ -70,7 +70,7 @@ test('0 time', async (t) => {
 	await Promise.all(steps);
 });
 
-test('shorter time', async (t) => {
+test('shorter time', async t => {
 	t.plan(12);
 
 	const shorterTime = timeUnit;
@@ -131,7 +131,7 @@ test('shorter time', async (t) => {
 	await Promise.all(steps);
 });
 
-test('longer time', async (t) => {
+test('longer time', async t => {
 	t.plan(12);
 
 	const longerTime = timeUnit * 2;
