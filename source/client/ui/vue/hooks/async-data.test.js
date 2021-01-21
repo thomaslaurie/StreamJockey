@@ -1,5 +1,5 @@
 import test from 'ava';
-import useAsyncGetter from './async-getter.js';
+import useAsyncData from './async-data.js';
 import {
 	ref,
 	watch,
@@ -10,8 +10,10 @@ import {
 	wait,
 } from '../../../../shared/utility/index.js';
 
+/* eslint-disable no-magic-numbers */
+
 test('updates upon fulfillment', async (t) => {
-	t.plan(6);
+	t.plan(16);
 
 	const dataValue = 'foo';
 	const getterRef = ref(async () => dataValue);
@@ -19,8 +21,16 @@ test('updates upon fulfillment', async (t) => {
 	const {
 		data,
 		error,
+
 		state,
-	} = useAsyncGetter(getterRef);
+
+		pending,
+		fulfilled,
+		rejected,
+
+		hasFulfilled,
+		hasRejected,
+	} = useAsyncData(getterRef);
 
 	const steps = [new Deferred(), new Deferred()];
 
@@ -28,12 +38,30 @@ test('updates upon fulfillment', async (t) => {
 		if (steps[0].isPending) {
 			t.is(data.value, undefined);
 			t.is(error.value, undefined);
+
 			t.is(state.value, promiseStates.pending);
+
+			t.is(pending.value, true);
+			t.is(fulfilled.value, false);
+			t.is(rejected.value, false);
+
+			t.is(hasFulfilled.value, false);
+			t.is(hasRejected.value, false);
+
 			steps[0].resolve();
 		} else if (steps[1].isPending) {
 			t.is(data.value, dataValue);
 			t.is(error.value, undefined);
+
 			t.is(state.value, promiseStates.fulfilled);
+
+			t.is(pending.value, false);
+			t.is(fulfilled.value, true);
+			t.is(rejected.value, false);
+
+			t.is(hasFulfilled.value, true);
+			t.is(hasRejected.value, false);
+
 			steps[1].resolve();
 		}
 	}, {immediate: true});
@@ -42,7 +70,7 @@ test('updates upon fulfillment', async (t) => {
 });
 
 test('updates upon rejection', async (t) => {
-	t.plan(6);
+	t.plan(16);
 
 	const errorValue = 'foo';
 	const getterRef = ref(async () => {
@@ -52,8 +80,16 @@ test('updates upon rejection', async (t) => {
 	const {
 		data,
 		error,
+
 		state,
-	} = useAsyncGetter(getterRef);
+
+		pending,
+		fulfilled,
+		rejected,
+
+		hasFulfilled,
+		hasRejected,
+	} = useAsyncData(getterRef);
 
 	const steps = [new Deferred(), new Deferred()];
 
@@ -61,12 +97,30 @@ test('updates upon rejection', async (t) => {
 		if (steps[0].isPending) {
 			t.is(data.value, undefined);
 			t.is(error.value, undefined);
+
 			t.is(state.value, promiseStates.pending);
+
+			t.is(pending.value, true);
+			t.is(fulfilled.value, false);
+			t.is(rejected.value, false);
+
+			t.is(hasFulfilled.value, false);
+			t.is(hasRejected.value, false);
+
 			steps[0].resolve();
 		} else if (steps[1].isPending) {
 			t.is(data.value, undefined);
 			t.is(error.value, errorValue);
+
 			t.is(state.value, promiseStates.rejected);
+
+			t.is(pending.value, false);
+			t.is(fulfilled.value, false);
+			t.is(rejected.value, true);
+
+			t.is(hasFulfilled.value, false);
+			t.is(hasRejected.value, true);
+
 			steps[1].resolve();
 		}
 	}, {immediate: true});
@@ -75,7 +129,7 @@ test('updates upon rejection', async (t) => {
 });
 
 test('updates twice', async (t) => {
-	t.plan(12);
+	t.plan(32);
 
 	const dataValue = 'foo';
 	const dataValue2 = 'bar';
@@ -85,8 +139,16 @@ test('updates twice', async (t) => {
 	const {
 		data,
 		error,
+
 		state,
-	} = useAsyncGetter(getterRef);
+
+		pending,
+		fulfilled,
+		rejected,
+
+		hasFulfilled,
+		hasRejected,
+	} = useAsyncData(getterRef);
 
 	const steps = [new Deferred(), new Deferred(), new Deferred(), new Deferred()];
 
@@ -94,22 +156,58 @@ test('updates twice', async (t) => {
 		if (steps[0].isPending) {
 			t.is(data.value, undefined);
 			t.is(error.value, undefined);
+
 			t.is(state.value, promiseStates.pending);
+
+			t.is(pending.value, true);
+			t.is(fulfilled.value, false);
+			t.is(rejected.value, false);
+
+			t.is(hasFulfilled.value, false);
+			t.is(hasRejected.value, false);
+
 			steps[0].resolve();
 		} else if (steps[1].isPending) {
 			t.is(data.value, dataValue);
 			t.is(error.value, undefined);
+
 			t.is(state.value, promiseStates.fulfilled);
+
+			t.is(pending.value, false);
+			t.is(fulfilled.value, true);
+			t.is(rejected.value, false);
+
+			t.is(hasFulfilled.value, true);
+			t.is(hasRejected.value, false);
+
 			steps[1].resolve();
 		} else if (steps[2].isPending) {
 			t.is(data.value, dataValue);
 			t.is(error.value, undefined);
+
 			t.is(state.value, promiseStates.pending);
+
+			t.is(pending.value, true);
+			t.is(fulfilled.value, false);
+			t.is(rejected.value, false);
+
+			t.is(hasFulfilled.value, true);
+			t.is(hasRejected.value, false);
+
 			steps[2].resolve();
 		} else if (steps[3].isPending) {
 			t.is(data.value, dataValue2);
 			t.is(error.value, undefined);
+
 			t.is(state.value, promiseStates.fulfilled);
+
+			t.is(pending.value, false);
+			t.is(fulfilled.value, true);
+			t.is(rejected.value, false);
+
+			t.is(hasFulfilled.value, true);
+			t.is(hasRejected.value, false);
+
 			steps[3].resolve();
 		}
 	}, {immediate: true});
@@ -122,7 +220,7 @@ test('updates twice', async (t) => {
 });
 
 test('old updates do not overwrite new updates', async (t) => {
-	t.plan(9);
+	t.plan(24);
 
 	const delay = 200;
 	const shorterDelay = 100;
@@ -140,11 +238,20 @@ test('old updates do not overwrite new updates', async (t) => {
 	const getterRef = ref(getter1);
 
 	const {
+		promise,
+
 		data,
 		error,
+
 		state,
-		promise,
-	} = useAsyncGetter(getterRef);
+
+		pending,
+		fulfilled,
+		rejected,
+
+		hasFulfilled,
+		hasRejected,
+	} = useAsyncData(getterRef);
 
 	const steps = [new Deferred(), new Deferred()];
 
@@ -152,12 +259,30 @@ test('old updates do not overwrite new updates', async (t) => {
 		if (steps[0].isPending) {
 			t.is(data.value, undefined);
 			t.is(error.value, undefined);
+
 			t.is(state.value, promiseStates.pending);
+
+			t.is(pending.value, true);
+			t.is(fulfilled.value, false);
+			t.is(rejected.value, false);
+
+			t.is(hasFulfilled.value, false);
+			t.is(hasRejected.value, false);
+
 			steps[0].resolve();
 		} else if (steps[1].isPending) {
 			t.is(data.value, dataValue2);
 			t.is(error.value, undefined);
+
 			t.is(state.value, promiseStates.fulfilled);
+
+			t.is(pending.value, false);
+			t.is(fulfilled.value, true);
+			t.is(rejected.value, false);
+
+			t.is(hasFulfilled.value, true);
+			t.is(hasRejected.value, false);
+
 			steps[1].resolve();
 		}
 	}, {immediate: true});
@@ -175,7 +300,15 @@ test('old updates do not overwrite new updates', async (t) => {
 	// Then verify that the values are from the second getter.
 	t.is(data.value, dataValue2);
 	t.is(error.value, undefined);
+
 	t.is(state.value, promiseStates.fulfilled);
+
+	t.is(pending.value, false);
+	t.is(fulfilled.value, true);
+	t.is(rejected.value, false);
+
+	t.is(hasFulfilled.value, true);
+	t.is(hasRejected.value, false);
 });
 
 test('promise is updated synchronously', async (t) => {
@@ -186,7 +319,7 @@ test('promise is updated synchronously', async (t) => {
 
 	const {
 		promise,
-	} = useAsyncGetter(getterRef);
+	} = useAsyncData(getterRef);
 
 	const promise1 = promise.value;
 
@@ -201,7 +334,7 @@ test('promise is updated synchronously', async (t) => {
 });
 
 test('refresh calls getter, updates state, and changes promise', async (t) => {
-	t.plan(15);
+	t.plan(35);
 
 	const dataValue = 'foo';
 	const getterRef = ref(async () => {
@@ -210,12 +343,21 @@ test('refresh calls getter, updates state, and changes promise', async (t) => {
 	});
 
 	const {
-		data,
-		error,
-		state,
 		promise,
 		refresh,
-	} = useAsyncGetter(getterRef);
+
+		data,
+		error,
+
+		state,
+
+		pending,
+		fulfilled,
+		rejected,
+
+		hasFulfilled,
+		hasRejected,
+	} = useAsyncData(getterRef);
 
 	const steps = [
 		new Deferred(),
@@ -228,22 +370,58 @@ test('refresh calls getter, updates state, and changes promise', async (t) => {
 		if (steps[0].isPending) {
 			t.is(data.value, undefined);
 			t.is(error.value, undefined);
+
 			t.is(state.value, promiseStates.pending);
+
+			t.is(pending.value, true);
+			t.is(fulfilled.value, false);
+			t.is(rejected.value, false);
+
+			t.is(hasFulfilled.value, false);
+			t.is(hasRejected.value, false);
+
 			steps[0].resolve();
 		} else if (steps[1].isPending) {
 			t.is(data.value, dataValue);
 			t.is(error.value, undefined);
+
 			t.is(state.value, promiseStates.fulfilled);
+
+			t.is(pending.value, false);
+			t.is(fulfilled.value, true);
+			t.is(rejected.value, false);
+
+			t.is(hasFulfilled.value, true);
+			t.is(hasRejected.value, false);
+
 			steps[1].resolve();
 		} else if (steps[2].isPending) {
 			t.is(data.value, dataValue);
 			t.is(error.value, undefined);
+
 			t.is(state.value, promiseStates.pending);
+
+			t.is(pending.value, true);
+			t.is(fulfilled.value, false);
+			t.is(rejected.value, false);
+
+			t.is(hasFulfilled.value, true);
+			t.is(hasRejected.value, false);
+
 			steps[2].resolve();
 		} else if (steps[3].isPending) {
 			t.is(data.value, dataValue);
 			t.is(error.value, undefined);
+
 			t.is(state.value, promiseStates.fulfilled);
+
+			t.is(pending.value, false);
+			t.is(fulfilled.value, true);
+			t.is(rejected.value, false);
+
+			t.is(hasFulfilled.value, true);
+			t.is(hasRejected.value, false);
+
 			steps[3].resolve();
 		}
 	}, {immediate: true});
@@ -257,4 +435,63 @@ test('refresh calls getter, updates state, and changes promise', async (t) => {
 	await promise2;
 
 	t.not(promise1, promise2);
+});
+
+test('synchronously thrown value rejects just like async rejection', async (t) => {
+	t.plan(16);
+
+	const errorValue = 'foo';
+	const badSynchronousFunction = () => {
+		throw errorValue;
+	};
+
+	const {
+		data,
+		error,
+
+		state,
+
+		pending,
+		fulfilled,
+		rejected,
+
+		hasFulfilled,
+		hasRejected,
+	} = useAsyncData(badSynchronousFunction);
+
+	const steps = [new Deferred(), new Deferred()];
+
+	watch(state, () => {
+		if (steps[0].isPending) {
+			t.is(data.value, undefined);
+			t.is(error.value, undefined);
+
+			t.is(state.value, promiseStates.pending);
+
+			t.is(pending.value, true);
+			t.is(fulfilled.value, false);
+			t.is(rejected.value, false);
+
+			t.is(hasFulfilled.value, false);
+			t.is(hasRejected.value, false);
+
+			steps[0].resolve();
+		} else if (steps[1].isPending) {
+			t.is(data.value, undefined);
+			t.is(error.value, errorValue);
+
+			t.is(state.value, promiseStates.rejected);
+
+			t.is(pending.value, false);
+			t.is(fulfilled.value, false);
+			t.is(rejected.value, true);
+
+			t.is(hasFulfilled.value, false);
+			t.is(hasRejected.value, true);
+
+			steps[1].resolve();
+		}
+	}, {immediate: true});
+
+	await Promise.all(steps);
 });

@@ -1,5 +1,5 @@
 import test from 'ava';
-import useTimedAsyncGetter from './timed-async-getter.js';
+import {useTimedAsyncData} from './async-data.js';
 import {
 	ref,
 	watch,
@@ -10,10 +10,12 @@ import {
 	wait,
 } from '../../../../shared/utility/index.js';
 
+/* eslint-disable no-magic-numbers */
+
 const timeUnit = 50;
 
 test('0 time', async (t) => {
-	t.plan(20);
+	t.plan(12);
 
 	const getterRef = ref(() => {});
 
@@ -23,9 +25,7 @@ test('0 time', async (t) => {
 		refresh,
 		delayed,
 		timedOut,
-		initiallyDelayed,
-		initiallyTimedOut,
-	} = useTimedAsyncGetter(getterRef, {
+	} = useTimedAsyncData(getterRef, {
 		delay: 0,
 		timeout: 0,
 	});
@@ -42,29 +42,21 @@ test('0 time', async (t) => {
 			t.is(state.value, promiseStates.pending);
 			t.false(delayed.value);
 			t.true(timedOut.value);
-			t.false(initiallyDelayed.value);
-			t.true(initiallyTimedOut.value);
 			steps[0].resolve();
 		} else if (steps[1].isPending) {
 			t.is(state.value, promiseStates.fulfilled);
 			t.false(delayed.value);
 			t.true(timedOut.value);
-			t.false(initiallyDelayed.value);
-			t.true(initiallyTimedOut.value);
 			steps[1].resolve();
 		} else if (steps[2].isPending) {
 			t.is(state.value, promiseStates.pending);
 			t.false(delayed.value);
 			t.true(timedOut.value);
-			t.false(initiallyDelayed.value);
-			t.true(initiallyTimedOut.value);
 			steps[2].resolve();
 		} else if (steps[3].isPending) {
 			t.is(state.value, promiseStates.fulfilled);
 			t.false(delayed.value);
 			t.true(timedOut.value);
-			t.false(initiallyDelayed.value);
-			t.true(initiallyTimedOut.value);
 			steps[3].resolve();
 		} else {
 			t.fail();
@@ -79,7 +71,7 @@ test('0 time', async (t) => {
 });
 
 test('shorter time', async (t) => {
-	t.plan(20);
+	t.plan(12);
 
 	const shorterTime = timeUnit;
 	const time = timeUnit * 2;
@@ -94,9 +86,7 @@ test('shorter time', async (t) => {
 		refresh,
 		delayed,
 		timedOut,
-		initiallyDelayed,
-		initiallyTimedOut,
-	} = useTimedAsyncGetter(getterRef, {
+	} = useTimedAsyncData(getterRef, {
 		delay: shorterTime,
 		timeout: shorterTime,
 	});
@@ -113,29 +103,21 @@ test('shorter time', async (t) => {
 			t.is(state.value, promiseStates.pending);
 			t.true(delayed.value);
 			t.false(timedOut.value);
-			t.true(initiallyDelayed.value);
-			t.false(initiallyTimedOut.value);
 			steps[0].resolve();
 		} else if (steps[1].isPending) {
 			t.is(state.value, promiseStates.fulfilled);
 			t.false(delayed.value);
 			t.true(timedOut.value);
-			t.false(initiallyDelayed.value);
-			t.true(initiallyTimedOut.value);
 			steps[1].resolve();
 		} else if (steps[2].isPending) {
 			t.is(state.value, promiseStates.pending);
 			t.true(delayed.value);
 			t.false(timedOut.value);
-			t.false(initiallyDelayed.value);
-			t.true(initiallyTimedOut.value);
 			steps[2].resolve();
 		} else if (steps[3].isPending) {
 			t.is(state.value, promiseStates.fulfilled);
 			t.false(delayed.value);
 			t.true(timedOut.value);
-			t.false(initiallyDelayed.value);
-			t.true(initiallyTimedOut.value);
 			steps[3].resolve();
 		} else {
 			t.fail();
@@ -150,7 +132,7 @@ test('shorter time', async (t) => {
 });
 
 test('longer time', async (t) => {
-	t.plan(20);
+	t.plan(12);
 
 	const longerTime = timeUnit * 2;
 	const time = timeUnit;
@@ -165,9 +147,7 @@ test('longer time', async (t) => {
 		refresh,
 		delayed,
 		timedOut,
-		initiallyDelayed,
-		initiallyTimedOut,
-	} = useTimedAsyncGetter(getterRef, {
+	} = useTimedAsyncData(getterRef, {
 		delay: longerTime,
 		timeout: longerTime,
 	});
@@ -184,29 +164,21 @@ test('longer time', async (t) => {
 			t.is(state.value, promiseStates.pending);
 			t.true(delayed.value);
 			t.false(timedOut.value);
-			t.true(initiallyDelayed.value);
-			t.false(initiallyTimedOut.value);
 			steps[0].resolve();
 		} else if (steps[1].isPending) {
 			t.is(state.value, promiseStates.fulfilled);
 			t.false(delayed.value);
 			t.false(timedOut.value);
-			t.false(initiallyDelayed.value);
-			t.false(initiallyTimedOut.value);
 			steps[1].resolve();
 		} else if (steps[2].isPending) {
 			t.is(state.value, promiseStates.pending);
 			t.true(delayed.value);
 			t.false(timedOut.value);
-			t.false(initiallyDelayed.value);
-			t.false(initiallyTimedOut.value);
 			steps[2].resolve();
 		} else if (steps[3].isPending) {
 			t.is(state.value, promiseStates.fulfilled);
 			t.false(delayed.value);
 			t.false(timedOut.value);
-			t.false(initiallyDelayed.value);
-			t.false(initiallyTimedOut.value);
 			steps[3].resolve();
 		} else {
 			t.fail();
