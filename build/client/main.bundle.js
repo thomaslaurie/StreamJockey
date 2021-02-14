@@ -40955,7 +40955,6 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__.define.constant(Entity, {
       var {
         includeMetadata = false
       } = _arguments6.length > 1 && _arguments6[1] !== undefined ? _arguments6[1] : {};
-      console.log('query', (0,_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__.any)(query).map(q => (0,_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__.pick)(q, _this6.filters.getIn)));
       return (0,_server_request_js__WEBPACK_IMPORTED_MODULE_1__.default)('GET', _this6.table, (0,_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__.any)(query).map(q => (0,_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__.pick)(q, _this6.filters.getIn))).then(result => includeMetadata ? result : result.data);
     })();
   },
