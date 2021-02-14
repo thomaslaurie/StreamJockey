@@ -21,3 +21,4 @@ export {default as keyify}          from './keyify.js';
 export {default as promiseStates}   from './promise-states.js';
 export {default as reference}       from './reference.js';
 export {default as repeat}          from './repeat.js';
+export {default as unRaceCondition} from './un-race-condition.js';

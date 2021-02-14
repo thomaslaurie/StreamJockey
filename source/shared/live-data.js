@@ -1,3 +1,4 @@
+import {markRaw, reactive} from 'vue';
 import {
 	any,
 	define,
@@ -83,12 +84,16 @@ export const subscriptionParts = new ClassParts({
 		} = options;
 
 		define.writable(this, {
-			liveQuery,
+			liveQuery: reactive(liveQuery), //TODO Why was this made reactive?
 			onUpdate,
 			onAdd,
 			onEdit,
 			onRemove,
 		});
+
+		// Prevent Vue from creating proxies for this object.
+		//R The circular reference don't seem to play well.
+		markRaw(this);
 	},
 });
 export class Subscription {

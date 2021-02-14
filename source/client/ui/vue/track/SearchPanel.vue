@@ -15,14 +15,17 @@ export default {
 		};
 	},
 	props: {
-		playlistId: Number,
+		playlistId: {
+			type: Number,
+			required: true,
+		},
 	},
 };
-</script>``
+</script>
 
 <template>
 	<div>
-		<!-- //!//G two v-for directives at the same level, cannot use the same keys, just differentiate them by adding onto the string -->
+		<!-- //! //G two v-for directives at the same level, cannot use the same keys, just differentiate them by adding onto the string -->
 		<div v-for='source of sources' :key='`${source.name}Radio`'>
 			<input
 				type='radio'
@@ -30,7 +33,7 @@ export default {
 				:value='source'
 				v-model='targetSource'
 			>
-        	<label :for='`${source.name}SearchRadio`'>
+			<label :for='`${source.name}SearchRadio`'>
 				{{source.name}}
 			</label>
 		</div>

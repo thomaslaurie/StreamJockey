@@ -1,0 +1,50 @@
+Ref Merging
+	Properties of reactive objects will 'merge' if assigned a ref
+		const a = reactive({b: 'b'});
+		const br = toRef(a, 'b');
+		const cr = ref('c');
+		a.b = cr;
+		console.log(a.b, br.value, cr.value); // c c c
+		a.b = 'd';
+		console.log(a.b, br.value, cr.value); // d d d
+	Refs on the other hand, cannot be merged this way:
+		const a = ref('a');
+		const b = ref('b');
+		a.value = b;
+		console.log(a.value, b.value); // <RefImpl of b> b
+Pseudo-Readonly
+	computed and readonly refs are truly readonly
+		const x = computed(() => 'x');
+		x.value = 'z'; // warns 'computed value is readonly'
+		console.log(x.value, isReadonly(x)); // x true
+
+		const y = readonly(ref('y'));
+		y.value = 'z'; // warns 'target is readonly'
+		console.log(y.value, isReadonly(y)); // y true
+	toRef however creates 'pseudo-readonly' refs
+		const x = reactive({xx: computed(() => 'xx')});
+		const xxr = toRef(x, 'xx');
+		xxr.value = 'z'; // warns 'computed value is readonly'
+		console.log(xxr.value, isReadonly(xxr)); // xx false
+
+		const y = reactive({yy: readonly(ref('yy'))});
+		const yyr = toRef(y, 'yy');
+		yyr.value = 'z'; // warns 'target is readonly'
+		console.log(yyr.value, isReadonly(yyr)); // yy false
+shallowReadonly
+	Refs created via toRef on a shallowReadonly object will inherit pseudo-readonly, but only if their underlying property is not a ref.
+		const x1 = shallowReadonly({y: 'y'});
+		const yr1 = toRef(x1, 'y');
+		yr1.value = 'z'; // warns 'target is readonly'
+		console.log(yr1.value, isReadonly(yr1)); // y false
+
+		const x2 = shallowReadonly({y: ref('y')});
+		const yr2 = toRef(x2, 'y');
+		yr2.value = 'z';
+		console.log(yr2.value, isReadonly(yr2)); // z false
+readonly computed
+	Do not make readonly versions of computed values, they will throw errors upon accessing the value:
+		const a = computed(() => 'foo');
+		const b = readonly(a);
+		console.log(b.value); // warns 'Set operation on key "_value" failed: target is readonly.' 'Set operation on key "_dirty" failed: target is readonly.'
+	readonly objects seem to be fine

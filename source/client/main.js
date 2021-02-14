@@ -3,8 +3,6 @@ import {createApp} from 'vue/dist/vue.esm-bundler.js'; //TODO Figure out how to 
 import {createRouter, createWebHistory} from 'vue-router';
 import {createStore} from 'vuex/dist/vuex.esm-bundler.js';
 
-import SocketIO from 'socket.io-client';
-
 // INTERNAL
 import liveData from './live-data-client.js';
 import universalPlaybackModule from './universal-playback-module.js';
@@ -30,7 +28,7 @@ import DatabasePage     from './ui/vue/page/DatabasePage.vue';
 const app = createApp({
 	devtools: true,
 	async created() {
-		await this.$store.dispatch('start', new SocketIO('/live-data'));
+		await this.$store.dispatch('start');
 		await this.$store.dispatch('player/startClock');
 	},
 });

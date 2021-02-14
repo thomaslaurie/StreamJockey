@@ -2,20 +2,38 @@ import {
 	ref,
 	computed,
 	watch,
+	unref,
+	readonly,
 } from 'vue';
 import {
 	promiseStates,
+	rules,
 	setTimer,
 } from '../../../../shared/utility/index.js';
+
+/* //R Allowing non-function values to be passed and function-wrapped leads to complications:
+	What if a ref is passed?
+	If the value is unwrapped, then it looses its reactivity.
+	If its not unwrapped, then the initial data value must be passed the non-function value, outside of the wrapper function. Updating the value wouldn't be possible because it would create a recursive reference to itself.
+
+	If the ref is maintained but non-function values are wrapped and function values are not, then the semantics of the value could change if changing between non-function and function values. Ie: (getter) <---> (getter value). This is confusing and bad.
+
+	Function-only support is nice because when passed as a component prop, the DOM-unwrapped ref will not get re-wrapped, the containing function will, which can be handled easily since its ref is only initialized once.
+*/
+
+//! //G Do not pass a function that returns a ref. This ref will will not be unwrapped, and cannot translate its reactivity to the data ref.
 
 // Provides a promise ref for a function.
 // Calls immediately and upon updating.
 // Updates upon changing the function (if passed a function ref) or calling refresh().
 function usePromiseRef(func) {
+	rules.func.validate(unref(func));
+
 	// Allows a raw or ref function to be passed.
 	//R If ref() is passed a ref, it will return that ref.
 	const funcRef = ref(func);
 
+	//TODO Should refresh return the current promise?
 	const computeFunction = ref();
 	function refresh() {
 		// Changes the identity of the computeFunction.
@@ -36,134 +54,111 @@ function usePromiseRef(func) {
 
 // Provides refs to the last fulfilled and rejected values of the passed function.
 // Provides a ref to the state of the current promise.
-function usePromiseData(getter) {
-	const {
-		promise,
-		refresh,
-		...rest
-	} = usePromiseRef(getter);
-
+function usePromiseData(promiseRef) {
 	const data = ref();
 	const error = ref();
 	const state = ref(promiseStates.pending);
 
-	watch(promise, promiseValue => {
+	watch(promiseRef, promiseValue => {
 		state.value = promiseStates.pending;
 
 		// Upon settling, update only if this is the last promise.
+		//R //? Seems like state needs to be updated before data so that watchers of data can use the correct state. This passes the atomic update test. Not sure why it doesn't fail the other way around.
 		promiseValue.then(
 			nextFulfilled => {
-				if (promise.value === promiseValue) {
+				if (promiseRef.value === promiseValue) {
+					state.value = promiseStates.fulfilled;
+
 					data.value = nextFulfilled;
 					// Keep the existing error value.
-					state.value = promiseStates.fulfilled;
 				}
 			},
 			nextRejected => {
-				if (promise.value === promiseValue) {
+				if (promiseRef.value === promiseValue) {
+					state.value = promiseStates.rejected;
+
 					// Keep the existing result value.
 					error.value = nextRejected;
-					state.value = promiseStates.rejected;
 				}
 			},
 		);
 	}, {immediate: true});
 
+	//TODO //? Why using separate readonly properties? Why not just a readonly object?
 	return {
-		data,
-		error,
-		state,
-
-		/* //R
-			The current promise is exported so that the same promise can be awaited by external code. This has been useful for testing. Relying on watch is insufficient because the other refs won't update if another getter is passed before this promise resolves.
-		*/
-		promise,
-		refresh,
-		...rest,
+		data:  readonly(data),
+		error: readonly(error),
+		state: readonly(state),
 	};
 }
 
 // Provides boolean refs for the state of the current promise.
 // Provides boolean refs for the last resolved state.
-export function useAsyncData(getter) {
-	const {
-		state,
-		...rest
-	} = usePromiseData(getter);
+function usePromiseStates(stateRef) {
+	const isPending = ref(true);
+	const isFulfilled = ref(false);
+	const isRejected = ref(false);
 
+	const lastFulfilled = ref(false);
+	const lastRejected = ref(false);
 
-	const pending = ref(true);
-	const fulfilled = ref(false);
-	const rejected = ref(false);
-
-	const hasFulfilled = ref(false);
-	const hasRejected = ref(false);
-
-	watch(state, stateValue => {
+	watch(stateRef, stateValue => {
 		if (stateValue === promiseStates.pending) {
-			pending.value = true;
-			fulfilled.value = false;
-			rejected.value = false;
+			isPending.value = true;
+			isFulfilled.value = false;
+			isRejected.value = false;
 		} else if (stateValue === promiseStates.fulfilled) {
-			pending.value = false;
-			fulfilled.value = true;
-			rejected.value = false;
+			isPending.value = false;
+			isFulfilled.value = true;
+			isRejected.value = false;
 
-			hasFulfilled.value = true;
-			hasRejected.value = false;
-		} else if (state.value === promiseStates.rejected) {
-			pending.value = false;
-			fulfilled.value = false;
-			rejected.value = true;
+			lastFulfilled.value = true;
+			lastRejected.value = false;
+		} else if (stateValue === promiseStates.rejected) {
+			isPending.value = false;
+			isFulfilled.value = false;
+			isRejected.value = true;
 
-			hasFulfilled.value = false;
-			hasRejected.value = true;
+			lastFulfilled.value = false;
+			lastRejected.value = true;
 		}
 	}, {immediate: true});
 
 	return {
-		pending,
-		fulfilled,
-		rejected,
+		isPending:     readonly(isPending),
+		isFulfilled:   readonly(isFulfilled),
+		isRejected:    readonly(isRejected),
 
-		hasFulfilled,
-		hasRejected,
-
-		state,
-		...rest,
+		lastFulfilled: readonly(lastFulfilled),
+		lastRejected:  readonly(lastRejected),
 	};
 }
 
 // Provides delay and timeout boolean refs which start upon calling the getter.
-//R initiallyDelayed, initiallyTimedOut, initiallyPending values are do-able however they're probably not needed because the 'initial' states can be found by fallback from hasFulfilled = false and hasRejected = false.
-export function useTimedAsyncData(getter, {
+//R initiallyDelayed, initiallyTimedOut, initiallyPending values are do-able however they're probably not needed because the 'initial' states can be determined as a fallback from lastFulfilled = false and lastRejected = false.
+function usePromiseTimer(stateRef, {
 	delay = 0,
 	timeout = Infinity,
 } = {}) {
-	const {
-		state,
-		...rest
-	} = useAsyncData(getter);
-
-	const delayed = ref(true);
-	const timedOut = ref(false);
+	const isDelayed = ref(true);
+	const isTimedOut = ref(false);
 
 	let clearDelay;
 	let clearTimeout;
 
-	watch(state, value => {
+	watch(stateRef, value => {
 		if (value === promiseStates.pending) {
-			delayed.value = true;
-			timedOut.value = false;
+			isDelayed.value = true;
+			isTimedOut.value = false;
 
 			clearDelay = setTimer(delay, () => {
-				delayed.value = false;
+				isDelayed.value = false;
 			});
 			clearTimeout = setTimer(timeout, () => {
-				timedOut.value = true;
+				isTimedOut.value = true;
 			});
 		} else {
-			delayed.value = false;
+			isDelayed.value = false;
 			// Timeout don't get reset upon resolution. This distinguishes promises that resolved before vs after the timeout.
 
 			clearDelay?.();
@@ -172,12 +167,56 @@ export function useTimedAsyncData(getter, {
 	}, {immediate: true});
 
 	return {
-		delayed,
-		timedOut,
-
-		state,
-		...rest,
+		isDelayed: readonly(isDelayed),
+		isTimedOut: readonly(isTimedOut),
 	};
 }
 
-export default useAsyncData;
+export default function useAsyncData(getter, options) {
+	const {
+		promise,
+		refresh,
+	} = usePromiseRef(getter);
+	const {
+		data,
+		error,
+		state,
+	} = usePromiseData(promise);
+	const {
+		isPending,
+		isFulfilled,
+		isRejected,
+
+		lastFulfilled,
+		lastRejected,
+	} = usePromiseStates(state);
+	const {
+		isDelayed,
+		isTimedOut,
+	} = usePromiseTimer(state, options);
+
+	const asyncData = readonly({
+		data,
+		error,
+
+		state,
+
+		isPending,
+		isFulfilled,
+		isRejected,
+
+		lastFulfilled,
+		lastRejected,
+
+		isDelayed,
+		isTimedOut,
+
+		/* //R
+			The current promise is exported so that the same promise can be awaited by external code. This has been useful for testing. Relying on watch is insufficient because the other refs won't update if another getter is passed before this promise resolves.
+		*/
+		promise,
+		refresh,
+	});
+
+	return asyncData;
+}

@@ -4,7 +4,7 @@
 // ██║╚██╗██║██║   ██║   ██║   ██╔══╝  ╚════██║
 // ██║ ╚████║╚██████╔╝   ██║   ███████╗███████║
 // ╚═╝  ╚═══╝ ╚═════╝    ╚═╝   ╚══════╝╚══════╝
-
+import SocketIO from 'socket.io-client';
 /*
 	THOUGHT PROCESS
 		PROBLEM
@@ -281,10 +281,13 @@ import {sharedRegistry} from '../shared/class-registry.js';
 
 //TODO //? This has mutations that don't modify state, only the object that was passed in, why?
 
+//R putting the socket in the vuex store causes issues. socket.emit creates an infinite loop when watched by a computed property.
+//TODO Find a way to make this not a singleton.
+const socket = new SocketIO('/live-data');
+
 export default {
 	state: {
 		tables: LiveTable.makeTables({User, Playlist, Track}),
-		socket: null,
 		timeout: 10000, // 10 seconds
 	},
 	getters: {
@@ -377,11 +380,6 @@ export default {
 		},
 		spliceSubscription(state, {subscriptions, index}) {
 			subscriptions.splice(index, 1);
-		},
-
-
-		setSocket(state, socket) {
-			state.socket = socket;
 		},
 	},
 	actions: {
@@ -868,7 +866,7 @@ export default {
 					}));
 				});
 
-				context.state.socket.emit('subscribe', {table: table.Entity.table, query}, result => {
+				socket.emit('subscribe', {table: table.Entity.table, query}, result => {
 					clearTimer();
 					if (sharedRegistry.autoConstruct(result) instanceof Error) {
 						reject(result);
@@ -886,7 +884,7 @@ export default {
 					}));
 				});
 
-				context.state.socket.emit('unsubscribe', {table: table.Entity.table, query}, result => {
+				socket.emit('unsubscribe', {table: table.Entity.table, query}, result => {
 					clearTimer();
 					if (sharedRegistry.autoConstruct(result) instanceof Error) {
 						reject(result);
@@ -913,7 +911,7 @@ export default {
 
 		//TODO refactor add if not exists to be simpler like the server side (but remember the redundancy check)
 
-		async start(context, socket) {
+		async start(context) {
 			//G this should be called in the main vue created()
 
 			/* this feels wrong, because the context referenced here might not be the same context referenced by a component using these functions, thus there might be two different sets of liveData
@@ -952,19 +950,15 @@ export default {
 				});
 			*/
 
-
-			// set socket
-			context.commit('setSocket', socket);
-
 			// set listeners
-			context.state.socket.on('connect', async () => {
+			socket.on('connect', async () => {
 				await context.dispatch('reconnect');
 			});
-			context.state.socket.on('disconnect', async () => {
+			socket.on('disconnect', async () => {
 				await context.dispatch('disconnect');
 			});
 
-			context.state.socket.on('notify', async ({table, query, timestamp}) => {
+			socket.on('notify', async ({table, query, timestamp}) => {
 				const TargetEntity = LiveTable.tableToEntity(table);
 				context.dispatch('update', {Entity: TargetEntity, query, timestamp});
 			});

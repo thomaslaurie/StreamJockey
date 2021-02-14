@@ -6,492 +6,454 @@ import {
 } from 'vue';
 import {
 	Deferred,
+	forOwnKeysOf,
+	getOwnKeysOf,
 	promiseStates,
 	wait,
 } from '../../../../shared/utility/index.js';
 
-/* eslint-disable no-magic-numbers */
 
-test('updates upon fulfillment', async t => {
-	t.plan(16);
+// Watches a property and tests provided states for each update step.
+async function testStates(t, asyncData, watchedKey, statesList) {
+	const steps = [];
+	let testCount = 0;
+	for (const states of statesList) {
+		steps.push(new Deferred());
+		testCount += getOwnKeysOf(states).length;
+	}
 
-	const dataValue = 'foo';
-	const getterRef = ref(async () => dataValue);
+	t.plan(testCount);
 
-	const {
-		data,
-		error,
-
-		state,
-
-		pending,
-		fulfilled,
-		rejected,
-
-		hasFulfilled,
-		hasRejected,
-	} = useAsyncData(getterRef);
-
-	const steps = [new Deferred(), new Deferred()];
-
-	watch(state, () => {
-		if (steps[0].isPending) {
-			t.is(data.value, undefined);
-			t.is(error.value, undefined);
-
-			t.is(state.value, promiseStates.pending);
-
-			t.is(pending.value, true);
-			t.is(fulfilled.value, false);
-			t.is(rejected.value, false);
-
-			t.is(hasFulfilled.value, false);
-			t.is(hasRejected.value, false);
-
-			steps[0].resolve();
-		} else if (steps[1].isPending) {
-			t.is(data.value, dataValue);
-			t.is(error.value, undefined);
-
-			t.is(state.value, promiseStates.fulfilled);
-
-			t.is(pending.value, false);
-			t.is(fulfilled.value, true);
-			t.is(rejected.value, false);
-
-			t.is(hasFulfilled.value, true);
-			t.is(hasRejected.value, false);
-
-			steps[1].resolve();
+	let stepIndex = 0;
+	watch(() => asyncData[watchedKey], () => {
+		if (stepIndex >= statesList.length) {
+			t.fail('More changes than planned.');
+			return;
 		}
+
+		forOwnKeysOf(statesList[stepIndex], (states, key) => {
+			t.is(asyncData[key], states[key], `step: ${stepIndex}, key: ${key}`);
+		});
+
+		steps[stepIndex].resolve();
+		stepIndex++;
 	}, {immediate: true});
 
 	await Promise.all(steps);
+}
+
+const defaultInitialState = {
+	data:  undefined,
+	error: undefined,
+
+	state: promiseStates.pending,
+
+	isPending:     true,
+	isFulfilled:   false,
+	isRejected:    false,
+
+	lastFulfilled: false,
+	lastRejected:  false,
+
+	isDelayed:     false,
+	isTimedOut:    false,
+};
+
+test('updates upon fulfillment', async t => {
+	const dataValue = 'foo';
+	const getterRef = ref(async () => dataValue);
+	const asyncData = useAsyncData(getterRef);
+
+	await testStates(t, asyncData, 'state', [
+		defaultInitialState,
+		{
+			...defaultInitialState,
+			data: dataValue,
+			state: promiseStates.fulfilled,
+			isPending: false,
+			isFulfilled: true,
+			lastFulfilled: true,
+		},
+	]);
 });
 
 test('updates upon rejection', async t => {
-	t.plan(16);
-
 	const errorValue = 'foo';
 	const getterRef = ref(async () => {
 		throw errorValue;
 	});
+	const asyncData = useAsyncData(getterRef);
 
-	const {
-		data,
-		error,
-
-		state,
-
-		pending,
-		fulfilled,
-		rejected,
-
-		hasFulfilled,
-		hasRejected,
-	} = useAsyncData(getterRef);
-
-	const steps = [new Deferred(), new Deferred()];
-
-	watch(state, () => {
-		if (steps[0].isPending) {
-			t.is(data.value, undefined);
-			t.is(error.value, undefined);
-
-			t.is(state.value, promiseStates.pending);
-
-			t.is(pending.value, true);
-			t.is(fulfilled.value, false);
-			t.is(rejected.value, false);
-
-			t.is(hasFulfilled.value, false);
-			t.is(hasRejected.value, false);
-
-			steps[0].resolve();
-		} else if (steps[1].isPending) {
-			t.is(data.value, undefined);
-			t.is(error.value, errorValue);
-
-			t.is(state.value, promiseStates.rejected);
-
-			t.is(pending.value, false);
-			t.is(fulfilled.value, false);
-			t.is(rejected.value, true);
-
-			t.is(hasFulfilled.value, false);
-			t.is(hasRejected.value, true);
-
-			steps[1].resolve();
-		}
-	}, {immediate: true});
-
-	await Promise.all(steps);
+	await testStates(t, asyncData, 'state', [
+		defaultInitialState,
+		{
+			...defaultInitialState,
+			error: errorValue,
+			state: promiseStates.rejected,
+			isPending: false,
+			isRejected: true,
+			lastRejected: true,
+		},
+	]);
 });
 
 test('updates twice', async t => {
-	t.plan(32);
-
 	const dataValue = 'foo';
 	const dataValue2 = 'bar';
 	const getterRef = ref(async () => dataValue);
 	const getter2 = async () => dataValue2;
+	const asyncData = useAsyncData(getterRef);
 
-	const {
-		data,
-		error,
+	const testStatesPromise = testStates(t, asyncData, 'state', [
+		defaultInitialState,
+		{
+			...defaultInitialState,
+			data: dataValue,
+			state: promiseStates.fulfilled,
+			isPending: false,
+			isFulfilled: true,
+			lastFulfilled: true,
+		},
+		{
+			...defaultInitialState,
+			data: dataValue,
+			state: promiseStates.pending,
+			isPending: true,
+			isFulfilled: false,
+			lastFulfilled: true,
+		},
+		{
+			...defaultInitialState,
+			data: dataValue2,
+			state: promiseStates.fulfilled,
+			isPending: false,
+			isFulfilled: true,
+			lastFulfilled: true,
+		},
+	]);
 
-		state,
-
-		pending,
-		fulfilled,
-		rejected,
-
-		hasFulfilled,
-		hasRejected,
-	} = useAsyncData(getterRef);
-
-	const steps = [new Deferred(), new Deferred(), new Deferred(), new Deferred()];
-
-	watch(state, () => {
-		if (steps[0].isPending) {
-			t.is(data.value, undefined);
-			t.is(error.value, undefined);
-
-			t.is(state.value, promiseStates.pending);
-
-			t.is(pending.value, true);
-			t.is(fulfilled.value, false);
-			t.is(rejected.value, false);
-
-			t.is(hasFulfilled.value, false);
-			t.is(hasRejected.value, false);
-
-			steps[0].resolve();
-		} else if (steps[1].isPending) {
-			t.is(data.value, dataValue);
-			t.is(error.value, undefined);
-
-			t.is(state.value, promiseStates.fulfilled);
-
-			t.is(pending.value, false);
-			t.is(fulfilled.value, true);
-			t.is(rejected.value, false);
-
-			t.is(hasFulfilled.value, true);
-			t.is(hasRejected.value, false);
-
-			steps[1].resolve();
-		} else if (steps[2].isPending) {
-			t.is(data.value, dataValue);
-			t.is(error.value, undefined);
-
-			t.is(state.value, promiseStates.pending);
-
-			t.is(pending.value, true);
-			t.is(fulfilled.value, false);
-			t.is(rejected.value, false);
-
-			t.is(hasFulfilled.value, true);
-			t.is(hasRejected.value, false);
-
-			steps[2].resolve();
-		} else if (steps[3].isPending) {
-			t.is(data.value, dataValue2);
-			t.is(error.value, undefined);
-
-			t.is(state.value, promiseStates.fulfilled);
-
-			t.is(pending.value, false);
-			t.is(fulfilled.value, true);
-			t.is(rejected.value, false);
-
-			t.is(hasFulfilled.value, true);
-			t.is(hasRejected.value, false);
-
-			steps[3].resolve();
-		}
-	}, {immediate: true});
-
-	await Promise.all([steps[0], steps[1]]);
-
+	await asyncData.promise;
 	getterRef.value = getter2;
-
-	await Promise.all([steps[2], steps[3]]);
+	await testStatesPromise;
 });
 
 test('old updates do not overwrite new updates', async t => {
-	t.plan(24);
+	// This test can be tested by removing the promise equality check from the data and error updates in the usePromiseData watcher. This test should then fail.
 
-	const delay = 200;
+	const longerDelay = 200;
 	const shorterDelay = 100;
 	const dataValue1 = 'foo';
 	const dataValue2 = 'bar';
 	const getter1 = async () => {
-		await wait(delay);
+		await wait(longerDelay);
 		return dataValue1;
 	};
 	const getter2 = async () => {
 		await wait(shorterDelay);
 		return dataValue2;
 	};
-
 	const getterRef = ref(getter1);
+	const asyncData = useAsyncData(getterRef);
 
-	const {
-		promise,
-
-		data,
-		error,
-
-		state,
-
-		pending,
-		fulfilled,
-		rejected,
-
-		hasFulfilled,
-		hasRejected,
-	} = useAsyncData(getterRef);
-
-	const steps = [new Deferred(), new Deferred()];
-
-	watch(state, () => {
-		if (steps[0].isPending) {
-			t.is(data.value, undefined);
-			t.is(error.value, undefined);
-
-			t.is(state.value, promiseStates.pending);
-
-			t.is(pending.value, true);
-			t.is(fulfilled.value, false);
-			t.is(rejected.value, false);
-
-			t.is(hasFulfilled.value, false);
-			t.is(hasRejected.value, false);
-
-			steps[0].resolve();
-		} else if (steps[1].isPending) {
-			t.is(data.value, dataValue2);
-			t.is(error.value, undefined);
-
-			t.is(state.value, promiseStates.fulfilled);
-
-			t.is(pending.value, false);
-			t.is(fulfilled.value, true);
-			t.is(rejected.value, false);
-
-			t.is(hasFulfilled.value, true);
-			t.is(hasRejected.value, false);
-
-			steps[1].resolve();
-		}
-	}, {immediate: true});
-
-	const firstPromise = promise.value;
-
-	// After passing the first getter above.
-	// Pass the second getter.
+	const testStatesPromise = testStates(t, asyncData, 'data', [
+		defaultInitialState,
+		{
+			...defaultInitialState,
+			data: dataValue2,
+			state: promiseStates.fulfilled,
+			isPending: false,
+			isFulfilled: true,
+			lastFulfilled: true,
+		},
+	]);
+	const firstLongerPromise = asyncData.promise;
 	getterRef.value = getter2;
+	const secondShorterPromise = asyncData.promise;
 
-	// Wait for the first (longer) getter's promise to resolve.
-	//G The timing of this can be verified by removing the conditions from the data, error, & state updates. This test should then fail.
-	await firstPromise;
+	await secondShorterPromise;
+	await firstLongerPromise;
 
-	// Then verify that the values are from the second getter.
-	t.is(data.value, dataValue2);
-	t.is(error.value, undefined);
-
-	t.is(state.value, promiseStates.fulfilled);
-
-	t.is(pending.value, false);
-	t.is(fulfilled.value, true);
-	t.is(rejected.value, false);
-
-	t.is(hasFulfilled.value, true);
-	t.is(hasRejected.value, false);
+	await testStatesPromise;
 });
 
 test('promise is updated synchronously', async t => {
-	t.plan(3);
-
 	const dataValue = 'foo';
 	const getterRef = ref(async () => dataValue);
+	const asyncData = useAsyncData(getterRef);
 
-	const {
-		promise,
-	} = useAsyncData(getterRef);
-
-	const promise1 = promise.value;
-
+	const promise1 = asyncData.promise;
 	t.not(promise1, undefined);
 
 	getterRef.value = () => {};
 
-	const promise2 = promise.value;
-
+	const promise2 = asyncData.promise;
 	t.not(promise2, undefined);
 	t.not(promise2, promise1);
 });
 
 test('refresh calls getter, updates state, and changes promise', async t => {
-	t.plan(35);
-
 	const dataValue = 'foo';
 	const getterRef = ref(async () => {
 		t.pass();
 		return dataValue;
 	});
+	const asyncData = useAsyncData(getterRef);
 
-	const {
-		promise,
-		refresh,
+	const testStatesPromise = testStates(t, asyncData, 'state', [
+		defaultInitialState,
+		{
+			...defaultInitialState,
+			data: dataValue,
+			state: promiseStates.fulfilled,
+			isPending: false,
+			isFulfilled: true,
+			lastFulfilled: true,
+		},
+		{
+			...defaultInitialState,
+			data: dataValue,
+			state: promiseStates.pending,
+			isPending: true,
+			isFulfilled: false,
+			lastFulfilled: true,
+		},
+		{
+			...defaultInitialState,
+			data: dataValue,
+			state: promiseStates.fulfilled,
+			isPending: false,
+			isFulfilled: true,
+			lastFulfilled: true,
+		},
+	]);
 
-		data,
-		error,
+	const firstPromise = asyncData.promise;
+	await firstPromise;
 
-		state,
+	asyncData.refresh();
 
-		pending,
-		fulfilled,
-		rejected,
+	const secondPromise = asyncData.promise;
+	await secondPromise;
 
-		hasFulfilled,
-		hasRejected,
-	} = useAsyncData(getterRef);
+	t.not(firstPromise, secondPromise);
 
-	const steps = [
-		new Deferred(),
-		new Deferred(),
-		new Deferred(),
-		new Deferred(),
-	];
+	await testStatesPromise;
 
-	watch(state, () => {
-		if (steps[0].isPending) {
-			t.is(data.value, undefined);
-			t.is(error.value, undefined);
-
-			t.is(state.value, promiseStates.pending);
-
-			t.is(pending.value, true);
-			t.is(fulfilled.value, false);
-			t.is(rejected.value, false);
-
-			t.is(hasFulfilled.value, false);
-			t.is(hasRejected.value, false);
-
-			steps[0].resolve();
-		} else if (steps[1].isPending) {
-			t.is(data.value, dataValue);
-			t.is(error.value, undefined);
-
-			t.is(state.value, promiseStates.fulfilled);
-
-			t.is(pending.value, false);
-			t.is(fulfilled.value, true);
-			t.is(rejected.value, false);
-
-			t.is(hasFulfilled.value, true);
-			t.is(hasRejected.value, false);
-
-			steps[1].resolve();
-		} else if (steps[2].isPending) {
-			t.is(data.value, dataValue);
-			t.is(error.value, undefined);
-
-			t.is(state.value, promiseStates.pending);
-
-			t.is(pending.value, true);
-			t.is(fulfilled.value, false);
-			t.is(rejected.value, false);
-
-			t.is(hasFulfilled.value, true);
-			t.is(hasRejected.value, false);
-
-			steps[2].resolve();
-		} else if (steps[3].isPending) {
-			t.is(data.value, dataValue);
-			t.is(error.value, undefined);
-
-			t.is(state.value, promiseStates.fulfilled);
-
-			t.is(pending.value, false);
-			t.is(fulfilled.value, true);
-			t.is(rejected.value, false);
-
-			t.is(hasFulfilled.value, true);
-			t.is(hasRejected.value, false);
-
-			steps[3].resolve();
-		}
-	}, {immediate: true});
-
-	const promise1 = promise.value;
-	await promise1;
-
-	refresh();
-
-	const promise2 = promise.value;
-	await promise2;
-
-	t.not(promise1, promise2);
+	// testStates 40 + getter calls 2 + not assertion 1 = 43
+	t.plan(43);
 });
 
 test('synchronously thrown value rejects just like async rejection', async t => {
-	t.plan(16);
-
 	const errorValue = 'foo';
 	const badSynchronousFunction = () => {
 		throw errorValue;
 	};
+	const asyncData = useAsyncData(badSynchronousFunction);
 
-	const {
-		data,
-		error,
-
-		state,
-
-		pending,
-		fulfilled,
-		rejected,
-
-		hasFulfilled,
-		hasRejected,
-	} = useAsyncData(badSynchronousFunction);
-
-	const steps = [new Deferred(), new Deferred()];
-
-	watch(state, () => {
-		if (steps[0].isPending) {
-			t.is(data.value, undefined);
-			t.is(error.value, undefined);
-
-			t.is(state.value, promiseStates.pending);
-
-			t.is(pending.value, true);
-			t.is(fulfilled.value, false);
-			t.is(rejected.value, false);
-
-			t.is(hasFulfilled.value, false);
-			t.is(hasRejected.value, false);
-
-			steps[0].resolve();
-		} else if (steps[1].isPending) {
-			t.is(data.value, undefined);
-			t.is(error.value, errorValue);
-
-			t.is(state.value, promiseStates.rejected);
-
-			t.is(pending.value, false);
-			t.is(fulfilled.value, false);
-			t.is(rejected.value, true);
-
-			t.is(hasFulfilled.value, false);
-			t.is(hasRejected.value, true);
-
-			steps[1].resolve();
-		}
-	}, {immediate: true});
-
-	await Promise.all(steps);
+	await testStates(t, asyncData, 'state', [
+		defaultInitialState,
+		{
+			...defaultInitialState,
+			error: errorValue,
+			state: promiseStates.rejected,
+			isPending: false,
+			isRejected: true,
+			lastRejected: true,
+		},
+	]);
 });
+
+
+// TIMERS
+const timeUnit = 50;
+
+test('0 time', async t => {
+	const getter = async () => {};
+	const asyncData = useAsyncData(getter, {
+		delay: 0,
+		timeout: 0,
+	});
+
+	const testStatesPromise = testStates(t, asyncData, 'state', [{
+		state: promiseStates.pending,
+		isDelayed:  false,
+		isTimedOut: true,
+	}, {
+		state: promiseStates.fulfilled,
+		isDelayed:  false,
+		isTimedOut: true,
+	}, {
+		state: promiseStates.pending,
+		isDelayed:  false,
+		isTimedOut: true,
+	}, {
+		state: promiseStates.fulfilled,
+		isDelayed:  false,
+		isTimedOut: true,
+	}]);
+
+	await asyncData.promise;
+	asyncData.refresh();
+
+	await testStatesPromise;
+});
+
+test('shorter time', async t => {
+	const shorterTime = timeUnit;
+	const time = timeUnit * 2;
+	const getter = async () => {
+		await wait(time);
+	};
+	const asyncData = useAsyncData(getter, {
+		delay: shorterTime,
+		timeout: shorterTime,
+	});
+
+	const testStatesPromise = testStates(t, asyncData, 'state', [{
+		state: promiseStates.pending,
+		isDelayed:  true,
+		isTimedOut: false,
+	}, {
+		state: promiseStates.fulfilled,
+		isDelayed:  false,
+		isTimedOut: true,
+	}, {
+		state: promiseStates.pending,
+		isDelayed:  true,
+		isTimedOut: false,
+	}, {
+		state: promiseStates.fulfilled,
+		isDelayed:  false,
+		isTimedOut: true,
+	}]);
+
+	await asyncData.promise;
+	asyncData.refresh();
+
+	await testStatesPromise;
+});
+
+test('longer time', async t => {
+	const longerTime = timeUnit * 2;
+	const time = timeUnit;
+	const getter = async () => {
+		await wait(time);
+	};
+	const asyncData = useAsyncData(getter, {
+		delay: longerTime,
+		timeout: longerTime,
+	});
+
+	const testStatesPromise = testStates(t, asyncData, 'state', [{
+		state: promiseStates.pending,
+		isDelayed:  true,
+		isTimedOut: false,
+	}, {
+		state: promiseStates.fulfilled,
+		isDelayed:  false,
+		isTimedOut: false,
+	}, {
+		state: promiseStates.pending,
+		isDelayed:  true,
+		isTimedOut: false,
+	}, {
+		state: promiseStates.fulfilled,
+		isDelayed:  false,
+		isTimedOut: false,
+	}]);
+
+	await asyncData.promise;
+	asyncData.refresh();
+
+	await testStatesPromise;
+});
+
+
+// ATOMIC UPDATES
+//TODO atomic test for isTimedOut, probably requires a third step.
+
+const timeoutTime = 100;
+const functionTime = timeoutTime * 2;
+const delayTime = functionTime * 2;
+
+const atomicTestInitialState = {
+	data:  undefined,
+	error: undefined,
+
+	state: promiseStates.pending,
+
+	isPending:     true,
+	isFulfilled:   false,
+	isRejected:    false,
+
+	lastFulfilled: false,
+	lastRejected:  false,
+
+	isDelayed:     true,
+};
+const fulfillSequence = data => [atomicTestInitialState, {
+	data,
+	error: undefined,
+
+	state: promiseStates.fulfilled,
+
+	isPending:     false,
+	isFulfilled:   true,
+	isRejected:    false,
+
+	lastFulfilled: true,
+	lastRejected:  false,
+
+	isDelayed:     false,
+}];
+const rejectSequence = error => [atomicTestInitialState, {
+	data: undefined,
+	error,
+
+	state: promiseStates.rejected,
+
+	isPending:     false,
+	isFulfilled:   false,
+	isRejected:    true,
+
+	lastFulfilled: false,
+	lastRejected:  true,
+
+	isDelayed:     false,
+}];
+
+// Fulfill Sequences
+for (const key of ['data', 'state', 'isPending', 'isFulfilled', 'lastFulfilled', 'isDelayed']) {
+	test(`atomic update for '${key}' for fulfillment`, async t => {
+		const dataValue = Symbol();
+		const getter = async () => {
+			await wait(functionTime);
+			return dataValue;
+		};
+
+		const asyncData = useAsyncData(getter, {
+			delay: delayTime,
+			timeout: timeoutTime,
+		});
+
+		await testStates(t, asyncData, key, fulfillSequence(dataValue));
+	});
+}
+
+// Reject Sequences
+for (const key of ['error', 'isRejected', 'lastRejected', 'isDelayed']) {
+	test(`atomic update for '${key}' for rejection`, async t => {
+		const error = new Error();
+		const getter = async () => {
+			await wait(functionTime);
+			throw error;
+		};
+
+		const asyncData = useAsyncData(getter, {
+			delay: delayTime,
+			timeout: timeoutTime,
+		});
+
+		await testStates(t, asyncData, key, rejectSequence(error));
+	});
+}

@@ -3455,9 +3455,10 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "InvalidStateError": () => /* reexport safe */ _invalid_state_error_js__WEBPACK_IMPORTED_MODULE_4__.default,
 /* harmony export */   "MultipleErrors": () => /* reexport safe */ _multiple_errors_js__WEBPACK_IMPORTED_MODULE_5__.default,
 /* harmony export */   "ParseError": () => /* reexport safe */ _parse_error_js__WEBPACK_IMPORTED_MODULE_6__.default,
-/* harmony export */   "UnexpectedValueThrown": () => /* reexport safe */ _unexpected_value_thrown_js__WEBPACK_IMPORTED_MODULE_7__.default,
-/* harmony export */   "UnknownError": () => /* reexport safe */ _unknown_error_js__WEBPACK_IMPORTED_MODULE_8__.default,
-/* harmony export */   "UnreachableError": () => /* reexport safe */ _unreachable_error_js__WEBPACK_IMPORTED_MODULE_9__.default
+/* harmony export */   "TimeoutError": () => /* reexport safe */ _timeout_error_js__WEBPACK_IMPORTED_MODULE_7__.default,
+/* harmony export */   "UnexpectedValueThrown": () => /* reexport safe */ _unexpected_value_thrown_js__WEBPACK_IMPORTED_MODULE_8__.default,
+/* harmony export */   "UnknownError": () => /* reexport safe */ _unknown_error_js__WEBPACK_IMPORTED_MODULE_9__.default,
+/* harmony export */   "UnreachableError": () => /* reexport safe */ _unreachable_error_js__WEBPACK_IMPORTED_MODULE_10__.default
 /* harmony export */ });
 /* harmony import */ var _auth_required_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./auth-required.js */ "./source/shared/errors/auth-required.js");
 /* harmony import */ var _custom_error_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./custom-error.js */ "./source/shared/errors/custom-error.js");
@@ -3466,9 +3467,11 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _invalid_state_error_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./invalid-state-error.js */ "./source/shared/errors/invalid-state-error.js");
 /* harmony import */ var _multiple_errors_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./multiple-errors.js */ "./source/shared/errors/multiple-errors.js");
 /* harmony import */ var _parse_error_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./parse-error.js */ "./source/shared/errors/parse-error.js");
-/* harmony import */ var _unexpected_value_thrown_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./unexpected-value-thrown.js */ "./source/shared/errors/unexpected-value-thrown.js");
-/* harmony import */ var _unknown_error_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./unknown-error.js */ "./source/shared/errors/unknown-error.js");
-/* harmony import */ var _unreachable_error_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./unreachable-error.js */ "./source/shared/errors/unreachable-error.js");
+/* harmony import */ var _timeout_error_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./timeout-error.js */ "./source/shared/errors/timeout-error.js");
+/* harmony import */ var _unexpected_value_thrown_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./unexpected-value-thrown.js */ "./source/shared/errors/unexpected-value-thrown.js");
+/* harmony import */ var _unknown_error_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./unknown-error.js */ "./source/shared/errors/unknown-error.js");
+/* harmony import */ var _unreachable_error_js__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./unreachable-error.js */ "./source/shared/errors/unreachable-error.js");
+
 
 
 
@@ -3621,6 +3624,37 @@ class ParseError extends _custom_error_js__WEBPACK_IMPORTED_MODULE_1__.default {
 
 /***/ }),
 
+/***/ "./source/shared/errors/timeout-error.js":
+/*!***********************************************!*\
+  !*** ./source/shared/errors/timeout-error.js ***!
+  \***********************************************/
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => /* binding */ TimeoutError
+/* harmony export */ });
+/* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../utility/index.js */ "./source/shared/utility/index.js");
+/* harmony import */ var _custom_error_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./custom-error.js */ "./source/shared/errors/custom-error.js");
+
+
+class TimeoutError extends _custom_error_js__WEBPACK_IMPORTED_MODULE_1__.default {
+  constructor({
+    timeout,
+    // Timeout time in milliseconds.
+    ...rest
+  } = {}) {
+    super(rest);
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__.define.constant(this, {
+      timeout
+    });
+  }
+
+}
+
+/***/ }),
+
 /***/ "./source/shared/errors/unexpected-value-thrown.js":
 /*!*********************************************************!*\
   !*** ./source/shared/errors/unexpected-value-thrown.js ***!
@@ -3733,7 +3767,9 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "subscriptionParts": () => /* binding */ subscriptionParts,
 /* harmony export */   "Subscription": () => /* binding */ Subscription
 /* harmony export */ });
-/* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utility/index.js */ "./source/shared/utility/index.js");
+/* harmony import */ var vue__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! vue */ "vue");
+/* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./utility/index.js */ "./source/shared/utility/index.js");
+
 
 class LiveTable {
   constructor(options = {}) {
@@ -3741,7 +3777,7 @@ class LiveTable {
       Entity
     } = options; //TODO See if any of these can be validated or made constant.
 
-    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__.define.writable(this, {
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_1__.define.writable(this, {
       Entity,
       liveQueries: [],
       cachedEntities: []
@@ -3749,7 +3785,7 @@ class LiveTable {
   }
 
 }
-_utility_index_js__WEBPACK_IMPORTED_MODULE_0__.define.constant(LiveTable, {
+_utility_index_js__WEBPACK_IMPORTED_MODULE_1__.define.constant(LiveTable, {
   tableEntities: [],
 
   makeTables({
@@ -3783,7 +3819,7 @@ class CachedEntity {
       entity
     } = options; //TODO See if any of these can be validated or made constant.
 
-    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__.define.writable(this, {
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_1__.define.writable(this, {
       table,
       entity,
       liveQueryRefs: [],
@@ -3801,8 +3837,8 @@ class LiveQuery {
       query
     } = options; //? Not sure why this is being done.
 
-    if (_utility_index_js__WEBPACK_IMPORTED_MODULE_0__.rules.array.test(query)) query = (0,_utility_index_js__WEBPACK_IMPORTED_MODULE_0__.any)(query);
-    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__.define.writable(this, {
+    if (_utility_index_js__WEBPACK_IMPORTED_MODULE_1__.rules.array.test(query)) query = (0,_utility_index_js__WEBPACK_IMPORTED_MODULE_1__.any)(query);
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_1__.define.writable(this, {
       table,
       query,
       cachedEntityRefs: [],
@@ -3813,7 +3849,7 @@ class LiveQuery {
 
 } // live-data-server uses an augmented Subscription class.
 
-const subscriptionParts = new _utility_index_js__WEBPACK_IMPORTED_MODULE_0__.ClassParts({
+const subscriptionParts = new _utility_index_js__WEBPACK_IMPORTED_MODULE_1__.ClassParts({
   instance(options = {}) {
     const {
       liveQuery,
@@ -3826,13 +3862,17 @@ const subscriptionParts = new _utility_index_js__WEBPACK_IMPORTED_MODULE_0__.Cla
       onRemove = () => {} // Entities removed.
 
     } = options;
-    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__.define.writable(this, {
-      liveQuery,
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_1__.define.writable(this, {
+      liveQuery: (0,vue__WEBPACK_IMPORTED_MODULE_0__.reactive)(liveQuery),
+      //TODO Why was this made reactive?
       onUpdate,
       onAdd,
       onEdit,
       onRemove
-    });
+    }); // Prevent Vue from creating proxies for this object.
+    //R The circular reference don't seem to play well.
+
+    (0,vue__WEBPACK_IMPORTED_MODULE_0__.markRaw)(this);
   }
 
 });
@@ -4896,6 +4936,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _validation_rule_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./validation/rule.js */ "./source/shared/utility/validation/rule.js");
 /* harmony import */ var _object_keys_of_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./object/keys-of.js */ "./source/shared/utility/object/keys-of.js");
 /* harmony import */ var _keyify_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./keyify.js */ "./source/shared/utility/keyify.js");
+//TODO How to prevent non-valid enum values from being referenced? If Enum.notInEnum is referenced, it resolves to undefined, which would equal all the other invalid enum key values.
 
 
 
@@ -4955,7 +4996,7 @@ _object_define_js__WEBPACK_IMPORTED_MODULE_0__.default.constant(Enum, {
     const enumKeys = (0,_object_keys_of_js__WEBPACK_IMPORTED_MODULE_2__.getKeysOf)(e, this.keyAttributes);
     const foundKey = enumKeys.find(key => e[key] === value);
 
-    if (typeof foundKey !== 'symbol') {
+    if (foundKey === undefined) {
       throw new Error('Enum does not contain the passed value.');
     }
 
@@ -5050,8 +5091,10 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "constants": () => /* reexport module object */ _constants_js__WEBPACK_IMPORTED_MODULE_13__,
 /* harmony export */   "keyCode": () => /* reexport module object */ _key_code_js__WEBPACK_IMPORTED_MODULE_14__,
 /* harmony export */   "keyify": () => /* reexport safe */ _keyify_js__WEBPACK_IMPORTED_MODULE_15__.default,
-/* harmony export */   "reference": () => /* reexport safe */ _reference_js__WEBPACK_IMPORTED_MODULE_16__.default,
-/* harmony export */   "repeat": () => /* reexport safe */ _repeat_js__WEBPACK_IMPORTED_MODULE_17__.default
+/* harmony export */   "promiseStates": () => /* reexport safe */ _promise_states_js__WEBPACK_IMPORTED_MODULE_16__.default,
+/* harmony export */   "reference": () => /* reexport safe */ _reference_js__WEBPACK_IMPORTED_MODULE_17__.default,
+/* harmony export */   "repeat": () => /* reexport safe */ _repeat_js__WEBPACK_IMPORTED_MODULE_18__.default,
+/* harmony export */   "unRaceCondition": () => /* reexport safe */ _un_race_condition_js__WEBPACK_IMPORTED_MODULE_19__.default
 /* harmony export */ });
 /* harmony import */ var _array_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./array/index.js */ "./source/shared/utility/array/index.js");
 /* harmony import */ var _object_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./object/index.js */ "./source/shared/utility/object/index.js");
@@ -5069,8 +5112,10 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _constants_js__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ./constants.js */ "./source/shared/utility/constants.js");
 /* harmony import */ var _key_code_js__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! ./key-code.js */ "./source/shared/utility/key-code.js");
 /* harmony import */ var _keyify_js__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! ./keyify.js */ "./source/shared/utility/keyify.js");
-/* harmony import */ var _reference_js__WEBPACK_IMPORTED_MODULE_16__ = __webpack_require__(/*! ./reference.js */ "./source/shared/utility/reference.js");
-/* harmony import */ var _repeat_js__WEBPACK_IMPORTED_MODULE_17__ = __webpack_require__(/*! ./repeat.js */ "./source/shared/utility/repeat.js");
+/* harmony import */ var _promise_states_js__WEBPACK_IMPORTED_MODULE_16__ = __webpack_require__(/*! ./promise-states.js */ "./source/shared/utility/promise-states.js");
+/* harmony import */ var _reference_js__WEBPACK_IMPORTED_MODULE_17__ = __webpack_require__(/*! ./reference.js */ "./source/shared/utility/reference.js");
+/* harmony import */ var _repeat_js__WEBPACK_IMPORTED_MODULE_18__ = __webpack_require__(/*! ./repeat.js */ "./source/shared/utility/repeat.js");
+/* harmony import */ var _un_race_condition_js__WEBPACK_IMPORTED_MODULE_19__ = __webpack_require__(/*! ./un-race-condition.js */ "./source/shared/utility/un-race-condition.js");
 // NESTED
 
 
@@ -5088,6 +5133,8 @@ __webpack_require__.r(__webpack_exports__);
 
 
  //TODO constants aren't exported, find an elegant way to do this.
+
+
 
 
 
@@ -5959,6 +6006,23 @@ function undeclareUndefined(object) {
 
 /***/ }),
 
+/***/ "./source/shared/utility/promise-states.js":
+/*!*************************************************!*\
+  !*** ./source/shared/utility/promise-states.js ***!
+  \*************************************************/
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => __WEBPACK_DEFAULT_EXPORT__
+/* harmony export */ });
+/* harmony import */ var _enum_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./enum.js */ "./source/shared/utility/enum.js");
+
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (new _enum_js__WEBPACK_IMPORTED_MODULE_0__.default('pending', 'fulfilled', 'rejected'));
+
+/***/ }),
+
 /***/ "./source/shared/utility/reference.js":
 /*!********************************************!*\
   !*** ./source/shared/utility/reference.js ***!
@@ -6395,6 +6459,32 @@ async function wait(duration) {
       resolve();
     });
   });
+}
+
+/***/ }),
+
+/***/ "./source/shared/utility/un-race-condition.js":
+/*!****************************************************!*\
+  !*** ./source/shared/utility/un-race-condition.js ***!
+  \****************************************************/
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => /* binding */ unRaceCondition
+/* harmony export */ });
+// Evaluates a condition before and after an async getter to avoid a race condition.
+async function unRaceCondition(originalValue, condition, getter) {
+  if (condition) {
+    const result = await getter();
+
+    if (condition) {
+      return result;
+    }
+  }
+
+  return originalValue;
 }
 
 /***/ }),
@@ -8059,6 +8149,17 @@ module.exports = require("spotify-web-api-node");;
 
 "use strict";
 module.exports = require("valid-url");;
+
+/***/ }),
+
+/***/ "vue":
+/*!**********************!*\
+  !*** external "vue" ***!
+  \**********************/
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("vue");;
 
 /***/ })
 

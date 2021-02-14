@@ -7,7 +7,6 @@ import {
 	setTimer,
 	Deferred,
 	one,
-	any,
 } from '../../../../shared/utility/index.js';
 import {
 	Entity,
@@ -194,7 +193,7 @@ export default {
 		},
 
 		async liveRefresh() {
-			return await this.$store.dispatch('resubscribe', {
+			return this.$store.dispatch('resubscribe', {
 				subscription: this.subscription,
 
 				Entity: this.Entity,

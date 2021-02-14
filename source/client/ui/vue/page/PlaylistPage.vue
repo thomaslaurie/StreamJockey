@@ -1,9 +1,11 @@
 <script>
-import AsyncDisplay from '../async/AsyncDisplay.vue';
-import TrackDisplayList from '../track/TrackDisplayList.vue';
 import SearchPanel from '../track/SearchPanel.vue';
+import TrackItems from '../track/track-items.vue';
+import AsyncError from '../async/AsyncError.vue';
+import AsyncLoading from '../async/AsyncLoading.vue';
 
 import {
+	one,
 	rules,
 } from '../../../../shared/utility/index.js';
 
@@ -15,28 +17,46 @@ import {
 import {
 	spotify,
 } from '../../../sources/index.js';
+import {useSubscription} from '../hooks';
+import {computed} from 'vue';
+import {useRoute} from 'vue-router';
 
 export default {
 	name: 'playlist-page',
-	extends: AsyncDisplay,
 	components: {
-		TrackDisplayList,
 		SearchPanel,
+		TrackItems,
+		AsyncError,
+		AsyncLoading,
+	},
+	setup() {
+		const route = useRoute();
+
+		const playlist = useSubscription({
+			entity: Playlist,
+			query: computed(() => ({id: rules.nonNegativeInteger.validateCast(route.params.id)[0]})),
+			transform: data => one(data),
+		});
+
+		const tracks = useSubscription({
+			entity: Track,
+			query: computed(() => ({playlistId: playlist.data?.id})),
+			transform: data => data ?? [],
+		});
+
+		return {
+			playlist,
+			tracks,
+		};
 	},
 	data() {
 		return {
-			// OVERWRITES
-			Entity: Playlist,
-			sQuery: {id: rules.nonNegativeInteger.validateCast(this.$route.params.id)[0]},
-
-			// NEW
 			edit: true,
 			searchTerm: '',
 			searchResults: [],
 		};
 	},
 	methods: {
-		// NEW
 		async search() {
 			this.searchResults = await spotify.search(this.searchTerm);
 		},
@@ -50,33 +70,33 @@ export default {
 </script>
 
 <template>
-    <async-switch
-		:state='state'
-		:error='error'
-		@refresh='refresh'
-		:loading-component='$options.components.LoadingComponent'
-		:error-component='$options.components.ErrorComponent'
-		v-slot='slotProps'
-	class='playlist-page'>
-        <h4>playlist #{{content.id}}, user #{{content.userId}}</h4>
-        <h1>{{content.name}}</h1>
-        <h2>{{content.visibility}}</h2>
-        <p>{{content.description}}</p>
+	<template v-if='playlist.lastFulfilled'>
+		<div class='playlist-page'>
+			<h4>playlist #{{playlist.data?.id}}, user #{{playlist.data?.userId}}</h4>
+			<h1>{{playlist.data?.name}}</h1>
+			<h2>{{playlist.data?.visibility}}</h2>
+			<p>{{playlist.data?.description}}</p>
 
-        <button @click='edit = !edit'>Edit</button>
+			<button @click='edit = !edit'>Edit</button>
 
-        <div id='main'>
-            <track-display-list id='playlist' :p-query='{playlistId: content.id}' removeButton></track-display-list>
-
-			<search-panel v-if='edit' :playlistId='content.id'></search-panel>
-        </div>
-    </async-switch>
+			<div id='main'>
+				<track-items id='playlist' :tracks='tracks.data' removeButton></track-items>
+				<search-panel v-if='edit' :playlistId='playlist.data?.id'></search-panel>
+			</div>
+		</div>
+	</template>
+	<template v-else-if='playlist.lastRejected'>
+		<async-error :error='playlist.error'></async-error>
+	</template>
+	<template v-else-if='playlist.isPending && !playlist.isDelayed'>
+		<async-loading></async-loading>
+	</template>
 </template>
 
 <style lang='scss'>
 	.playlist-page {
 		#main {
-        	display: flex;
+			display: flex;
 		}
 		#playlist {
 			flex: 1 1 0;

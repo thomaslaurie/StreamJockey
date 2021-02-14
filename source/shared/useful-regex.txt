@@ -1,0 +1,3 @@
+Finds and replaces Ava tests t.is(x, true); with t.true(x);
+	t\.is\(([^,]*), ((?:true)|(?:false))\);
+	t.$2($1);
