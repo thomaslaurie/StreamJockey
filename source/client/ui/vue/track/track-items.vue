@@ -1,14 +1,10 @@
 <script>
 import TrackItem from './track-item.vue';
-import AsyncError from '../async/AsyncError.vue';
-import AsyncLoading from '../async/AsyncLoading.vue';
 
 export default {
 	name: 'track-items',
 	components: {
 		TrackItem,
-		AsyncError,
-		AsyncLoading,
 	},
 	props: {
 		tracks: {

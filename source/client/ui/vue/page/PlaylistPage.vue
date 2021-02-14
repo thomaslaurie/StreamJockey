@@ -37,7 +37,6 @@ export default {
 			query: computed(() => ({id: rules.nonNegativeInteger.validateCast(route.params.id)[0]})),
 			transform: data => one(data),
 		});
-
 		const tracks = useSubscription({
 			entity: Track,
 			query: computed(() => ({playlistId: playlist.data?.id})),
@@ -60,7 +59,7 @@ export default {
 		async search() {
 			this.searchResults = await spotify.search(this.searchTerm);
 		},
-		async add(track) { // add cant be on SearchTrackDisplayList because it can't see TrackDisplayList
+		async add(track) { // add cant be on SearchDisplay because it can't see TrackItems
 			track.playlistId = this.content.id;
 			await Track.add(track);
 			await this.refresh(); //TODO

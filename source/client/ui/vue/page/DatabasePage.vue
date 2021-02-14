@@ -1,6 +1,10 @@
 <script>
+import TrackItems from '../track/track-items.vue';
+import PlaylistItems from '../playlist/playlist-items.vue';
+import UserItems from '../user/user-items.vue';
+
 import {
-	any,
+	any, forOwnKeysOf,
 } from '../../../../shared/utility/index.js';
 
 import {
@@ -12,17 +16,14 @@ import {
 	Subscription,
 } from '../../../../shared/live-data.js';
 import * as session from '../../../session-methods.js';
-
-import TrackDisplayList from '../track/TrackDisplayList.vue';
-import PlaylistDisplayList from '../playlist/PlaylistDisplayList.vue';
-import UserDisplayList from '../user/UserDisplayList.vue';
+import {ref, watch} from 'vue';
 
 export default {
 	name: 'database-page',
 	components: {
-		TrackDisplayList,
-		PlaylistDisplayList,
-		UserDisplayList,
+		TrackItems,
+		PlaylistItems,
+		UserItems,
 	},
 	data() {
 		return {
@@ -72,16 +73,25 @@ export default {
 			else if (this.entityType === 'user') return User;
 		},
 		input() {
-			if (this.entityType === 'track') return {...this.defaultTrack, ...this.inputTrack};
-			else if (this.entityType === 'playlist') return {...this.defaultPlaylist, ...this.inputPlaylist};
-			else if (this.entityType === 'user') return {...this.defaultUser, ...this.inputUser};
+			let x;
+			if (this.entityType === 'track') x = {...this.defaultTrack, ...this.inputTrack};
+			else if (this.entityType === 'playlist') x = {...this.defaultPlaylist, ...this.inputPlaylist};
+			else if (this.entityType === 'user') x = {...this.defaultUser, ...this.inputUser};
+
+			forOwnKeysOf(x, (obj, key) => {
+				if (obj[key] === '') {
+					delete obj[key];
+				}
+			});
+
+			return x;
 		},
 
 		subscriptionData() {
-			//TODO I think this is old, transition to the new AsyncDisplay
 			if ((this.subscription instanceof Subscription)) {
 				return any(this.$store.getters.getLiveData(this.subscription));
 			}
+			return [];
 		},
 	},
 	watch: {
@@ -151,22 +161,21 @@ export default {
 
 
 		async add() {
-			this.result = await this.Entity.add(this.input).catch(this.handle);
+			this.result = (await this.Entity.add(this.input).catch(this.handle)) ?? [];
 		},
 		async get() {
-			this.result = await this.Entity.get(this.input).catch(this.handle);
+			this.result = (await this.Entity.get(this.input).catch(this.handle)) ?? [];
 		},
 		async edit() {
-			this.result = await this.Entity.edit(this.input).catch(this.handle);
+			this.result = (await this.Entity.edit(this.input).catch(this.handle)) ?? [];
 		},
 		async remove() {
-			this.result = await this.Entity.remove(this.input).catch(this.handle);
+			this.result = (await this.Entity.remove(this.input).catch(this.handle)) ?? [];
 		},
 
 		async subscribe() {
 			this.subscription = await this.$store.dispatch('subscribe', {Entity: this.Entity, query: this.input, subscriber: this});
 		},
-
 	},
 };
 </script>
@@ -250,18 +259,18 @@ export default {
 				<button @click='remove'>Remove</button>
 
 				<h3>Result</h3>
-				<track-display-list v-if='entityType === "track"' :p-content='result'></track-display-list>
-				<playlist-display-list  v-else-if='entityType === "playlist"' :p-content='result'></playlist-display-list>
-				<user-display-list  v-else-if='entityType === "user"' :p-content='result'></user-display-list>
+				<track-items v-if='entityType === "track"' :tracks='result'></track-items>
+				<playlist-items  v-else-if='entityType === "playlist"' :playlists='result'></playlist-items>
+				<user-items  v-else-if='entityType === "user"' :users='result'></user-items>
 			</section>
 
 			<section>
 				<button @click='subscribe'>Subscribe</button>
 
 				<h3>Subscription</h3>
-				<track-display-list v-if='entityType === "track"' :p-content='subscriptionData'></track-display-list>
-				<playlist-display-list  v-else-if='entityType === "playlist"' :p-content='subscriptionData'></playlist-display-list>
-				<user-display-list  v-else-if='entityType === "user"' :p-content='subscriptionData'></user-display-list>
+				<track-items v-if='entityType === "track"' :tracks='subscriptionData'></track-items>
+				<playlist-items  v-else-if='entityType === "playlist"' :playlists='subscriptionData'></playlist-items>
+				<user-items  v-else-if='entityType === "user"' :users='subscriptionData'></user-items>
 			</section>
 		</div>
     </div>

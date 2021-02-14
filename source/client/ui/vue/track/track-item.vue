@@ -7,9 +7,6 @@ import {
 	defineComponent,
 } from 'vue';
 
-import AsyncError from '../async/AsyncError.vue';
-import AsyncLoading from '../async/AsyncLoading.vue';
-
 export default defineComponent({
 	name: 'track-item',
 	emits: ['add', 'update'],
@@ -20,10 +17,6 @@ export default defineComponent({
 		},
 		addButton: Boolean,
 		removeButton: Boolean,
-	},
-	components: {
-		AsyncError,
-		AsyncLoading,
 	},
 	setup(props) {
 		/* eslint-disable no-invalid-this */

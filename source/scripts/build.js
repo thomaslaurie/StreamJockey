@@ -89,7 +89,24 @@ import {
 				reject('error');
 				return;
 			}
-			console.log(stats.toString({colors: true}));
+			console.log(stats.toString({
+				colors: true,
+
+				// Copied from 'minimal' default configuration.
+				//L https://github.com/webpack/webpack/blob/3ac7ba2eb3e8d4935a4818ea71f31bb718b7c130/lib/stats/DefaultStatsPresetPlugin.js#L78
+				all: false,
+				version: true,
+				timings: true,
+				modules: true,
+				modulesSpace: 0,
+				assets: true,
+				assetsSpace: 0,
+				errors: true,
+				errorsCount: true,
+				warnings: true,
+				warningsCount: true,
+				logging: 'warn',
+			}));
 			resolve(stats);
 		};
 

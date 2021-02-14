@@ -1,40 +1,54 @@
 <script>
-import AsyncDisplay from '../async/AsyncDisplay.vue';
+import AsyncError from '../async/AsyncError.vue';
+import AsyncLoading from '../async/AsyncLoading.vue';
+
+import {computed} from 'vue';
+import {useRoute} from 'vue-router';
+import {one, rules} from '../../../../shared/utility/index.js';
 import {
 	Track,
 } from '../../../entities/index.js';
+import {useSubscription} from '../hooks/index.js';
 
 export default {
 	name: 'track-page',
-	extends: AsyncDisplay,
-	data() {
+	components: {
+		AsyncError,
+		AsyncLoading,
+	},
+	setup() {
+		const route = useRoute();
+
+		const track = useSubscription({
+			entity: Track,
+			query: computed(() => ({id: rules.nonNegativeInteger.validateCast(route.params.id)[0]})),
+			transform: data => one(data),
+		});
+
 		return {
-		// OVERWRITES
-			Entity: Track,
-			sQuery: {id: Number.parseInt(this.$route.params.id)}, //TODO Properly cast
+			track,
 		};
 	},
 };
 </script>
 
 <template>
-    <async-switch
-		:state='state'
-		:error='error'
-		@refresh='refresh'
-		:loading-component='$options.components.LoadingComponent'
-		:error-component='$options.components.ErrorComponent'
-		v-slot='slotProps'
-	>
-        <h4>track #{{content.id}}, playlist #{{content.playlistId}}</h4>
+	<template v-if='track.lastFulfilled'>
+        <h4>track #{{track.data.id}}, playlist #{{track.data.playlistId}}</h4>
         <h4>position #</h4>
-        <h1>{{content.name}}</h1>
-        <h2>{{content.position}} - {{content.duration}}</h2>
-        <h2>{{content.source}} {{content.sourceId}}</h2>
+        <h1>{{track.data.name}}</h1>
+        <h2>{{track.data.position}} - {{track.data.duration}}</h2>
+        <h2>{{track.data.source.name}}}</h2>
 
         <button>Info</button>
         <button>Play</button>
-    </async-switch>
+	</template>
+	<template v-else-if='track.lastRejected'>
+		<async-error :error='track.error'></async-error>
+	</template>
+	<template v-else-if='track.isPending && !track.isDelayed'>
+		<async-loading></async-loading>
+	</template>
 </template>
 
 <style lang='scss'>
