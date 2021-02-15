@@ -5,7 +5,7 @@
 
 import {
 	forOwnKeysOf,
-	copyProperty,
+	copyOwnProperty,
 } from '../utility/index.js';
 import {sharedRegistry} from '../class-registry.js';
 
@@ -16,9 +16,9 @@ export default class UnknownError extends Error {
 		super(error.message);
 
 		// Copy all properties.
-		forOwnKeysOf(error, key => {
+		forOwnKeysOf(error, (obj, key) => {
 			if (key !== 'message') {
-				copyProperty(key, error, this);
+				copyOwnProperty(key, obj, this);
 			}
 		});
 

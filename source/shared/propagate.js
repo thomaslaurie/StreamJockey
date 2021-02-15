@@ -4,29 +4,33 @@
 //L https://stackoverflow.com/questions/18391212/is-it-not-possible-to-stringify-an-error-using-json-stringify
 
 import UnexpectedValueThrown from './errors/unexpected-value-thrown.js';
-import {UnknownError} from './errors/index.js';
+import {UnknownError, UnreachableError} from './errors/index.js';
 import {sharedRegistry} from './class-registry.js';
 import reconstructError from './reconstruct-error.js';
 
 // Register the built-in Error class
 // The registry id will be manually assigned to errors.
-const sharedRegistryId = 'Error';
-sharedRegistry.register(Error, sharedRegistryId, reconstructError);
+export const errorSharedRegistryId = 'Error';
+sharedRegistry.register(Error, errorSharedRegistryId, reconstructError);
 
 // Wraps the passed value in an Error instance if it isn't one. Then throws it.
 // All instances will be registered with the sharedRegistry so that they can be identified as errors when passed between the client and server.
 export default function propagate(thrownValue) {
 	if (thrownValue instanceof Error) {
-		if (thrownValue.constructor === Error) {
-			// If the error is a direct instance of Error, try to add a sharedRegistryId so that it can be reconstructed as an Error.
-			if (Object.getOwnPropertyDescriptor(thrownValue, sharedRegistry.idKey).configurable) {
-				sharedRegistry.defineId(thrownValue, sharedRegistryId);
-				throw thrownValue;
-			} else if (sharedRegistry.isRegistered(thrownValue)) {
-				throw thrownValue;
+		if (sharedRegistry.isRegistered(thrownValue)) {
+			throw thrownValue;
+		} else if (thrownValue.constructor === Error) {
+			// If the error is a direct instance of Error, manually register it and throw it.
+			try {
+				sharedRegistry.defineId(thrownValue, errorSharedRegistryId);
+			} catch (error) {
+				// An Error instance should never have a non-configurable sharedRegistryIdKey but not be registered.
+				throw new UnreachableError(thrownValue);
 			}
+			throw thrownValue;
+		} else {
+			throw new UnknownError(thrownValue);
 		}
-		throw new UnknownError(thrownValue);
 	} else {
 		throw new UnexpectedValueThrown({
 			message: `An unexpected value was thrown.`,

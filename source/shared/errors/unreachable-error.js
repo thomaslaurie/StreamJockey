@@ -1,6 +1,6 @@
 //G Used when a supposedly unreachable code path has been reached.
 
-import InternalError from './custom-error.js';
+import InternalError from './internal-error.js';
 
 export default class UnreachableError extends InternalError {
 	constructor({

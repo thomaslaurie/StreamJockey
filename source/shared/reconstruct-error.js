@@ -1,6 +1,6 @@
 //TODO Create custom reconstruction option.
 
-import {forOwnKeysOf, copyProperty} from './utility/index.js';
+import {forOwnKeysOf, copyOwnProperty} from './utility/index.js';
 
 export default function reconstructError(Class, error) {
 	const newError = new Class(error.message);
@@ -8,7 +8,7 @@ export default function reconstructError(Class, error) {
 	// Copy all properties.
 	forOwnKeysOf(error, key => {
 		if (key !== 'message') {
-			copyProperty(key, error, newError);
+			copyOwnProperty(key, error, newError);
 		}
 	});
 

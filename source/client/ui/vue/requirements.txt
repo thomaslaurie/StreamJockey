@@ -1,3 +1,0 @@
-TODO Replace asyncdisplaylist
-
-The reason why AsyncDisplayList existed was because it tried to do too many things that it shouldn't. (Ordering, data casting into arrays, ect.).
