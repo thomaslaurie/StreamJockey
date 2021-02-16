@@ -248,6 +248,10 @@ import {
 	setTimer,
 	any,
 	rules,
+	wait,
+	keyCode,
+	repeat,
+	one,
 } from '../shared/utility/index.js';
 import deepCompare, {compareUnorderedArrays} from '../shared/utility/object/deep-compare.js';
 import {
@@ -270,6 +274,7 @@ import {
 	CustomError,
 } from '../shared/errors/index.js';
 import {sharedRegistry} from '../shared/class-registry.js';
+import {spotify} from './sources/index.js';
 
 // Used for commented out test below.
 // import {
@@ -1118,7 +1123,7 @@ export default {
 			// await context.dispatch('test');
 		},
 
-		/*
+
 		async test(context) {
 			//TODO there is some issue in here where either the addCount or editCount is 1 lower than it should be, no idea whats causing it, and it happens fairly rarely (use the refresh functionality at the end to find the error), I don't think its being caused by the waitForUpdate() function because I ran it with a delay and it still errored
 
@@ -1128,7 +1133,7 @@ export default {
 			const tests = [];
 
 			const uniqueName = () => `liveQuery${keyCode.create(7)}`;
-			const uniqueDuration = () => Math.round(Math.random()*100000);
+			const uniqueDuration = () => Math.round(Math.random() * 100000);
 
 			let updated = false;
 			// rapidly checks updated until it is true, then resets it
@@ -1136,16 +1141,14 @@ export default {
 				let delay = 50;
 				await repeat.async(async () => {
 					await wait(delay);
-					delay = delay * 1.25;
-					return;
+					delay *= 1.25;
 				}, {
 					until() {
 						if (updated) {
 							updated = false;
 							return true;
-						} else {
-							return false;
 						}
+						return false;
 					},
 					timeout: 2000,
 					onTimeout() {
@@ -1160,19 +1163,21 @@ export default {
 				email: uniqueName(),
 				password: 'placeholder',
 				password2: 'placeholder',
-			}).add().then((result) => result.content).then(one);
+			}).add().then(one);
 			const playlist = await new Playlist({
 				userId: user.id,
 				name: uniqueName(),
 				description: 'placeholder',
-			}).add().then((result) => result.content).then(one);
+				visibility: 'public',
+				color: '#000000',
+			}).add().then(one);
 			const track = await new Track({
 				playlistId: playlist.id,
 				source: spotify,
 				sourceId: 'placeholder',
 				name: uniqueName(),
 				duration: uniqueDuration(),
-			}).add().then((result) => result.content).then(one);
+			}).add().then(one);
 
 
 			// MAKE SUBSCRIPTION
@@ -1200,7 +1205,7 @@ export default {
 				},
 			});
 			tests.push(
-				['isSubscription', isInstanceOf(trackSubscription, Subscription, 'Subscription')]
+				['isSubscription', trackSubscription instanceof Subscription],
 			);
 
 
@@ -1208,7 +1213,7 @@ export default {
 			const iterations = Math.round(Math.random() * 10) + 5;
 			const xTracks = [];
 
-			console.log('iterations:', iterations);
+			// console.log('iterations:', iterations);
 
 			// BEFORE
 			const entityRefsLengthBefore = trackSubscription.liveQuery.cachedEntityRefs.length;
@@ -1218,9 +1223,9 @@ export default {
 			const removedBefore = 0;
 			tests.push(
 				['cachedEntityRefs length before',
-				trackSubscription.liveQuery.cachedEntityRefs.length === entityRefsLengthBefore],
+					trackSubscription.liveQuery.cachedEntityRefs.length === entityRefsLengthBefore],
 				['cachedEntities length before',
-				trackSubscription.liveQuery.table.cachedEntities.length === entitiesLengthBefore],
+					trackSubscription.liveQuery.table.cachedEntities.length === entitiesLengthBefore],
 				['lengthBefore',	context.getters.getLiveData(trackSubscription).length === entityRefsLengthBefore],
 
 				['noneAdded',		onAddCount === addedBefore],
@@ -1233,15 +1238,15 @@ export default {
 				xTracks[i] = await new Track({
 					...track,
 					position: undefined,
-				}).add().then((result) => result.content).then(one);
+				}).add().then(one);
 			}
 			await waitForUpdate();
-			//console.log('xAfterAdd', onAddCount, onEditCount, onRemoveCount);
+			// console.log('xAfterAdd', onAddCount, onEditCount, onRemoveCount);
 			tests.push(
 				['cachedEntityRefs length afterAdd',
-				trackSubscription.liveQuery.cachedEntityRefs.length === entityRefsLengthBefore + iterations],
+					trackSubscription.liveQuery.cachedEntityRefs.length === entityRefsLengthBefore + iterations],
 				['cachedEntities length afterAdd',
-				trackSubscription.liveQuery.table.cachedEntities.length === entitiesLengthBefore + iterations],
+					trackSubscription.liveQuery.table.cachedEntities.length === entitiesLengthBefore + iterations],
 				['lengthAfterAdd',		context.getters.getLiveData(trackSubscription).length === entityRefsLengthBefore + iterations],
 
 				['xAddedAfterAdd',		onAddCount === iterations],
@@ -1255,12 +1260,12 @@ export default {
 				await xTracks[i].edit();
 			}
 			await waitForUpdate();
-			//console.log('xAfterEdit', onAddCount, onEditCount, onRemoveCount);
+			// console.log('xAfterEdit', onAddCount, onEditCount, onRemoveCount);
 			tests.push(
 				['cachedEntityRefs length afterEdit',
-				trackSubscription.liveQuery.cachedEntityRefs.length === entityRefsLengthBefore + iterations],
+					trackSubscription.liveQuery.cachedEntityRefs.length === entityRefsLengthBefore + iterations],
 				['cachedEntities length afterEdit',
-				trackSubscription.liveQuery.table.cachedEntities.length === entitiesLengthBefore + iterations],
+					trackSubscription.liveQuery.table.cachedEntities.length === entitiesLengthBefore + iterations],
 				['lengthAfterEdit', context.getters.getLiveData(trackSubscription).length === entityRefsLengthBefore + iterations],
 
 				['xAddedAfterEdit', onAddCount === iterations],
@@ -1269,17 +1274,17 @@ export default {
 			);
 
 			// REMOVE
-			for (let i = iterations-1; i > -1; i--) {
+			for (let i = iterations - 1; i > -1; i--) {
 				//! remove in reverse order, as original order caused the re-ordering of track positions, causing an onEdit callback for all tracks
 				await xTracks[i].remove();
 			}
 			await waitForUpdate();
-			//console.log('xAfterRemove', onAddCount, onEditCount, onRemoveCount);
+			// console.log('xAfterRemove', onAddCount, onEditCount, onRemoveCount);
 			tests.push(
 				['cachedEntityRefs length afterRemove',
-				trackSubscription.liveQuery.cachedEntityRefs.length === entityRefsLengthBefore],
+					trackSubscription.liveQuery.cachedEntityRefs.length === entityRefsLengthBefore],
 				['cachedEntities length afterRemove',
-				trackSubscription.liveQuery.table.cachedEntities.length === entitiesLengthBefore],
+					trackSubscription.liveQuery.table.cachedEntities.length === entitiesLengthBefore],
 				['lengthAfterRemove', context.getters.getLiveData(trackSubscription).length === entityRefsLengthBefore],
 
 				['xAddedAfterRemove', onAddCount === iterations],
@@ -1295,13 +1300,19 @@ export default {
 			await user.remove();
 
 			//TODO add tests for convergent liveQueries
-			const passed = await test([
-				...tests,
-			], 'liveQuery');
+
+
+			for (const [name, passed] of tests) {
+				if (passed) {
+					console.log(`${name} passed`);
+				} else {
+					console.error(`${name} failed`);
+				}
+			}
 
 			// this refreshes the page until the test fails
-			if (passed) document.location.reload();
+			//! //TODO
+			// if (passed) document.location.reload();
 		},
-		*/
 	},
 };

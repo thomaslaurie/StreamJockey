@@ -1,5 +1,6 @@
 import Entity from './entity.js';
-import {userParts} from '../../shared/entityParts/index.js';
+import {userParts, userSharedRegistryId} from '../../shared/entityParts/index.js';
+import {sharedRegistry} from '../../shared/class-registry.js';
 
 export default class User extends Entity {
 	constructor(...args) {
@@ -10,3 +11,6 @@ export default class User extends Entity {
 }
 userParts.prototype(User);
 userParts.static(User);
+
+// Id is assigned to instance in userParts.instance
+sharedRegistry.register(User, userSharedRegistryId);

@@ -7,6 +7,7 @@ import {
 } from '../../shared/utility/index.js';
 import {
 	userParts,
+	userSharedRegistryId,
 } from '../../shared/entityParts/index.js';
 import {
 	PASSWORD_SALT_ROUNDS,
@@ -14,6 +15,7 @@ import {
 import Entity from './entity.js';
 import {InvalidStateError} from '../../shared/errors/index.js';
 import serverRegistry from '../server-registry.js';
+import {sharedRegistry} from '../../shared/class-registry.js';
 
 const serverRegistryId = 'User';
 
@@ -29,11 +31,14 @@ export default class User extends Entity {
 userParts.prototype(User);
 userParts.static(User);
 
+// Id is assigned to instance in userParts.instance
+sharedRegistry.register(User, userSharedRegistryId);
+
 serverRegistry.register(User, serverRegistryId);
 
 
-async function basePrepare(t, user) {
-	const newUser = new User(user);
+async function basePrepare(t, user, accessory) {
+	const newUser = await Entity.basePrepare.call(this, t, new User(user), accessory);
 
 	// Hash password.
 	//TODO might be a vulnerability here with this string check

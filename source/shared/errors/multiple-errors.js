@@ -28,6 +28,7 @@ export default class MultipleErrors extends CustomError {
 }
 
 define.constant(MultipleErrors, {
+	// Used for promise handler shorthand .catch(MultipleErrors.throw)
 	throw(errors) {
 		throw new MultipleErrors({errors});
 	},

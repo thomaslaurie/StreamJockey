@@ -372,7 +372,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _shared_propagate_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../shared/propagate.js */ "./source/shared/propagate.js");
 /* harmony import */ var _database_sql_builders_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../database/sql-builders.js */ "./source/server/database/sql-builders.js");
 /* harmony import */ var _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../shared/errors/index.js */ "./source/shared/errors/index.js");
-/* harmony import */ var _shared_timestamped_data_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../../shared/timestamped-data.js */ "./source/shared/timestamped-data.js");
+/* harmony import */ var _shared_metadata_container_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../../shared/metadata-container.js */ "./source/shared/metadata-container.js");
 /* harmony import */ var _errors_postgres_error_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../errors/postgres-error.js */ "./source/server/errors/postgres-error.js");
 // INTERNAL
 
@@ -417,6 +417,7 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__.define.writable(Entity, {
 
 });
 _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__.define.constant(Entity, {
+  //! //TODO includeMetadata currently not received from client, is just a static variable passed from the router.
   // CRUD METHODS
   async add(query, {
     db = _database_database_js__WEBPACK_IMPORTED_MODULE_1__.default,
@@ -472,7 +473,9 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__.define.constant(Entity, {
     }
 
     const isGet = methodName === 'get';
-    const accessory = {};
+    const accessory = {
+      methodName
+    };
     const after = await db.tx(async t => {
       // process
       const beforeEntities = await this[methodName + 'Before'](t, entities, accessory); // validate
@@ -542,7 +545,7 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__.define.constant(Entity, {
     const shook = after.map(list => (0,_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__.any)(list).map(item => (0,_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__.pick)(item, this.filters[methodName + 'Out']))); // rebuild
 
     const built = shook.map(list => list.map(entity => new this(entity)));
-    return new _shared_timestamped_data_js__WEBPACK_IMPORTED_MODULE_6__.default({
+    return new _shared_metadata_container_js__WEBPACK_IMPORTED_MODULE_6__.default({
       //R content is the inputAfter, for removals this will be an empty array, if in the future some 'undo' functionality is needed consider: returned data should still be filtered by removeOut, and therefore might destroy data if this returned data is used to restore it
       data: built[1],
       timestamp
@@ -588,12 +591,15 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__.define.constant(Entity, {
 
 }); // Modifies each after validation.
 
-async function basePrepare(t, entity) {
-  return { ...entity
-  };
+async function basePrepare(t, entity, {
+  methodName
+}) {
+  // entities must be filtered first
+  return (0,_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__.pick)(entity, this.filters[`${methodName}In`]);
 }
 
 _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__.define.constant(Entity, {
+  basePrepare,
   addPrepare: basePrepare,
   getPrepare: basePrepare,
   editPrepare: basePrepare,
@@ -771,23 +777,27 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => /* binding */ Playlist
 /* harmony export */ });
-/* harmony import */ var _shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../shared/entityParts/index.js */ "./source/shared/entityParts/index.js");
-/* harmony import */ var _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../shared/utility/index.js */ "./source/shared/utility/index.js");
-/* harmony import */ var _entity_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./entity.js */ "./source/server/entities/entity.js");
+/* harmony import */ var _shared_class_registry_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../shared/class-registry.js */ "./source/shared/class-registry.js");
+/* harmony import */ var _shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../shared/entityParts/index.js */ "./source/shared/entityParts/index.js");
+/* harmony import */ var _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../shared/utility/index.js */ "./source/shared/utility/index.js");
+/* harmony import */ var _entity_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./entity.js */ "./source/server/entities/entity.js");
 
 
 
-class Playlist extends _entity_js__WEBPACK_IMPORTED_MODULE_2__.default {
+
+class Playlist extends _entity_js__WEBPACK_IMPORTED_MODULE_3__.default {
   constructor(...args) {
-    _shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_0__.playlistParts.intercept(...args);
+    _shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_1__.playlistParts.intercept(...args);
     super(...args);
-    _shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_0__.playlistParts.instance(this, ...args);
+    _shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_1__.playlistParts.instance(this, ...args);
   }
 
 }
-_shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_0__.playlistParts.prototype(Playlist);
-_shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_0__.playlistParts.static(Playlist);
-_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__.define.constant(Playlist, {
+_shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_1__.playlistParts.prototype(Playlist);
+_shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_1__.playlistParts.static(Playlist); // Id is assigned to instance in playlistParts.instance
+
+_shared_class_registry_js__WEBPACK_IMPORTED_MODULE_0__.sharedRegistry.register(Playlist, _shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_1__.playlistSharedRegistryId);
+_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__.define.constant(Playlist, {
   queryOrder: 'ORDER BY "userId" ASC, "id" ASC'
 });
 
@@ -813,7 +823,9 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../../shared/errors/index.js */ "./source/shared/errors/index.js");
 /* harmony import */ var _entity_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./entity.js */ "./source/server/entities/entity.js");
 /* harmony import */ var _errors_postgres_error_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../errors/postgres-error.js */ "./source/server/errors/postgres-error.js");
+/* harmony import */ var _shared_class_registry_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../../shared/class-registry.js */ "./source/shared/class-registry.js");
 // INTERNAL
+
 
 
 
@@ -840,7 +852,9 @@ class Track extends _entity_js__WEBPACK_IMPORTED_MODULE_7__.default {
 
 }
 _shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_3__.trackParts.prototype(Track);
-_shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_3__.trackParts.static(Track);
+_shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_3__.trackParts.static(Track); // Id is assigned to instance in trackParts.instance
+
+_shared_class_registry_js__WEBPACK_IMPORTED_MODULE_9__.sharedRegistry.register(Track, _shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_3__.trackSharedRegistryId);
 _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__.define.constant(Track.prototype, {
   async order(db = _database_database_js__WEBPACK_IMPORTED_MODULE_1__.default) {
     return this.constructor.order(db, (0,_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__.any)(this));
@@ -863,9 +877,10 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__.define.constant(Track, {
   editBefore: baseBefore,
   removeBefore: baseBefore,
 
-  async addPrepare(t, track) {
-    // set id of tracks to be added as a temporary symbol, so that Track.order() is able to identify tracks
-    const newTrack = { ...track,
+  async addPrepare(t, track, accessory) {
+    const track2 = await _entity_js__WEBPACK_IMPORTED_MODULE_7__.default.addPrepare.call(this, t, track, accessory); // set id of tracks to be added as a temporary symbol, so that Track.order() is able to identify tracks
+
+    const newTrack = { ...track2,
       id: Symbol()
     };
 
@@ -1011,7 +1026,8 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__.define.constant(Track, {
 							FROM "sj"."tracks"
 							WHERE "id" = $1
 						)
-				`, track.id);
+					`, track.id); //? Why using raw here? Shouldn't this just be t.any(currentQuery) ?
+
         const currentPlaylist = await t.any('$1:raw', currentQuery).catch(rejected => {
           throw new _errors_postgres_error_js__WEBPACK_IMPORTED_MODULE_8__.default({
             postgresError: rejected,
@@ -1206,8 +1222,10 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _entity_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./entity.js */ "./source/server/entities/entity.js");
 /* harmony import */ var _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../shared/errors/index.js */ "./source/shared/errors/index.js");
 /* harmony import */ var _server_registry_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../server-registry.js */ "./source/server/server-registry.js");
+/* harmony import */ var _shared_class_registry_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../../shared/class-registry.js */ "./source/shared/class-registry.js");
 // EXTERNAL
  // INTERNAL
+
 
 
 
@@ -1226,11 +1244,13 @@ class User extends _entity_js__WEBPACK_IMPORTED_MODULE_4__.default {
 
 }
 _shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_2__.userParts.prototype(User);
-_shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_2__.userParts.static(User);
+_shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_2__.userParts.static(User); // Id is assigned to instance in userParts.instance
+
+_shared_class_registry_js__WEBPACK_IMPORTED_MODULE_7__.sharedRegistry.register(User, _shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_2__.userSharedRegistryId);
 _server_registry_js__WEBPACK_IMPORTED_MODULE_6__.default.register(User, serverRegistryId);
 
-async function basePrepare(t, user) {
-  const newUser = new User(user); // Hash password.
+async function basePrepare(t, user, accessory) {
+  const newUser = await _entity_js__WEBPACK_IMPORTED_MODULE_4__.default.basePrepare.call(this, t, new User(user), accessory); // Hash password.
   //TODO might be a vulnerability here with this string check
 
   if (_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__.rules.string.test(newUser.password)) {
@@ -1881,16 +1901,17 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony import */ var path__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! path */ "path");
 /* harmony import */ var fs__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! fs */ "fs");
-/* harmony import */ var _koa_router__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @koa/router */ "@koa/router");
-/* harmony import */ var koa_send__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! koa-send */ "koa-send");
-/* harmony import */ var _config_project_paths_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../config/project-paths.js */ "./source/config/project-paths.js");
-/* harmony import */ var _shared_constants_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../shared/constants.js */ "./source/shared/constants.js");
-/* harmony import */ var _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../shared/errors/index.js */ "./source/shared/errors/index.js");
-/* harmony import */ var _entities_index_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./entities/index.js */ "./source/server/entities/index.js");
-/* harmony import */ var _shared_propagate_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../shared/propagate.js */ "./source/shared/propagate.js");
-/* harmony import */ var _session_methods_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./session-methods.js */ "./source/server/session-methods.js");
-/* harmony import */ var _database_database_js__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./database/database.js */ "./source/server/database/database.js");
-/* harmony import */ var _sources_index_js__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ./sources/index.js */ "./source/server/sources/index.js");
+/* harmony import */ var util__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! util */ "util");
+/* harmony import */ var _koa_router__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! @koa/router */ "@koa/router");
+/* harmony import */ var koa_send__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! koa-send */ "koa-send");
+/* harmony import */ var _config_project_paths_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../config/project-paths.js */ "./source/config/project-paths.js");
+/* harmony import */ var _shared_constants_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../shared/constants.js */ "./source/shared/constants.js");
+/* harmony import */ var _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../shared/errors/index.js */ "./source/shared/errors/index.js");
+/* harmony import */ var _entities_index_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./entities/index.js */ "./source/server/entities/index.js");
+/* harmony import */ var _shared_propagate_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../shared/propagate.js */ "./source/shared/propagate.js");
+/* harmony import */ var _session_methods_js__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./session-methods.js */ "./source/server/session-methods.js");
+/* harmony import */ var _database_database_js__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ./database/database.js */ "./source/server/database/database.js");
+/* harmony import */ var _sources_index_js__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ./sources/index.js */ "./source/server/sources/index.js");
 // ███╗   ██╗ ██████╗ ████████╗███████╗███████╗
 // ████╗  ██║██╔═══██╗╚══██╔══╝██╔════╝██╔════╝
 // ██╔██╗ ██║██║   ██║   ██║   █████╗  ███████╗
@@ -1948,6 +1969,7 @@ __webpack_require__.r(__webpack_exports__);
 */
 // BUILT-IN
 
+
  // EXTERNAL
 
  //L https://github.com/alexmingoia/koa-router
@@ -1966,26 +1988,33 @@ __webpack_require__.r(__webpack_exports__);
 
 /* eslint-disable require-atomic-updates */
 
-const root = _config_project_paths_js__WEBPACK_IMPORTED_MODULE_4__.clientBuildDirectory;
-const app = `/${_config_project_paths_js__WEBPACK_IMPORTED_MODULE_4__.UIMainFileName}`;
+const root = _config_project_paths_js__WEBPACK_IMPORTED_MODULE_5__.clientBuildDirectory;
+const app = `/${_config_project_paths_js__WEBPACK_IMPORTED_MODULE_5__.UIMainFileName}`;
 
 function createAPIRouter() {
-  const apiRouter = new _koa_router__WEBPACK_IMPORTED_MODULE_2__(); // Database CRUD and server-side processing.
+  const apiRouter = new _koa_router__WEBPACK_IMPORTED_MODULE_3__(); // Database CRUD and server-side processing.
 
   apiRouter // Catches and propagates all errors, but assigns them to the response body rather than throwing.
   .all('/(.*)', async (ctx, next) => {
     await next().catch(rejected => {
-      ctx.response.body = (0,_shared_propagate_js__WEBPACK_IMPORTED_MODULE_8__.returnPropagate)(rejected);
+      const error = (0,_shared_propagate_js__WEBPACK_IMPORTED_MODULE_9__.returnPropagate)(rejected);
+      console.error('Returning error to client:', util__WEBPACK_IMPORTED_MODULE_2__.inspect(error, {
+        depth: 10,
+        colors: true,
+        getters: true
+      })); // Temporary
+
+      ctx.response.body = error; // ctx.response.stats = 500; //TODO Figure out how to determine a proper error code.
     });
   }) // Set GET request bodies as the parsed body parameter (if it exists).
   .get('/(.*)', async (ctx, next) => {
-    const queryBody = ctx.request.query[_shared_constants_js__WEBPACK_IMPORTED_MODULE_5__.GET_BODY];
+    const queryBody = ctx.request.query[_shared_constants_js__WEBPACK_IMPORTED_MODULE_6__.GET_BODY];
 
     try {
       ctx.request.body = queryBody === undefined ? {} : JSON.parse(queryBody);
     } catch (error) {
       ctx.response.body = 400;
-      ctx.response.body = new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_6__.ParseError({
+      ctx.response.body = new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_7__.ParseError({
         message: error.message,
         userMessage: 'Request failed due to an internal error.',
         input: queryBody
@@ -2007,41 +2036,41 @@ function createAPIRouter() {
     return router.post(path, action(Entity.add.bind(Entity))).get(path, action(Entity.get.bind(Entity))).patch(path, action(Entity.edit.bind(Entity))).delete(path, action(Entity.remove.bind(Entity)));
   }
 
-  addCRUD(apiRouter, _entities_index_js__WEBPACK_IMPORTED_MODULE_7__.User);
-  addCRUD(apiRouter, _entities_index_js__WEBPACK_IMPORTED_MODULE_7__.Playlist);
-  addCRUD(apiRouter, _entities_index_js__WEBPACK_IMPORTED_MODULE_7__.Track);
+  addCRUD(apiRouter, _entities_index_js__WEBPACK_IMPORTED_MODULE_8__.User);
+  addCRUD(apiRouter, _entities_index_js__WEBPACK_IMPORTED_MODULE_8__.Playlist);
+  addCRUD(apiRouter, _entities_index_js__WEBPACK_IMPORTED_MODULE_8__.Track);
   apiRouter // SESSION
   //R //L login/logout are create/remove for sessions: https://stackoverflow.com/questions/31089221/what-is-the-difference-between-put-post-and-patch, https://stackoverflow.com/questions/5868786/what-method-should-i-use-for-a-login-authentication-request
   //? what is the 'update' equivalent of user session? isn't this all done server-side by refreshing the cookie? or is this just the login put because there is no post equivalent instead
   .post('/session', async ctx => {
-    ctx.response.body = await _session_methods_js__WEBPACK_IMPORTED_MODULE_9__.login(_database_database_js__WEBPACK_IMPORTED_MODULE_10__.default, ctx, ctx.request.body);
+    ctx.response.body = await _session_methods_js__WEBPACK_IMPORTED_MODULE_10__.login(_database_database_js__WEBPACK_IMPORTED_MODULE_11__.default, ctx, ctx.request.body);
   }).get('/session', async ctx => {
     //R thought about moving this to user, but with 'self' permissions, but if its a me request, the user specifically needs to know who they are - in get user cases, the user already knows what they're searching for an just needs the rest of the information
-    ctx.response.body = await _session_methods_js__WEBPACK_IMPORTED_MODULE_9__.get(ctx);
+    ctx.response.body = await _session_methods_js__WEBPACK_IMPORTED_MODULE_10__.get(ctx);
   }).delete('/session', async ctx => {
-    ctx.response.body = await _session_methods_js__WEBPACK_IMPORTED_MODULE_9__.logout(ctx);
+    ctx.response.body = await _session_methods_js__WEBPACK_IMPORTED_MODULE_10__.logout(ctx);
   }) // AUTH
   .get('/spotify/authRequestStart', async ctx => {
     // Retrieves an auth request URL and it's respective local key (for event handling).
-    ctx.response.body = await _sources_index_js__WEBPACK_IMPORTED_MODULE_11__.spotify.startAuthRequest();
+    ctx.response.body = await _sources_index_js__WEBPACK_IMPORTED_MODULE_12__.spotify.startAuthRequest();
   }).get('/spotify/authRedirect', async ctx => {
     // Receives credentials sent from spotify, emits an event & payload that can then be sent back to the original client.
     //! This URL is sensitive to the url given to spotify developer site (I think).
-    await _sources_index_js__WEBPACK_IMPORTED_MODULE_11__.spotify.receiveAuthRequest(ctx.request.query);
-    await koa_send__WEBPACK_IMPORTED_MODULE_3__(ctx, app, {
+    await _sources_index_js__WEBPACK_IMPORTED_MODULE_12__.spotify.receiveAuthRequest(ctx.request.query);
+    await koa_send__WEBPACK_IMPORTED_MODULE_4__(ctx, app, {
       root
     });
   }).post('/spotify/authRequestEnd', async ctx => {
-    ctx.response.body = await _sources_index_js__WEBPACK_IMPORTED_MODULE_11__.spotify.endAuthRequest(ctx.request.body);
+    ctx.response.body = await _sources_index_js__WEBPACK_IMPORTED_MODULE_12__.spotify.endAuthRequest(ctx.request.body);
   }).post('/spotify/exchangeToken', async ctx => {
-    ctx.response.body = await _sources_index_js__WEBPACK_IMPORTED_MODULE_11__.spotify.exchangeToken(ctx, ctx.request.body);
+    ctx.response.body = await _sources_index_js__WEBPACK_IMPORTED_MODULE_12__.spotify.exchangeToken(ctx, ctx.request.body);
   }).get('/spotify/refreshToken', async ctx => {
-    ctx.response.body = await _sources_index_js__WEBPACK_IMPORTED_MODULE_11__.spotify.refreshToken(ctx);
+    ctx.response.body = await _sources_index_js__WEBPACK_IMPORTED_MODULE_12__.spotify.refreshToken(ctx);
   }).get('/youtube/credentials', async ctx => {
-    ctx.response.body = await _sources_index_js__WEBPACK_IMPORTED_MODULE_11__.youtube.getCredentials();
+    ctx.response.body = await _sources_index_js__WEBPACK_IMPORTED_MODULE_12__.youtube.getCredentials();
   }) // catch
   .all('/(.*)', async ctx => {
-    ctx.response.body = new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_6__.InvalidStateError({
+    ctx.response.body = new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_7__.InvalidStateError({
       userMessage: 'could not process request',
       message: 'invalid api command',
       state: ctx.request.body
@@ -2053,7 +2082,7 @@ function createAPIRouter() {
 function createRouter()
 /* {replaceIndex}*/
 {
-  const router = new _koa_router__WEBPACK_IMPORTED_MODULE_2__();
+  const router = new _koa_router__WEBPACK_IMPORTED_MODULE_3__();
   const apiRouter = createAPIRouter(); //L nested routers: https://github.com/alexmingoia/koa-router#nested-routers
 
   router.use('/api', apiRouter.routes(), apiRouter.allowedMethods()); // PAGE
@@ -2071,11 +2100,11 @@ function createRouter()
     */
     // Serve resources.
     if (fs__WEBPACK_IMPORTED_MODULE_1__.existsSync(path__WEBPACK_IMPORTED_MODULE_0__.join(root, ctx.request.path)) && ctx.request.path.indexOf('.') >= 0) {
-      await koa_send__WEBPACK_IMPORTED_MODULE_3__(ctx, ctx.request.path, {
+      await koa_send__WEBPACK_IMPORTED_MODULE_4__(ctx, ctx.request.path, {
         root
       }); //TODO find a better way to differentiate a valid file from a just a valid path (other than indexOf('.'))
       //TODO webpack might have a better way to identify static resources
-    } else if (!_session_methods_js__WEBPACK_IMPORTED_MODULE_9__.isLoggedIn(ctx) && ctx.request.path !== '/login' && ctx.request.path !== '/database') {
+    } else if (!_session_methods_js__WEBPACK_IMPORTED_MODULE_10__.isLoggedIn(ctx) && ctx.request.path !== '/login' && ctx.request.path !== '/database') {
       // Redirect if not logged in.
       //TODO this should use isLoggedIn, though that isn't perfect yet and it's async
       ctx.request.path = '/'; //! ctx.redirect() will not redirect if ctx.request.path is anything but '/', no idea why
@@ -2084,7 +2113,7 @@ function createRouter()
     } else {
       // Otherwise always return the index.js file, this is the root app and vue will handle the routing client-side.
       //L https://router.vuejs.org/guide/essentials/history-mode.html#example-server-configurations
-      await koa_send__WEBPACK_IMPORTED_MODULE_3__(ctx, app, {
+      await koa_send__WEBPACK_IMPORTED_MODULE_4__(ctx, app, {
         root
       });
     }
@@ -2564,6 +2593,10 @@ __webpack_require__.r(__webpack_exports__);
 		Use the class name for simplicity.
 */
 
+/* //TODO test:
+	unregistered id doesn't cause issues
+*/
+
 class ClassRegistry {
   constructor(idKey) {
     _utility_index_js__WEBPACK_IMPORTED_MODULE_0__.rules.string.validate(idKey);
@@ -2910,8 +2943,11 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "entityParts": () => /* reexport safe */ _entity_js__WEBPACK_IMPORTED_MODULE_0__.default,
 /* harmony export */   "playlistParts": () => /* reexport safe */ _playlist_js__WEBPACK_IMPORTED_MODULE_1__.default,
+/* harmony export */   "playlistSharedRegistryId": () => /* reexport safe */ _playlist_js__WEBPACK_IMPORTED_MODULE_1__.sharedRegistryId,
 /* harmony export */   "trackParts": () => /* reexport safe */ _track_js__WEBPACK_IMPORTED_MODULE_2__.default,
-/* harmony export */   "userParts": () => /* reexport safe */ _user_js__WEBPACK_IMPORTED_MODULE_3__.default
+/* harmony export */   "trackSharedRegistryId": () => /* reexport safe */ _track_js__WEBPACK_IMPORTED_MODULE_2__.sharedRegistryId,
+/* harmony export */   "userParts": () => /* reexport safe */ _user_js__WEBPACK_IMPORTED_MODULE_3__.default,
+/* harmony export */   "userSharedRegistryId": () => /* reexport safe */ _user_js__WEBPACK_IMPORTED_MODULE_3__.sharedRegistryId
 /* harmony export */ });
 /* harmony import */ var _entity_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./entity.js */ "./source/shared/entityParts/entity.js");
 /* harmony import */ var _playlist_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./playlist.js */ "./source/shared/entityParts/playlist.js");
@@ -2933,14 +2969,18 @@ __webpack_require__.r(__webpack_exports__);
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "sharedRegistryId": () => /* binding */ sharedRegistryId,
 /* harmony export */   "default": () => __WEBPACK_DEFAULT_EXPORT__
 /* harmony export */ });
 /* harmony import */ var _schema_states_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./schema-states.js */ "./source/shared/entityParts/schema-states.js");
 /* harmony import */ var _project_rules_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../project-rules.js */ "./source/shared/project-rules.js");
 /* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../utility/index.js */ "./source/shared/utility/index.js");
+/* harmony import */ var _class_registry_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../class-registry.js */ "./source/shared/class-registry.js");
 
 
 
+
+const sharedRegistryId = 'Playlist';
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (new _utility_index_js__WEBPACK_IMPORTED_MODULE_2__.ClassParts({
   instance(options = {}) {
     const {
@@ -2959,6 +2999,7 @@ __webpack_require__.r(__webpack_exports__);
       color,
       image
     });
+    _class_registry_js__WEBPACK_IMPORTED_MODULE_3__.sharedRegistry.defineId(this, sharedRegistryId);
   },
 
   static() {
@@ -3078,15 +3119,19 @@ const auto = {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "sharedRegistryId": () => /* binding */ sharedRegistryId,
 /* harmony export */   "default": () => __WEBPACK_DEFAULT_EXPORT__,
 /* harmony export */   "validateSource": () => /* binding */ validateSource
 /* harmony export */ });
 /* harmony import */ var _schema_states_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./schema-states.js */ "./source/shared/entityParts/schema-states.js");
 /* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../utility/index.js */ "./source/shared/utility/index.js");
 /* harmony import */ var _project_rules_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../project-rules.js */ "./source/shared/project-rules.js");
+/* harmony import */ var _class_registry_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../class-registry.js */ "./source/shared/class-registry.js");
 
 
 
+
+const sharedRegistryId = 'Track';
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (new _utility_index_js__WEBPACK_IMPORTED_MODULE_1__.ClassParts({
   instance(options = {}) {
     const {
@@ -3109,6 +3154,7 @@ __webpack_require__.r(__webpack_exports__);
       duration,
       link
     });
+    _class_registry_js__WEBPACK_IMPORTED_MODULE_3__.sharedRegistry.defineId(this, sharedRegistryId);
   },
 
   static() {
@@ -3231,15 +3277,19 @@ function validateSource({
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "defaultSocketId": () => /* binding */ defaultSocketId,
+/* harmony export */   "sharedRegistryId": () => /* binding */ sharedRegistryId,
 /* harmony export */   "default": () => __WEBPACK_DEFAULT_EXPORT__
 /* harmony export */ });
 /* harmony import */ var _schema_states_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./schema-states.js */ "./source/shared/entityParts/schema-states.js");
 /* harmony import */ var _project_rules_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../project-rules.js */ "./source/shared/project-rules.js");
 /* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../utility/index.js */ "./source/shared/utility/index.js");
+/* harmony import */ var _class_registry_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../class-registry.js */ "./source/shared/class-registry.js");
+
 
 
 
 const defaultSocketId = null;
+const sharedRegistryId = 'User';
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (new _utility_index_js__WEBPACK_IMPORTED_MODULE_2__.ClassParts({
   instance(options = {}) {
     const {
@@ -3259,6 +3309,7 @@ const defaultSocketId = null;
       spotifyRefreshToken,
       socketId
     });
+    _class_registry_js__WEBPACK_IMPORTED_MODULE_3__.sharedRegistry.defineId(this, sharedRegistryId);
   },
 
   static() {
@@ -3584,6 +3635,7 @@ class MultipleErrors extends _custom_error_js__WEBPACK_IMPORTED_MODULE_1__.defau
 
 }
 _utility_index_js__WEBPACK_IMPORTED_MODULE_0__.define.constant(MultipleErrors, {
+  // Used for promise handler shorthand .catch(MultipleErrors.throw)
   throw(errors) {
     throw new MultipleErrors({
       errors
@@ -3710,9 +3762,9 @@ class UnknownError extends Error {
   constructor(error = {}) {
     super(error.message); // Copy all properties.
 
-    (0,_utility_index_js__WEBPACK_IMPORTED_MODULE_0__.forOwnKeysOf)(error, key => {
+    (0,_utility_index_js__WEBPACK_IMPORTED_MODULE_0__.forOwnKeysOf)(error, (obj, key) => {
       if (key !== 'message') {
-        (0,_utility_index_js__WEBPACK_IMPORTED_MODULE_0__.copyProperty)(key, error, this);
+        (0,_utility_index_js__WEBPACK_IMPORTED_MODULE_0__.copyOwnProperty)(key, obj, this);
       }
     });
     _class_registry_js__WEBPACK_IMPORTED_MODULE_1__.sharedRegistry.defineId(this, sharedRegistryId);
@@ -3734,10 +3786,10 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => /* binding */ UnreachableError
 /* harmony export */ });
-/* harmony import */ var _custom_error_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./custom-error.js */ "./source/shared/errors/custom-error.js");
+/* harmony import */ var _internal_error_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./internal-error.js */ "./source/shared/errors/internal-error.js");
 //G Used when a supposedly unreachable code path has been reached.
 
-class UnreachableError extends _custom_error_js__WEBPACK_IMPORTED_MODULE_0__.default {
+class UnreachableError extends _internal_error_js__WEBPACK_IMPORTED_MODULE_0__.default {
   constructor({
     message = 'An unreachable code-path has been reached.',
     ...rest
@@ -3820,8 +3872,8 @@ class CachedEntity {
     } = options; //TODO See if any of these can be validated or made constant.
 
     _utility_index_js__WEBPACK_IMPORTED_MODULE_1__.define.writable(this, {
-      table,
       entity,
+      table,
       liveQueryRefs: [],
       timestamp: 0
     });
@@ -3839,8 +3891,8 @@ class LiveQuery {
 
     if (_utility_index_js__WEBPACK_IMPORTED_MODULE_1__.rules.array.test(query)) query = (0,_utility_index_js__WEBPACK_IMPORTED_MODULE_1__.any)(query);
     _utility_index_js__WEBPACK_IMPORTED_MODULE_1__.define.writable(this, {
-      table,
       query,
+      table,
       cachedEntityRefs: [],
       subscriptions: [],
       timestamp: 0
@@ -3879,6 +3931,36 @@ const subscriptionParts = new _utility_index_js__WEBPACK_IMPORTED_MODULE_1__.Cla
 class Subscription {
   constructor(options = {}) {
     subscriptionParts.instance(this, options);
+  }
+
+}
+
+/***/ }),
+
+/***/ "./source/shared/metadata-container.js":
+/*!*********************************************!*\
+  !*** ./source/shared/metadata-container.js ***!
+  \*********************************************/
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => /* binding */ MetadataContainer
+/* harmony export */ });
+/* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utility/index.js */ "./source/shared/utility/index.js");
+// Holds timestamp metadata for data to be transferred.
+
+class MetadataContainer {
+  constructor(options = {}) {
+    const {
+      data,
+      timestamp = null
+    } = options;
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__.define.constant(this, {
+      data,
+      timestamp
+    });
   }
 
 }
@@ -4007,6 +4089,7 @@ const visibilityState = new _utility_index_js__WEBPACK_IMPORTED_MODULE_0__.Rule(
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "errorSharedRegistryId": () => /* binding */ errorSharedRegistryId,
 /* harmony export */   "default": () => /* binding */ propagate,
 /* harmony export */   "returnPropagate": () => /* binding */ returnPropagate,
 /* harmony export */   "logPropagate": () => /* binding */ logPropagate
@@ -4025,23 +4108,27 @@ __webpack_require__.r(__webpack_exports__);
  // Register the built-in Error class
 // The registry id will be manually assigned to errors.
 
-const sharedRegistryId = 'Error';
-_class_registry_js__WEBPACK_IMPORTED_MODULE_2__.sharedRegistry.register(Error, sharedRegistryId, _reconstruct_error_js__WEBPACK_IMPORTED_MODULE_3__.default); // Wraps the passed value in an Error instance if it isn't one. Then throws it.
+const errorSharedRegistryId = 'Error';
+_class_registry_js__WEBPACK_IMPORTED_MODULE_2__.sharedRegistry.register(Error, errorSharedRegistryId, _reconstruct_error_js__WEBPACK_IMPORTED_MODULE_3__.default); // Wraps the passed value in an Error instance if it isn't one. Then throws it.
 // All instances will be registered with the sharedRegistry so that they can be identified as errors when passed between the client and server.
 
 function propagate(thrownValue) {
   if (thrownValue instanceof Error) {
-    if (thrownValue.constructor === Error) {
-      // If the error is a direct instance of Error, try to add a sharedRegistryId so that it can be reconstructed as an Error.
-      if (Object.getOwnPropertyDescriptor(thrownValue, _class_registry_js__WEBPACK_IMPORTED_MODULE_2__.sharedRegistry.idKey).configurable) {
-        _class_registry_js__WEBPACK_IMPORTED_MODULE_2__.sharedRegistry.defineId(thrownValue, sharedRegistryId);
-        throw thrownValue;
-      } else if (_class_registry_js__WEBPACK_IMPORTED_MODULE_2__.sharedRegistry.isRegistered(thrownValue)) {
-        throw thrownValue;
+    if (_class_registry_js__WEBPACK_IMPORTED_MODULE_2__.sharedRegistry.isRegistered(thrownValue)) {
+      throw thrownValue;
+    } else if (thrownValue.constructor === Error) {
+      // If the error is a direct instance of Error, manually register it and throw it.
+      try {
+        _class_registry_js__WEBPACK_IMPORTED_MODULE_2__.sharedRegistry.defineId(thrownValue, errorSharedRegistryId);
+      } catch (error) {
+        // An Error instance should never have a non-configurable sharedRegistryIdKey but not be registered.
+        throw new _errors_index_js__WEBPACK_IMPORTED_MODULE_1__.UnreachableError(thrownValue);
       }
-    }
 
-    throw new _errors_index_js__WEBPACK_IMPORTED_MODULE_1__.UnknownError(thrownValue);
+      throw thrownValue;
+    } else {
+      throw new _errors_index_js__WEBPACK_IMPORTED_MODULE_1__.UnknownError(thrownValue);
+    }
   } else {
     throw new _errors_unexpected_value_thrown_js__WEBPACK_IMPORTED_MODULE_0__.default({
       message: `An unexpected value was thrown.`,
@@ -4083,9 +4170,9 @@ __webpack_require__.r(__webpack_exports__);
 function reconstructError(Class, error) {
   const newError = new Class(error.message); // Copy all properties.
 
-  (0,_utility_index_js__WEBPACK_IMPORTED_MODULE_0__.forOwnKeysOf)(error, key => {
+  (0,_utility_index_js__WEBPACK_IMPORTED_MODULE_0__.forOwnKeysOf)(error, (obj, key) => {
     if (key !== 'message') {
-      (0,_utility_index_js__WEBPACK_IMPORTED_MODULE_0__.copyProperty)(key, error, newError);
+      (0,_utility_index_js__WEBPACK_IMPORTED_MODULE_0__.copyOwnProperty)(key, error, newError);
     }
   });
   return newError;
@@ -4290,36 +4377,6 @@ __webpack_require__.r(__webpack_exports__);
   }
 
 }));
-
-/***/ }),
-
-/***/ "./source/shared/timestamped-data.js":
-/*!*******************************************!*\
-  !*** ./source/shared/timestamped-data.js ***!
-  \*******************************************/
-/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => /* binding */ MetadataContainer
-/* harmony export */ });
-/* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utility/index.js */ "./source/shared/utility/index.js");
-// Holds timestamp metadata for data to be transferred.
-
-class MetadataContainer {
-  constructor(options = {}) {
-    const {
-      data,
-      timestamp = null
-    } = options;
-    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__.define.constant(this, {
-      data,
-      timestamp
-    });
-  }
-
-}
 
 /***/ }),
 
@@ -5051,7 +5108,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "dynamicSort": () => /* reexport safe */ _array_index_js__WEBPACK_IMPORTED_MODULE_0__.dynamicSort,
 /* harmony export */   "one": () => /* reexport safe */ _array_index_js__WEBPACK_IMPORTED_MODULE_0__.one,
 /* harmony export */   "stableSort": () => /* reexport safe */ _array_index_js__WEBPACK_IMPORTED_MODULE_0__.stableSort,
-/* harmony export */   "copyProperty": () => /* reexport safe */ _object_index_js__WEBPACK_IMPORTED_MODULE_1__.copyProperty,
+/* harmony export */   "copyOwnProperty": () => /* reexport safe */ _object_index_js__WEBPACK_IMPORTED_MODULE_1__.copyOwnProperty,
 /* harmony export */   "deepCompare": () => /* reexport safe */ _object_index_js__WEBPACK_IMPORTED_MODULE_1__.deepCompare,
 /* harmony export */   "define": () => /* reexport safe */ _object_index_js__WEBPACK_IMPORTED_MODULE_1__.define,
 /* harmony export */   "forKeysOf": () => /* reexport safe */ _object_index_js__WEBPACK_IMPORTED_MODULE_1__.forKeysOf,
@@ -5284,20 +5341,20 @@ function keyify(value) {
 
 /***/ }),
 
-/***/ "./source/shared/utility/object/copy-property.js":
-/*!*******************************************************!*\
-  !*** ./source/shared/utility/object/copy-property.js ***!
-  \*******************************************************/
+/***/ "./source/shared/utility/object/copy-own-property.js":
+/*!***********************************************************!*\
+  !*** ./source/shared/utility/object/copy-own-property.js ***!
+  \***********************************************************/
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => /* binding */ copyProperty
+/* harmony export */   "default": () => /* binding */ copyOwnProperty
 /* harmony export */ });
-function copyProperty(key, from, to) {
-  const descriptor = Object.getOwnPropertyDescriptor(key, from);
-  Object.defineProperty(to, descriptor);
+function copyOwnProperty(key, from, to) {
+  const descriptor = Object.getOwnPropertyDescriptor(from, key);
+  Object.defineProperty(to, key, descriptor);
 }
 
 /***/ }),
@@ -5745,7 +5802,7 @@ const ownKeys = function (object) {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "copyProperty": () => /* reexport safe */ _copy_property_js__WEBPACK_IMPORTED_MODULE_0__.default,
+/* harmony export */   "copyOwnProperty": () => /* reexport safe */ _copy_own_property_js__WEBPACK_IMPORTED_MODULE_0__.default,
 /* harmony export */   "deepCompare": () => /* reexport safe */ _deep_compare_js__WEBPACK_IMPORTED_MODULE_1__.default,
 /* harmony export */   "define": () => /* reexport safe */ _define_js__WEBPACK_IMPORTED_MODULE_2__.default,
 /* harmony export */   "forKeysOf": () => /* reexport safe */ _keys_of_js__WEBPACK_IMPORTED_MODULE_3__.forKeysOf,
@@ -5759,7 +5816,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "pick": () => /* reexport safe */ _pick_js__WEBPACK_IMPORTED_MODULE_4__.default,
 /* harmony export */   "undeclareUndefined": () => /* reexport safe */ _undeclare_undefined_js__WEBPACK_IMPORTED_MODULE_5__.default
 /* harmony export */ });
-/* harmony import */ var _copy_property_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./copy-property.js */ "./source/shared/utility/object/copy-property.js");
+/* harmony import */ var _copy_own_property_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./copy-own-property.js */ "./source/shared/utility/object/copy-own-property.js");
 /* harmony import */ var _deep_compare_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./deep-compare.js */ "./source/shared/utility/object/deep-compare.js");
 /* harmony import */ var _define_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./define.js */ "./source/shared/utility/object/define.js");
 /* harmony import */ var _keys_of_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./keys-of.js */ "./source/shared/utility/object/keys-of.js");
@@ -8138,6 +8195,17 @@ module.exports = require("socket.io");;
 
 "use strict";
 module.exports = require("spotify-web-api-node");;
+
+/***/ }),
+
+/***/ "util":
+/*!***********************!*\
+  !*** external "util" ***!
+  \***********************/
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("util");;
 
 /***/ }),
 

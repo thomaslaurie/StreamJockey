@@ -6,6 +6,10 @@
 		Use the class name for simplicity.
 */
 
+/* //TODO test:
+	unregistered id doesn't cause issues
+*/
+
 import {
 	rules,
 	define,
@@ -47,7 +51,6 @@ define.constant(ClassRegistry.prototype, {
 	},
 	autoConstruct(value) {
 		const registered = this.registry.find(registered => registered.id === value?.[this.idKey]);
-
 		return (registered === undefined) ? value : registered.reconstructor(registered.Class, value);
 	},
 	isRegistered(value) {

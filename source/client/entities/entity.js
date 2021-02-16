@@ -9,6 +9,7 @@ import {
 	pick,
 	define,
 } from '../../shared/utility/index.js';
+import {sharedRegistry} from '../../shared/class-registry.js';
 
 export default class Entity {
 	constructor(...args) {
@@ -35,32 +36,42 @@ define.constant(Entity.prototype, {
 	},
 });
 define.constant(Entity, {
-	async add(query, {includeMetadata = false} = {}) {
-		return serverRequest(
+	async add(query, {includeMetadata} = {}) {
+		const result = await serverRequest(
 			'POST',
 			this.table,
 			any(query).map(q => pick(q, this.filters.addIn)),
-		).then(result => (includeMetadata ? result : result.data));
+		);
+		return unwrapResult(result, includeMetadata);
 	},
-	async get(query, {includeMetadata = false} = {}) {
-		return serverRequest(
+	async get(query, {includeMetadata} = {}) {
+		const result = await serverRequest(
 			'GET',
 			this.table,
 			any(query).map(q => pick(q, this.filters.getIn)),
-		).then(result => (includeMetadata ? result : result.data));
+		);
+		return unwrapResult(result, includeMetadata);
 	},
-	async edit(query, {includeMetadata = false} = {}) {
-		return serverRequest(
+	async edit(query, {includeMetadata} = {}) {
+		const result = await serverRequest(
 			'PATCH',
 			this.table,
 			any(query).map(q => pick(q, this.filters.editIn)),
-		).then(result => (includeMetadata ? result : result.data));
+		);
+		return unwrapResult(result, includeMetadata);
 	},
-	async remove(query, {includeMetadata = false} = {}) {
-		return serverRequest(
+	async remove(query, {includeMetadata} = {}) {
+		const result = await serverRequest(
 			'DELETE',
 			this.table,
 			any(query).map(q => pick(q,  this.filters.removeIn)),
-		).then(result => (includeMetadata ? result : result.data));
+		);
+		return unwrapResult(result, includeMetadata);
 	},
 });
+
+function unwrapResult(result, includeMetadata = false) {
+	return includeMetadata
+		? result
+		: result.data.map(entityObject => sharedRegistry.autoConstruct(entityObject));
+}

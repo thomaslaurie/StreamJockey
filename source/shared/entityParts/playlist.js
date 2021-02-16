@@ -10,6 +10,9 @@ import {
 	define,
 	ClassParts,
 } from '../utility/index.js';
+import {sharedRegistry} from '../class-registry.js';
+
+export const sharedRegistryId = 'Playlist';
 
 export default new ClassParts({
 	instance(options = {}) {
@@ -30,6 +33,8 @@ export default new ClassParts({
 			color,
 			image,
 		});
+
+		sharedRegistry.defineId(this, sharedRegistryId);
 	},
 	static() {
 		define.constant(this, {

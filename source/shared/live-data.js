@@ -46,8 +46,8 @@ export class CachedEntity {
 
 		//TODO See if any of these can be validated or made constant.
 		define.writable(this, {
-			table,
 			entity,
+			table,
 			liveQueryRefs: [],
 			timestamp: 0,
 		});
@@ -63,8 +63,8 @@ export class LiveQuery {
 		if (rules.array.test(query)) query = any(query);
 
 		define.writable(this, {
-			table,
 			query,
+			table,
 			cachedEntityRefs: [],
 			subscriptions:    [],
 			timestamp: 0,

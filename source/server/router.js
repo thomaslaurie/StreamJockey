@@ -59,6 +59,7 @@
 // BUILT-IN
 import path from 'path';
 import fs from 'fs';
+import util from 'util';
 
 // EXTERNAL
 import KoaRouter from '@koa/router'; //L https://github.com/alexmingoia/koa-router
@@ -102,7 +103,14 @@ function createAPIRouter() {
 		// Catches and propagates all errors, but assigns them to the response body rather than throwing.
 		.all('/(.*)', async (ctx, next) => {
 			await next().catch(rejected => {
-				ctx.response.body = returnPropagate(rejected);
+				const error = returnPropagate(rejected);
+				console.error('Returning error to client:', util.inspect(error, {
+					depth: 10,
+					colors: true,
+					getters: true,
+				})); // Temporary
+				ctx.response.body = error;
+				// ctx.response.stats = 500; //TODO Figure out how to determine a proper error code.
 			});
 		})
 		// Set GET request bodies as the parsed body parameter (if it exists).

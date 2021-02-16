@@ -10,6 +10,9 @@ import {
 	ClassParts,
 } from '../utility/index.js';
 import * as projectRules from '../project-rules.js';
+import {sharedRegistry} from '../class-registry.js';
+
+export const sharedRegistryId = 'Track';
 
 export default new ClassParts({
 	instance(options = {}) {
@@ -34,6 +37,8 @@ export default new ClassParts({
 			duration,
 			link,
 		});
+
+		sharedRegistry.defineId(this, sharedRegistryId);
 	},
 	static() {
 		define.constant(this, {

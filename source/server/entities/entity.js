@@ -19,7 +19,7 @@ import {
 import {
 	MultipleErrors, CustomError,
 } from '../../shared/errors/index.js';
-import MetadataContainer from '../../shared/timestamped-data.js';
+import MetadataContainer from '../../shared/metadata-container.js';
 import PostgresError from '../errors/postgres-error.js';
 
 
@@ -52,6 +52,7 @@ define.writable(Entity, {
 	},
 });
 define.constant(Entity, {
+	//! //TODO includeMetadata currently not received from client, is just a static variable passed from the router.
 	// CRUD METHODS
 	async add(query, {db = database, includeMetadata = false} = {}) {
 		return this.frame(db, query, 'add')
@@ -94,8 +95,9 @@ define.constant(Entity, {
 		}
 		const isGet = methodName === 'get';
 
-		const accessory = {};
-
+		const accessory = {
+			methodName,
+		};
 
 		const after = await db.tx(async t => {
 			// process
@@ -238,10 +240,12 @@ define.constant(Entity, {
 });
 
 // Modifies each after validation.
-async function basePrepare(t, entity) {
-	return {...entity};
+async function basePrepare(t, entity, {methodName}) {
+	// entities must be filtered first
+	return pick(entity, this.filters[`${methodName}In`]);
 }
 define.constant(Entity, {
+	basePrepare,
 	addPrepare:    basePrepare,
 	getPrepare:    basePrepare,
 	editPrepare:   basePrepare,

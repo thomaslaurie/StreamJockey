@@ -1,7 +1,8 @@
 import Entity from './entity.js';
-import {trackParts} from '../../shared/entityParts/index.js';
+import {trackParts, trackSharedRegistryId} from '../../shared/entityParts/index.js';
 import {validateSource} from '../../shared/entityParts/track.js';
 import Source from '../source.js';
+import {sharedRegistry} from '../../shared/class-registry.js';
 
 export default class Track extends Entity {
 	constructor(...args) {
@@ -19,3 +20,6 @@ export default class Track extends Entity {
 }
 trackParts.prototype(Track);
 trackParts.static(Track);
+
+// Id is assigned to instance in trackParts.instance
+sharedRegistry.register(Track, trackSharedRegistryId);

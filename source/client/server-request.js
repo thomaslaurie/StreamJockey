@@ -5,6 +5,10 @@
 	This also applies to GET requests for consistency.
 */
 
+/* //TODO Test
+	Registered objects get reconstructed.
+*/
+
 // INTERNAL
 import {
 	rules,
@@ -13,7 +17,7 @@ import {
 	appendQueryParameters,
 } from '../shared/utility/index.js';
 import {
-	safeStringify, image,
+	safeStringify,
 } from '../shared/derived-utility/index.js';
 import {
 	HTTPError,
@@ -70,6 +74,7 @@ export default async function serverRequest(method, url, body) {
 	});
 
 	// Reconstruct if possible.
+	//! Only auto-constructs the root object. Any nested objects must be constructed by their callers.
 	const constructedResult = sharedRegistry.autoConstruct(result);
 
 	// Throw if the result is an error.

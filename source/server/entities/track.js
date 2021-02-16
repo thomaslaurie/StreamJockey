@@ -10,6 +10,7 @@ import database, {pgp} from '../database/database.js';
 import Source from '../../server/source.js';
 import {
 	trackParts,
+	trackSharedRegistryId,
 } from '../../shared/entityParts/index.js';
 import {validateSource} from '../../shared/entityParts/track.js';
 import propagate from '../../shared/propagate.js';
@@ -18,6 +19,7 @@ import {
 } from '../../shared/errors/index.js';
 import Entity from './entity.js';
 import PostgresError from '../errors/postgres-error.js';
+import {sharedRegistry} from '../../shared/class-registry.js';
 
 export default class Track extends Entity {
 	constructor(...args) {
@@ -36,6 +38,8 @@ export default class Track extends Entity {
 trackParts.prototype(Track);
 trackParts.static(Track);
 
+// Id is assigned to instance in trackParts.instance
+sharedRegistry.register(Track, trackSharedRegistryId);
 
 define.constant(Track.prototype, {
 	async order(db = database) {
@@ -60,9 +64,10 @@ define.constant(Track, {
 	editBefore:   baseBefore,
 	removeBefore: baseBefore,
 
-	async addPrepare(t, track) {
+	async addPrepare(t, track, accessory) {
+		const track2 = await Entity.addPrepare.call(this, t, track, accessory);
 		// set id of tracks to be added as a temporary symbol, so that Track.order() is able to identify tracks
-		const newTrack = {...track, id: Symbol()};
+		const newTrack = {...track2, id: Symbol()};
 		if (!rules.integer.test(newTrack.position)) {
 			const existingTracks = await Track.get({playlistId: newTrack.playlistId}, {db: t});
 			newTrack.position = existingTracks.length;
@@ -210,7 +215,8 @@ define.constant(Track, {
 							FROM "sj"."tracks"
 							WHERE "id" = $1
 						)
-				`, track.id);
+					`, track.id);
+				//? Why using raw here? Shouldn't this just be t.any(currentQuery) ?
 				const currentPlaylist = await t.any('$1:raw', currentQuery).catch(rejected => {
 					throw new PostgresError({
 						postgresError: rejected,

@@ -1,0 +1,33 @@
+What does this need to do?
+	It should be simpler.
+	Have tests.
+	Probably more easily integrate with Vue's reactivity system?
+How does it currently work?
+	LiveTable objects proxy database tables.
+		They have:
+			a store of current queries against the table,
+			a store of the entities matched by those queries,
+	CachedEntity objects wrap entity data.
+		They have:
+			their entity data,
+			a reference to the table they're in,
+			a store of query references they are matched by,
+			a timestamp,
+	LiveQuery objects wrap query object.
+		They have:
+			their query object,
+			a reference to the table they're for,
+			a store of cached entity references they match,
+			a timestamp,
+			a store of subscriptions to themselves,
+	Subscription objects manage individual references to a live query.
+		They have:
+			a reference to the query they subscribe to,
+			CRUD hooks for responding to specific types of changes,
+What problems are there?
+	Too many circular references.
+	CRUD hooks seem ambiguous?
+		If an entity is removed from query results due to a change of its info, is that an edit or a deletion?
+			Should the client be able to distinguish that or is it a security concern?
+	Too complex.
+	Is VueX a good idea?

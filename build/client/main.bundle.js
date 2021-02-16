@@ -31402,9 +31402,11 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _session_methods_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../../session-methods.js */ "./source/client/session-methods.js");
 /* harmony import */ var _hooks_index_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../hooks/index.js */ "./source/client/ui/vue/hooks/index.js");
 /* harmony import */ var _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../../../../shared/utility/index.js */ "./source/shared/utility/index.js");
+/* harmony import */ var vuex__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! vuex */ "./node_modules/vuex/dist/vuex.mjs");
 function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
 
 function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
+
 
 
 
@@ -31460,10 +31462,24 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
       return _logout.apply(this, arguments);
     }
 
+    var store = (0,vuex__WEBPACK_IMPORTED_MODULE_9__.useStore)();
+
+    function testLiveData() {
+      return _testLiveData.apply(this, arguments);
+    }
+
+    function _testLiveData() {
+      _testLiveData = _asyncToGenerator(function* () {
+        yield store.dispatch('test');
+      });
+      return _testLiveData.apply(this, arguments);
+    }
+
     return {
       user,
       playlists,
-      logout
+      logout,
+      testLiveData
     };
   }
 
@@ -32962,7 +32978,11 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
     onClick: _cache[1] || (_cache[1] = function () {
       return $setup.logout && $setup.logout(...arguments);
     })
-  }, "Logout"), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createVNode)("h4", null, "user #" + (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)($setup.user.data.id), 1
+  }, "Logout"), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createVNode)("button", {
+    onClick: _cache[2] || (_cache[2] = function () {
+      return $setup.testLiveData && $setup.testLiveData(...arguments);
+    })
+  }, "Test Live Data"), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createVNode)("h4", null, "user #" + (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)($setup.user.data.id), 1
   /* TEXT */
   ), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createVNode)("h1", null, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)($setup.user.data.name), 1
   /* TEXT */
@@ -40858,11 +40878,13 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../shared/entityParts/index.js */ "./source/shared/entityParts/index.js");
 /* harmony import */ var _server_request_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../server-request.js */ "./source/client/server-request.js");
 /* harmony import */ var _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../shared/utility/index.js */ "./source/shared/utility/index.js");
+/* harmony import */ var _shared_class_registry_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../shared/class-registry.js */ "./source/shared/class-registry.js");
 function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
 
 function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
 
 //! Side Effects //? Not quite sure of this.
+
 
 
 
@@ -40941,9 +40963,10 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__.define.constant(Entity, {
 
     return _asyncToGenerator(function* () {
       var {
-        includeMetadata = false
+        includeMetadata
       } = _arguments5.length > 1 && _arguments5[1] !== undefined ? _arguments5[1] : {};
-      return (0,_server_request_js__WEBPACK_IMPORTED_MODULE_1__.default)('POST', _this5.table, (0,_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__.any)(query).map(q => (0,_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__.pick)(q, _this5.filters.addIn))).then(result => includeMetadata ? result : result.data);
+      var result = yield (0,_server_request_js__WEBPACK_IMPORTED_MODULE_1__.default)('POST', _this5.table, (0,_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__.any)(query).map(q => (0,_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__.pick)(q, _this5.filters.addIn)));
+      return unwrapResult(result, includeMetadata);
     })();
   },
 
@@ -40953,9 +40976,10 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__.define.constant(Entity, {
 
     return _asyncToGenerator(function* () {
       var {
-        includeMetadata = false
+        includeMetadata
       } = _arguments6.length > 1 && _arguments6[1] !== undefined ? _arguments6[1] : {};
-      return (0,_server_request_js__WEBPACK_IMPORTED_MODULE_1__.default)('GET', _this6.table, (0,_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__.any)(query).map(q => (0,_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__.pick)(q, _this6.filters.getIn))).then(result => includeMetadata ? result : result.data);
+      var result = yield (0,_server_request_js__WEBPACK_IMPORTED_MODULE_1__.default)('GET', _this6.table, (0,_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__.any)(query).map(q => (0,_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__.pick)(q, _this6.filters.getIn)));
+      return unwrapResult(result, includeMetadata);
     })();
   },
 
@@ -40965,9 +40989,10 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__.define.constant(Entity, {
 
     return _asyncToGenerator(function* () {
       var {
-        includeMetadata = false
+        includeMetadata
       } = _arguments7.length > 1 && _arguments7[1] !== undefined ? _arguments7[1] : {};
-      return (0,_server_request_js__WEBPACK_IMPORTED_MODULE_1__.default)('PATCH', _this7.table, (0,_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__.any)(query).map(q => (0,_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__.pick)(q, _this7.filters.editIn))).then(result => includeMetadata ? result : result.data);
+      var result = yield (0,_server_request_js__WEBPACK_IMPORTED_MODULE_1__.default)('PATCH', _this7.table, (0,_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__.any)(query).map(q => (0,_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__.pick)(q, _this7.filters.editIn)));
+      return unwrapResult(result, includeMetadata);
     })();
   },
 
@@ -40977,13 +41002,19 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__.define.constant(Entity, {
 
     return _asyncToGenerator(function* () {
       var {
-        includeMetadata = false
+        includeMetadata
       } = _arguments8.length > 1 && _arguments8[1] !== undefined ? _arguments8[1] : {};
-      return (0,_server_request_js__WEBPACK_IMPORTED_MODULE_1__.default)('DELETE', _this8.table, (0,_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__.any)(query).map(q => (0,_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__.pick)(q, _this8.filters.removeIn))).then(result => includeMetadata ? result : result.data);
+      var result = yield (0,_server_request_js__WEBPACK_IMPORTED_MODULE_1__.default)('DELETE', _this8.table, (0,_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__.any)(query).map(q => (0,_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__.pick)(q, _this8.filters.removeIn)));
+      return unwrapResult(result, includeMetadata);
     })();
   }
 
 });
+
+function unwrapResult(result) {
+  var includeMetadata = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
+  return includeMetadata ? result : result.data.map(entityObject => _shared_class_registry_js__WEBPACK_IMPORTED_MODULE_3__.sharedRegistry.autoConstruct(entityObject));
+}
 
 /***/ }),
 
@@ -41025,6 +41056,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony import */ var _entity_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./entity.js */ "./source/client/entities/entity.js");
 /* harmony import */ var _shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../shared/entityParts/index.js */ "./source/shared/entityParts/index.js");
+/* harmony import */ var _shared_class_registry_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../shared/class-registry.js */ "./source/shared/class-registry.js");
+
 
 
 class Playlist extends _entity_js__WEBPACK_IMPORTED_MODULE_0__.default {
@@ -41040,7 +41073,9 @@ class Playlist extends _entity_js__WEBPACK_IMPORTED_MODULE_0__.default {
 
 }
 _shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_1__.playlistParts.prototype(Playlist);
-_shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_1__.playlistParts.static(Playlist);
+_shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_1__.playlistParts.static(Playlist); // Id is assigned to instance in playlistParts.instance
+
+_shared_class_registry_js__WEBPACK_IMPORTED_MODULE_2__.sharedRegistry.register(Playlist, _shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_1__.playlistSharedRegistryId);
 
 /***/ }),
 
@@ -41059,6 +41094,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../shared/entityParts/index.js */ "./source/shared/entityParts/index.js");
 /* harmony import */ var _shared_entityParts_track_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../shared/entityParts/track.js */ "./source/shared/entityParts/track.js");
 /* harmony import */ var _source_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../source.js */ "./source/client/source.js");
+/* harmony import */ var _shared_class_registry_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../shared/class-registry.js */ "./source/shared/class-registry.js");
+
 
 
 
@@ -41084,7 +41121,9 @@ class Track extends _entity_js__WEBPACK_IMPORTED_MODULE_0__.default {
 
 }
 _shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_1__.trackParts.prototype(Track);
-_shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_1__.trackParts.static(Track);
+_shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_1__.trackParts.static(Track); // Id is assigned to instance in trackParts.instance
+
+_shared_class_registry_js__WEBPACK_IMPORTED_MODULE_4__.sharedRegistry.register(Track, _shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_1__.trackSharedRegistryId);
 
 /***/ }),
 
@@ -41101,6 +41140,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony import */ var _entity_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./entity.js */ "./source/client/entities/entity.js");
 /* harmony import */ var _shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../shared/entityParts/index.js */ "./source/shared/entityParts/index.js");
+/* harmony import */ var _shared_class_registry_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../shared/class-registry.js */ "./source/shared/class-registry.js");
+
 
 
 class User extends _entity_js__WEBPACK_IMPORTED_MODULE_0__.default {
@@ -41116,7 +41157,9 @@ class User extends _entity_js__WEBPACK_IMPORTED_MODULE_0__.default {
 
 }
 _shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_1__.userParts.prototype(User);
-_shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_1__.userParts.static(User);
+_shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_1__.userParts.static(User); // Id is assigned to instance in userParts.instance
+
+_shared_class_registry_js__WEBPACK_IMPORTED_MODULE_2__.sharedRegistry.register(User, _shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_1__.userSharedRegistryId);
 
 /***/ }),
 
@@ -41139,6 +41182,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _shared_propagate_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../shared/propagate.js */ "./source/shared/propagate.js");
 /* harmony import */ var _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../shared/errors/index.js */ "./source/shared/errors/index.js");
 /* harmony import */ var _shared_class_registry_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../shared/class-registry.js */ "./source/shared/class-registry.js");
+/* harmony import */ var _sources_index_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./sources/index.js */ "./source/client/sources/index.js");
 function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
 
 function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
@@ -41399,6 +41443,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 
 
  // import test from '../shared/test.js';
+
 
 
  // Used for commented out test below.
@@ -42523,172 +42568,161 @@ var socket = new socket_io_client__WEBPACK_IMPORTED_MODULE_0__('/live-data');
         // module test
         // await context.dispatch('test');
       })();
-    }
-    /*
-    async test(context) {
-    	//TODO there is some issue in here where either the addCount or editCount is 1 lower than it should be, no idea whats causing it, and it happens fairly rarely (use the refresh functionality at the end to find the error), I don't think its being caused by the waitForUpdate() function because I ran it with a delay and it still errored
-    			// this delay exists to wait for any subscriptions on the page to process before executing these tests, as foreign activity interferes with the success of some of these tests
-    	await wait(2000);
-    			const tests = [];
-    			const uniqueName = () => `liveQuery${keyCode.create(7)}`;
-    	const uniqueDuration = () => Math.round(Math.random()*100000);
-    			let updated = false;
-    	// rapidly checks updated until it is true, then resets it
-    	const waitForUpdate = async function () {
-    		let delay = 50;
-    		await repeat.async(async () => {
-    			await wait(delay);
-    			delay = delay * 1.25;
-    			return;
-    		}, {
-    			until() {
-    				if (updated) {
-    					updated = false;
-    					return true;
-    				} else {
-    					return false;
-    				}
-    			},
-    			timeout: 2000,
-    			onTimeout() {
-    				throw new Error('LiveData update timed out.');
-    			},
-    		});
-    	};
-    			// CREATE
-    	const user = await new User({
-    		name: uniqueName(),
-    		email: uniqueName(),
-    		password: 'placeholder',
-    		password2: 'placeholder',
-    	}).add().then((result) => result.content).then(one);
-    	const playlist = await new Playlist({
-    		userId: user.id,
-    		name: uniqueName(),
-    		description: 'placeholder',
-    	}).add().then((result) => result.content).then(one);
-    	const track = await new Track({
-    		playlistId: playlist.id,
-    		source: spotify,
-    		sourceId: 'placeholder',
-    		name: uniqueName(),
-    		duration: uniqueDuration(),
-    	}).add().then((result) => result.content).then(one);
-    
-    	// MAKE SUBSCRIPTION
-    	let onAddCount = 0;
-    	let onEditCount = 0;
-    	let onRemoveCount = 0;
-    
-    	const trackSubscription = await context.dispatch('subscribe', {
-    		Entity: Track,
-    		query: {name: track.name},
-    		options: {
-    			onUpdate() {
-    				updated = true;
-    			},
-    			onAdd() {
-    				onAddCount++;
-    			},
-    			onEdit() {
-    				onEditCount++;
-    			},
-    			onRemove() {
-    				onRemoveCount++;
-    			},
-    		},
-    	});
-    	tests.push(
-    		['isSubscription', isInstanceOf(trackSubscription, Subscription, 'Subscription')]
-    	);
-    
-    	// ITERATE
-    	const iterations = Math.round(Math.random() * 10) + 5;
-    	const xTracks = [];
-    			console.log('iterations:', iterations);
-    			// BEFORE
-    	const entityRefsLengthBefore = trackSubscription.liveQuery.cachedEntityRefs.length;
-    	const entitiesLengthBefore = trackSubscription.liveQuery.table.cachedEntities.length;
-    	const addedBefore = 0;
-    	const editedBefore = 0;
-    	const removedBefore = 0;
-    	tests.push(
-    		['cachedEntityRefs length before',
-    		trackSubscription.liveQuery.cachedEntityRefs.length === entityRefsLengthBefore],
-    		['cachedEntities length before',
-    		trackSubscription.liveQuery.table.cachedEntities.length === entitiesLengthBefore],
-    		['lengthBefore',	context.getters.getLiveData(trackSubscription).length === entityRefsLengthBefore],
-    				['noneAdded',		onAddCount === addedBefore],
-    		['noneEdited',		onEditCount === editedBefore],
-    		['noneRemoved',		onRemoveCount === removedBefore],
-    	);
-    			// ADD
-    	for (let i = 0; i < iterations; i++) {
-    		xTracks[i] = await new Track({
-    			...track,
-    			position: undefined,
-    		}).add().then((result) => result.content).then(one);
-    	}
-    	await waitForUpdate();
-    	//console.log('xAfterAdd', onAddCount, onEditCount, onRemoveCount);
-    	tests.push(
-    		['cachedEntityRefs length afterAdd',
-    		trackSubscription.liveQuery.cachedEntityRefs.length === entityRefsLengthBefore + iterations],
-    		['cachedEntities length afterAdd',
-    		trackSubscription.liveQuery.table.cachedEntities.length === entitiesLengthBefore + iterations],
-    		['lengthAfterAdd',		context.getters.getLiveData(trackSubscription).length === entityRefsLengthBefore + iterations],
-    				['xAddedAfterAdd',		onAddCount === iterations],
-    		['xEditedAfterAdd',		onEditCount === editedBefore],
-    		['xRemovedAfterAdd',	onRemoveCount === removedBefore],
-    	);
-    			// EDIT
-    	for (let i = 0; i < iterations; i++) {
-    		xTracks[i].duration = uniqueDuration();
-    		await xTracks[i].edit();
-    	}
-    	await waitForUpdate();
-    	//console.log('xAfterEdit', onAddCount, onEditCount, onRemoveCount);
-    	tests.push(
-    		['cachedEntityRefs length afterEdit',
-    		trackSubscription.liveQuery.cachedEntityRefs.length === entityRefsLengthBefore + iterations],
-    		['cachedEntities length afterEdit',
-    		trackSubscription.liveQuery.table.cachedEntities.length === entitiesLengthBefore + iterations],
-    		['lengthAfterEdit', context.getters.getLiveData(trackSubscription).length === entityRefsLengthBefore + iterations],
-    				['xAddedAfterEdit', onAddCount === iterations],
-    		['xEditedAfterEdit', onEditCount === iterations],
-    		['xRemovedAfterEdit', onRemoveCount === removedBefore],
-    	);
-    			// REMOVE
-    	for (let i = iterations-1; i > -1; i--) {
-    		//! remove in reverse order, as original order caused the re-ordering of track positions, causing an onEdit callback for all tracks
-    		await xTracks[i].remove();
-    	}
-    	await waitForUpdate();
-    	//console.log('xAfterRemove', onAddCount, onEditCount, onRemoveCount);
-    	tests.push(
-    		['cachedEntityRefs length afterRemove',
-    		trackSubscription.liveQuery.cachedEntityRefs.length === entityRefsLengthBefore],
-    		['cachedEntities length afterRemove',
-    		trackSubscription.liveQuery.table.cachedEntities.length === entitiesLengthBefore],
-    		['lengthAfterRemove', context.getters.getLiveData(trackSubscription).length === entityRefsLengthBefore],
-    				['xAddedAfterRemove', onAddCount === iterations],
-    		['xEditedAfterRemove', onEditCount === iterations],
-    		['xRemovedAfterRemove', onRemoveCount === iterations],
-    	);
-    			await context.dispatch('unsubscribe', {subscription: trackSubscription, strict: true});
-    			// DELETE
-    	await track.remove();
-    	await playlist.remove();
-    	await user.remove();
-    			//TODO add tests for convergent liveQueries
-    	const passed = await test([
-    		...tests,
-    	], 'liveQuery');
-    			// this refreshes the page until the test fails
-    	if (passed) document.location.reload();
     },
-    */
 
+    test(context) {
+      return _asyncToGenerator(function* () {
+        //TODO there is some issue in here where either the addCount or editCount is 1 lower than it should be, no idea whats causing it, and it happens fairly rarely (use the refresh functionality at the end to find the error), I don't think its being caused by the waitForUpdate() function because I ran it with a delay and it still errored
+        // this delay exists to wait for any subscriptions on the page to process before executing these tests, as foreign activity interferes with the success of some of these tests
+        yield (0,_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__.wait)(2000);
+        var tests = [];
+
+        var uniqueName = () => "liveQuery".concat(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__.keyCode.create(7));
+
+        var uniqueDuration = () => Math.round(Math.random() * 100000);
+
+        var updated = false; // rapidly checks updated until it is true, then resets it
+
+        var waitForUpdate = /*#__PURE__*/function () {
+          var _ref32 = _asyncToGenerator(function* () {
+            var delay = 50;
+            yield _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__.repeat.async( /*#__PURE__*/_asyncToGenerator(function* () {
+              yield (0,_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__.wait)(delay);
+              delay *= 1.25;
+            }), {
+              until() {
+                if (updated) {
+                  updated = false;
+                  return true;
+                }
+
+                return false;
+              },
+
+              timeout: 2000,
+
+              onTimeout() {
+                throw new Error('LiveData update timed out.');
+              }
+
+            });
+          });
+
+          return function waitForUpdate() {
+            return _ref32.apply(this, arguments);
+          };
+        }(); // CREATE
+
+
+        var user = yield new _entities_index_js__WEBPACK_IMPORTED_MODULE_3__.User({
+          name: uniqueName(),
+          email: uniqueName(),
+          password: 'placeholder',
+          password2: 'placeholder'
+        }).add().then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__.one);
+        var playlist = yield new _entities_index_js__WEBPACK_IMPORTED_MODULE_3__.Playlist({
+          userId: user.id,
+          name: uniqueName(),
+          description: 'placeholder',
+          visibility: 'public',
+          color: '#000000'
+        }).add().then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__.one);
+        var track = yield new _entities_index_js__WEBPACK_IMPORTED_MODULE_3__.Track({
+          playlistId: playlist.id,
+          source: _sources_index_js__WEBPACK_IMPORTED_MODULE_8__.spotify,
+          sourceId: 'placeholder',
+          name: uniqueName(),
+          duration: uniqueDuration()
+        }).add().then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__.one); // MAKE SUBSCRIPTION
+
+        var onAddCount = 0;
+        var onEditCount = 0;
+        var onRemoveCount = 0;
+        var trackSubscription = yield context.dispatch('subscribe', {
+          Entity: _entities_index_js__WEBPACK_IMPORTED_MODULE_3__.Track,
+          query: {
+            name: track.name
+          },
+          options: {
+            onUpdate() {
+              updated = true;
+            },
+
+            onAdd() {
+              onAddCount++;
+            },
+
+            onEdit() {
+              onEditCount++;
+            },
+
+            onRemove() {
+              onRemoveCount++;
+            }
+
+          }
+        });
+        tests.push(['isSubscription', trackSubscription instanceof _shared_live_data_js__WEBPACK_IMPORTED_MODULE_4__.Subscription]); // ITERATE
+
+        var iterations = Math.round(Math.random() * 10) + 5;
+        var xTracks = []; // console.log('iterations:', iterations);
+        // BEFORE
+
+        var entityRefsLengthBefore = trackSubscription.liveQuery.cachedEntityRefs.length;
+        var entitiesLengthBefore = trackSubscription.liveQuery.table.cachedEntities.length;
+        var addedBefore = 0;
+        var editedBefore = 0;
+        var removedBefore = 0;
+        tests.push(['cachedEntityRefs length before', trackSubscription.liveQuery.cachedEntityRefs.length === entityRefsLengthBefore], ['cachedEntities length before', trackSubscription.liveQuery.table.cachedEntities.length === entitiesLengthBefore], ['lengthBefore', context.getters.getLiveData(trackSubscription).length === entityRefsLengthBefore], ['noneAdded', onAddCount === addedBefore], ['noneEdited', onEditCount === editedBefore], ['noneRemoved', onRemoveCount === removedBefore]); // ADD
+
+        for (var i = 0; i < iterations; i++) {
+          xTracks[i] = yield new _entities_index_js__WEBPACK_IMPORTED_MODULE_3__.Track(_objectSpread(_objectSpread({}, track), {}, {
+            position: undefined
+          })).add().then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__.one);
+        }
+
+        yield waitForUpdate(); // console.log('xAfterAdd', onAddCount, onEditCount, onRemoveCount);
+
+        tests.push(['cachedEntityRefs length afterAdd', trackSubscription.liveQuery.cachedEntityRefs.length === entityRefsLengthBefore + iterations], ['cachedEntities length afterAdd', trackSubscription.liveQuery.table.cachedEntities.length === entitiesLengthBefore + iterations], ['lengthAfterAdd', context.getters.getLiveData(trackSubscription).length === entityRefsLengthBefore + iterations], ['xAddedAfterAdd', onAddCount === iterations], ['xEditedAfterAdd', onEditCount === editedBefore], ['xRemovedAfterAdd', onRemoveCount === removedBefore]); // EDIT
+
+        for (var _i = 0; _i < iterations; _i++) {
+          xTracks[_i].duration = uniqueDuration();
+          yield xTracks[_i].edit();
+        }
+
+        yield waitForUpdate(); // console.log('xAfterEdit', onAddCount, onEditCount, onRemoveCount);
+
+        tests.push(['cachedEntityRefs length afterEdit', trackSubscription.liveQuery.cachedEntityRefs.length === entityRefsLengthBefore + iterations], ['cachedEntities length afterEdit', trackSubscription.liveQuery.table.cachedEntities.length === entitiesLengthBefore + iterations], ['lengthAfterEdit', context.getters.getLiveData(trackSubscription).length === entityRefsLengthBefore + iterations], ['xAddedAfterEdit', onAddCount === iterations], ['xEditedAfterEdit', onEditCount === iterations], ['xRemovedAfterEdit', onRemoveCount === removedBefore]); // REMOVE
+
+        for (var _i2 = iterations - 1; _i2 > -1; _i2--) {
+          //! remove in reverse order, as original order caused the re-ordering of track positions, causing an onEdit callback for all tracks
+          yield xTracks[_i2].remove();
+        }
+
+        yield waitForUpdate(); // console.log('xAfterRemove', onAddCount, onEditCount, onRemoveCount);
+
+        tests.push(['cachedEntityRefs length afterRemove', trackSubscription.liveQuery.cachedEntityRefs.length === entityRefsLengthBefore], ['cachedEntities length afterRemove', trackSubscription.liveQuery.table.cachedEntities.length === entitiesLengthBefore], ['lengthAfterRemove', context.getters.getLiveData(trackSubscription).length === entityRefsLengthBefore], ['xAddedAfterRemove', onAddCount === iterations], ['xEditedAfterRemove', onEditCount === iterations], ['xRemovedAfterRemove', onRemoveCount === iterations]);
+        yield context.dispatch('unsubscribe', {
+          subscription: trackSubscription,
+          strict: true
+        }); // DELETE
+
+        yield track.remove();
+        yield playlist.remove();
+        yield user.remove(); //TODO add tests for convergent liveQueries
+
+        for (var [name, passed] of tests) {
+          if (passed) {
+            console.log("".concat(name, " passed"));
+          } else {
+            console.error("".concat(name, " failed"));
+          }
+        } // this refreshes the page until the test fails
+        //! //TODO
+        // if (passed) document.location.reload();
+
+      })();
+    }
 
   }
 });
@@ -43525,6 +43559,10 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 	Using JSON for all server requests so that primitive types can be preserved.
 	This also applies to GET requests for consistency.
 */
+
+/* //TODO Test
+	Registered objects get reconstructed.
+*/
 // INTERNAL
 
 
@@ -43575,6 +43613,7 @@ function _serverRequest() {
       JSONBody,
       headers: _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__.constants.JSON_HEADER
     }); // Reconstruct if possible.
+    //! Only auto-constructs the root object. Any nested objects must be constructed by their callers.
 
     var constructedResult = _shared_class_registry_js__WEBPACK_IMPORTED_MODULE_6__.sharedRegistry.autoConstruct(result); // Throw if the result is an error.
 
@@ -45560,6 +45599,10 @@ __webpack_require__.r(__webpack_exports__);
 		Use the class name for simplicity.
 */
 
+/* //TODO test:
+	unregistered id doesn't cause issues
+*/
+
 class ClassRegistry {
   constructor(idKey) {
     _utility_index_js__WEBPACK_IMPORTED_MODULE_0__.rules.string.validate(idKey);
@@ -45928,8 +45971,11 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "entityParts": () => /* reexport safe */ _entity_js__WEBPACK_IMPORTED_MODULE_0__.default,
 /* harmony export */   "playlistParts": () => /* reexport safe */ _playlist_js__WEBPACK_IMPORTED_MODULE_1__.default,
+/* harmony export */   "playlistSharedRegistryId": () => /* reexport safe */ _playlist_js__WEBPACK_IMPORTED_MODULE_1__.sharedRegistryId,
 /* harmony export */   "trackParts": () => /* reexport safe */ _track_js__WEBPACK_IMPORTED_MODULE_2__.default,
-/* harmony export */   "userParts": () => /* reexport safe */ _user_js__WEBPACK_IMPORTED_MODULE_3__.default
+/* harmony export */   "trackSharedRegistryId": () => /* reexport safe */ _track_js__WEBPACK_IMPORTED_MODULE_2__.sharedRegistryId,
+/* harmony export */   "userParts": () => /* reexport safe */ _user_js__WEBPACK_IMPORTED_MODULE_3__.default,
+/* harmony export */   "userSharedRegistryId": () => /* reexport safe */ _user_js__WEBPACK_IMPORTED_MODULE_3__.sharedRegistryId
 /* harmony export */ });
 /* harmony import */ var _entity_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./entity.js */ "./source/shared/entityParts/entity.js");
 /* harmony import */ var _playlist_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./playlist.js */ "./source/shared/entityParts/playlist.js");
@@ -45951,14 +45997,18 @@ __webpack_require__.r(__webpack_exports__);
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "sharedRegistryId": () => /* binding */ sharedRegistryId,
 /* harmony export */   "default": () => __WEBPACK_DEFAULT_EXPORT__
 /* harmony export */ });
 /* harmony import */ var _schema_states_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./schema-states.js */ "./source/shared/entityParts/schema-states.js");
 /* harmony import */ var _project_rules_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../project-rules.js */ "./source/shared/project-rules.js");
 /* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../utility/index.js */ "./source/shared/utility/index.js");
+/* harmony import */ var _class_registry_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../class-registry.js */ "./source/shared/class-registry.js");
 
 
 
+
+var sharedRegistryId = 'Playlist';
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (new _utility_index_js__WEBPACK_IMPORTED_MODULE_2__.ClassParts({
   instance() {
     var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
@@ -45978,6 +46028,7 @@ __webpack_require__.r(__webpack_exports__);
       color,
       image
     });
+    _class_registry_js__WEBPACK_IMPORTED_MODULE_3__.sharedRegistry.defineId(this, sharedRegistryId);
   },
 
   static() {
@@ -46097,15 +46148,19 @@ var auto = {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "sharedRegistryId": () => /* binding */ sharedRegistryId,
 /* harmony export */   "default": () => __WEBPACK_DEFAULT_EXPORT__,
 /* harmony export */   "validateSource": () => /* binding */ validateSource
 /* harmony export */ });
 /* harmony import */ var _schema_states_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./schema-states.js */ "./source/shared/entityParts/schema-states.js");
 /* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../utility/index.js */ "./source/shared/utility/index.js");
 /* harmony import */ var _project_rules_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../project-rules.js */ "./source/shared/project-rules.js");
+/* harmony import */ var _class_registry_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../class-registry.js */ "./source/shared/class-registry.js");
 
 
 
+
+var sharedRegistryId = 'Track';
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (new _utility_index_js__WEBPACK_IMPORTED_MODULE_1__.ClassParts({
   instance() {
     var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
@@ -46129,6 +46184,7 @@ __webpack_require__.r(__webpack_exports__);
       duration,
       link
     });
+    _class_registry_js__WEBPACK_IMPORTED_MODULE_3__.sharedRegistry.defineId(this, sharedRegistryId);
   },
 
   static() {
@@ -46252,15 +46308,19 @@ function validateSource(_ref) {
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "defaultSocketId": () => /* binding */ defaultSocketId,
+/* harmony export */   "sharedRegistryId": () => /* binding */ sharedRegistryId,
 /* harmony export */   "default": () => __WEBPACK_DEFAULT_EXPORT__
 /* harmony export */ });
 /* harmony import */ var _schema_states_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./schema-states.js */ "./source/shared/entityParts/schema-states.js");
 /* harmony import */ var _project_rules_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../project-rules.js */ "./source/shared/project-rules.js");
 /* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../utility/index.js */ "./source/shared/utility/index.js");
+/* harmony import */ var _class_registry_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../class-registry.js */ "./source/shared/class-registry.js");
+
 
 
 
 var defaultSocketId = null;
+var sharedRegistryId = 'User';
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (new _utility_index_js__WEBPACK_IMPORTED_MODULE_2__.ClassParts({
   instance() {
     var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
@@ -46281,6 +46341,7 @@ var defaultSocketId = null;
       spotifyRefreshToken,
       socketId
     });
+    _class_registry_js__WEBPACK_IMPORTED_MODULE_3__.sharedRegistry.defineId(this, sharedRegistryId);
   },
 
   static() {
@@ -46645,6 +46706,7 @@ class MultipleErrors extends _custom_error_js__WEBPACK_IMPORTED_MODULE_1__.defau
 
 }
 _utility_index_js__WEBPACK_IMPORTED_MODULE_0__.define.constant(MultipleErrors, {
+  // Used for promise handler shorthand .catch(MultipleErrors.throw)
   throw(errors) {
     throw new MultipleErrors({
       errors
@@ -46791,9 +46853,9 @@ class UnknownError extends Error {
     var error = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
     super(error.message); // Copy all properties.
 
-    (0,_utility_index_js__WEBPACK_IMPORTED_MODULE_0__.forOwnKeysOf)(error, key => {
+    (0,_utility_index_js__WEBPACK_IMPORTED_MODULE_0__.forOwnKeysOf)(error, (obj, key) => {
       if (key !== 'message') {
-        (0,_utility_index_js__WEBPACK_IMPORTED_MODULE_0__.copyProperty)(key, error, this);
+        (0,_utility_index_js__WEBPACK_IMPORTED_MODULE_0__.copyOwnProperty)(key, obj, this);
       }
     });
     _class_registry_js__WEBPACK_IMPORTED_MODULE_1__.sharedRegistry.defineId(this, sharedRegistryId);
@@ -46815,7 +46877,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => /* binding */ UnreachableError
 /* harmony export */ });
-/* harmony import */ var _custom_error_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./custom-error.js */ "./source/shared/errors/custom-error.js");
+/* harmony import */ var _internal_error_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./internal-error.js */ "./source/shared/errors/internal-error.js");
 function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
 
 function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
@@ -46828,7 +46890,7 @@ function _objectWithoutPropertiesLoose(source, excluded) { if (source == null) r
 
 //G Used when a supposedly unreachable code path has been reached.
 
-class UnreachableError extends _custom_error_js__WEBPACK_IMPORTED_MODULE_0__.default {
+class UnreachableError extends _internal_error_js__WEBPACK_IMPORTED_MODULE_0__.default {
   constructor() {
     var _ref = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {},
         {
@@ -46916,8 +46978,8 @@ class CachedEntity {
     } = options; //TODO See if any of these can be validated or made constant.
 
     _utility_index_js__WEBPACK_IMPORTED_MODULE_1__.define.writable(this, {
-      table,
       entity,
+      table,
       liveQueryRefs: [],
       timestamp: 0
     });
@@ -46936,8 +46998,8 @@ class LiveQuery {
 
     if (_utility_index_js__WEBPACK_IMPORTED_MODULE_1__.rules.array.test(query)) query = (0,_utility_index_js__WEBPACK_IMPORTED_MODULE_1__.any)(query);
     _utility_index_js__WEBPACK_IMPORTED_MODULE_1__.define.writable(this, {
-      table,
       query,
+      table,
       cachedEntityRefs: [],
       subscriptions: [],
       timestamp: 0
@@ -47106,6 +47168,7 @@ var visibilityState = new _utility_index_js__WEBPACK_IMPORTED_MODULE_0__.Rule({
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "errorSharedRegistryId": () => /* binding */ errorSharedRegistryId,
 /* harmony export */   "default": () => /* binding */ propagate,
 /* harmony export */   "returnPropagate": () => /* binding */ returnPropagate,
 /* harmony export */   "logPropagate": () => /* binding */ logPropagate
@@ -47124,23 +47187,27 @@ __webpack_require__.r(__webpack_exports__);
  // Register the built-in Error class
 // The registry id will be manually assigned to errors.
 
-var sharedRegistryId = 'Error';
-_class_registry_js__WEBPACK_IMPORTED_MODULE_2__.sharedRegistry.register(Error, sharedRegistryId, _reconstruct_error_js__WEBPACK_IMPORTED_MODULE_3__.default); // Wraps the passed value in an Error instance if it isn't one. Then throws it.
+var errorSharedRegistryId = 'Error';
+_class_registry_js__WEBPACK_IMPORTED_MODULE_2__.sharedRegistry.register(Error, errorSharedRegistryId, _reconstruct_error_js__WEBPACK_IMPORTED_MODULE_3__.default); // Wraps the passed value in an Error instance if it isn't one. Then throws it.
 // All instances will be registered with the sharedRegistry so that they can be identified as errors when passed between the client and server.
 
 function propagate(thrownValue) {
   if (thrownValue instanceof Error) {
-    if (thrownValue.constructor === Error) {
-      // If the error is a direct instance of Error, try to add a sharedRegistryId so that it can be reconstructed as an Error.
-      if (Object.getOwnPropertyDescriptor(thrownValue, _class_registry_js__WEBPACK_IMPORTED_MODULE_2__.sharedRegistry.idKey).configurable) {
-        _class_registry_js__WEBPACK_IMPORTED_MODULE_2__.sharedRegistry.defineId(thrownValue, sharedRegistryId);
-        throw thrownValue;
-      } else if (_class_registry_js__WEBPACK_IMPORTED_MODULE_2__.sharedRegistry.isRegistered(thrownValue)) {
-        throw thrownValue;
+    if (_class_registry_js__WEBPACK_IMPORTED_MODULE_2__.sharedRegistry.isRegistered(thrownValue)) {
+      throw thrownValue;
+    } else if (thrownValue.constructor === Error) {
+      // If the error is a direct instance of Error, manually register it and throw it.
+      try {
+        _class_registry_js__WEBPACK_IMPORTED_MODULE_2__.sharedRegistry.defineId(thrownValue, errorSharedRegistryId);
+      } catch (error) {
+        // An Error instance should never have a non-configurable sharedRegistryIdKey but not be registered.
+        throw new _errors_index_js__WEBPACK_IMPORTED_MODULE_1__.UnreachableError(thrownValue);
       }
-    }
 
-    throw new _errors_index_js__WEBPACK_IMPORTED_MODULE_1__.UnknownError(thrownValue);
+      throw thrownValue;
+    } else {
+      throw new _errors_index_js__WEBPACK_IMPORTED_MODULE_1__.UnknownError(thrownValue);
+    }
   } else {
     throw new _errors_unexpected_value_thrown_js__WEBPACK_IMPORTED_MODULE_0__.default({
       message: "An unexpected value was thrown.",
@@ -47182,9 +47249,9 @@ __webpack_require__.r(__webpack_exports__);
 function reconstructError(Class, error) {
   var newError = new Class(error.message); // Copy all properties.
 
-  (0,_utility_index_js__WEBPACK_IMPORTED_MODULE_0__.forOwnKeysOf)(error, key => {
+  (0,_utility_index_js__WEBPACK_IMPORTED_MODULE_0__.forOwnKeysOf)(error, (obj, key) => {
     if (key !== 'message') {
-      (0,_utility_index_js__WEBPACK_IMPORTED_MODULE_0__.copyProperty)(key, error, newError);
+      (0,_utility_index_js__WEBPACK_IMPORTED_MODULE_0__.copyOwnProperty)(key, error, newError);
     }
   });
   return newError;
@@ -48191,7 +48258,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "dynamicSort": () => /* reexport safe */ _array_index_js__WEBPACK_IMPORTED_MODULE_0__.dynamicSort,
 /* harmony export */   "one": () => /* reexport safe */ _array_index_js__WEBPACK_IMPORTED_MODULE_0__.one,
 /* harmony export */   "stableSort": () => /* reexport safe */ _array_index_js__WEBPACK_IMPORTED_MODULE_0__.stableSort,
-/* harmony export */   "copyProperty": () => /* reexport safe */ _object_index_js__WEBPACK_IMPORTED_MODULE_1__.copyProperty,
+/* harmony export */   "copyOwnProperty": () => /* reexport safe */ _object_index_js__WEBPACK_IMPORTED_MODULE_1__.copyOwnProperty,
 /* harmony export */   "deepCompare": () => /* reexport safe */ _object_index_js__WEBPACK_IMPORTED_MODULE_1__.deepCompare,
 /* harmony export */   "define": () => /* reexport safe */ _object_index_js__WEBPACK_IMPORTED_MODULE_1__.define,
 /* harmony export */   "forKeysOf": () => /* reexport safe */ _object_index_js__WEBPACK_IMPORTED_MODULE_1__.forKeysOf,
@@ -48426,20 +48493,20 @@ function keyify(value) {
 
 /***/ }),
 
-/***/ "./source/shared/utility/object/copy-property.js":
-/*!*******************************************************!*\
-  !*** ./source/shared/utility/object/copy-property.js ***!
-  \*******************************************************/
+/***/ "./source/shared/utility/object/copy-own-property.js":
+/*!***********************************************************!*\
+  !*** ./source/shared/utility/object/copy-own-property.js ***!
+  \***********************************************************/
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => /* binding */ copyProperty
+/* harmony export */   "default": () => /* binding */ copyOwnProperty
 /* harmony export */ });
-function copyProperty(key, from, to) {
-  var descriptor = Object.getOwnPropertyDescriptor(key, from);
-  Object.defineProperty(to, descriptor);
+function copyOwnProperty(key, from, to) {
+  var descriptor = Object.getOwnPropertyDescriptor(from, key);
+  Object.defineProperty(to, key, descriptor);
 }
 
 /***/ }),
@@ -48907,7 +48974,7 @@ var ownKeys = function ownKeys(object) {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "copyProperty": () => /* reexport safe */ _copy_property_js__WEBPACK_IMPORTED_MODULE_0__.default,
+/* harmony export */   "copyOwnProperty": () => /* reexport safe */ _copy_own_property_js__WEBPACK_IMPORTED_MODULE_0__.default,
 /* harmony export */   "deepCompare": () => /* reexport safe */ _deep_compare_js__WEBPACK_IMPORTED_MODULE_1__.default,
 /* harmony export */   "define": () => /* reexport safe */ _define_js__WEBPACK_IMPORTED_MODULE_2__.default,
 /* harmony export */   "forKeysOf": () => /* reexport safe */ _keys_of_js__WEBPACK_IMPORTED_MODULE_3__.forKeysOf,
@@ -48921,7 +48988,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "pick": () => /* reexport safe */ _pick_js__WEBPACK_IMPORTED_MODULE_4__.default,
 /* harmony export */   "undeclareUndefined": () => /* reexport safe */ _undeclare_undefined_js__WEBPACK_IMPORTED_MODULE_5__.default
 /* harmony export */ });
-/* harmony import */ var _copy_property_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./copy-property.js */ "./source/shared/utility/object/copy-property.js");
+/* harmony import */ var _copy_own_property_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./copy-own-property.js */ "./source/shared/utility/object/copy-own-property.js");
 /* harmony import */ var _deep_compare_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./deep-compare.js */ "./source/shared/utility/object/deep-compare.js");
 /* harmony import */ var _define_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./define.js */ "./source/shared/utility/object/define.js");
 /* harmony import */ var _keys_of_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./keys-of.js */ "./source/shared/utility/object/keys-of.js");

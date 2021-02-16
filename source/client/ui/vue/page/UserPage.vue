@@ -13,6 +13,7 @@ import * as session from '../../../session-methods.js';
 
 import {useSubscription} from '../hooks/index.js';
 import {one, rules} from '../../../../shared/utility/index.js';
+import {useStore} from 'vuex';
 
 export default {
 	name: 'user-page',
@@ -45,10 +46,17 @@ export default {
 			router.push('/login');
 		}
 
+		const store = useStore();
+
+		async function testLiveData() {
+			await store.dispatch('test');
+		}
+
 		return {
 			user,
 			playlists,
 			logout,
+			testLiveData,
 		};
 	},
 };
@@ -58,6 +66,7 @@ export default {
 <template>
 	<template v-if='user.lastFulfilled'>
 		<button @click='logout'>Logout</button>
+		<button @click='testLiveData'>Test Live Data</button>
         <h4>user #{{user.data.id}}</h4>
         <h1>{{user.data.name}}</h1>
         <h3>{{user.data.email}}</h3>
