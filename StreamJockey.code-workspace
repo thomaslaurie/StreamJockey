@@ -14,6 +14,7 @@
 		],
 		"eslint.options": {
 			"configFile": "source/config/eslint.cjs"
-		}
+		},
+		"eslint.validate": ["javascript", "typescript"]
 	},
 }

@@ -69,7 +69,7 @@ import send from 'koa-send'; //L https://github.com/koajs/send
 import {
 	UIMainFileName,
 	clientBuildDirectory,
-} from '../config/project-paths.js';
+} from '../config/project-paths.cjs';
 import {
 	GET_BODY,
 } from '../shared/constants.js';

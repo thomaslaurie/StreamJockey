@@ -1,4 +1,5 @@
-//TODO Move into config.
+const {babelConfigFile} = require('./project-paths.cjs');
+
 //TODO Convert to module.
 
 /*  //G When using a custom location for the config file:
@@ -8,6 +9,8 @@
 		"eslint.options": {
 			"configFile": "source/config/.eslintrc.cjs"
 		}
+	and for Typescript linting, the eslint.validate option:
+		"eslint.validate": ["javascript", "typescript"]
 */
 
 const off = 'off';
@@ -632,9 +635,10 @@ function selectRules(nestedRules, selection = '*') {
 module.exports = {
 	parser: 'vue-eslint-parser',
 	parserOptions: {
-		parser: 'babel-eslint',
-		sourceType: 'module',
-		// allowImportExportEverywhere: true,
+		parser: '@babel/eslint-parser',
+		babelOptions: {
+			configFile: babelConfigFile,
+		},
 		ecmaFeatures: {
 			impliedStrict: true,
 		},

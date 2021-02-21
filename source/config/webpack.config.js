@@ -69,7 +69,8 @@ import {
 	CSSDirectory,
 	dotenvFile,
 	dotenvBuildDirectory,
-} from './project-paths.js';
+	babelConfigFile,
+} from './project-paths.cjs';
 
 
 //   ██████╗ ██████╗ ███╗   ██╗███████╗██╗ ██████╗
@@ -87,14 +88,11 @@ const common = {
 	}),
 	babelRule(targets) {
 		return {
-			test: /\.js$/u,
+			test: /\.(?:js|ts)$/u,
 			use: {
 				loader: 'babel-loader',
 				options: {
-					presets: [
-						['@babel/preset-env', {targets}],
-					],
-					sourceMaps: true,
+					configFile: babelConfigFile,
 				},
 			},
 		};

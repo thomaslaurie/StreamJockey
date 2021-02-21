@@ -8,7 +8,7 @@ import {clientOptions, serverOptions} from '../config/webpack.config.js';
 import {
 	serverBuildFile,
 	serverBuildDirectory,
-} from '../config/project-paths.js';
+} from '../config/project-paths.cjs';
 
 (async () => {
 	// TIMER
@@ -93,13 +93,14 @@ import {
 				colors: true,
 
 				// Copied from 'minimal' default configuration.
+				// Removed version, modules, assets.
 				//L https://github.com/webpack/webpack/blob/3ac7ba2eb3e8d4935a4818ea71f31bb718b7c130/lib/stats/DefaultStatsPresetPlugin.js#L78
 				all: false,
-				version: true,
+				version: false,
 				timings: true,
-				modules: true,
+				modules: false,
 				modulesSpace: 0,
-				assets: true,
+				assets: false,
 				assetsSpace: 0,
 				errors: true,
 				errorsCount: true,

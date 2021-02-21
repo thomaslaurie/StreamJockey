@@ -1,0 +1,17 @@
+{
+	"compilerOptions": {
+		"noEmit": true,
+		"skipLibCheck": true,
+		
+		"lib": ["ESNext", "DOM"],
+		"noImplicitAny": false,
+		"target": "ESNext"
+	},
+	"include": ["source/**/*"],
+	"exclude": ["node_modules"],
+	"$schema": "https://json.schemastore.org/tsconfig",
+	"//": [
+		"tsconfig.json cannot be in the config folder because VSCode doesn't have a way to point to it. (Though Webpack does.)",
+		"checkJs creates too many type issues, so its been left turned off."
+	]
+}
