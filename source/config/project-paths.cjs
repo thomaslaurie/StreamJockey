@@ -10,16 +10,17 @@ const serverMainFile  = sourcePath(serverDirectory, 'main.js');
 const clientMainFile  = sourcePath(clientDirectory, 'main.js');
 
 // Source Build
-const buildDirectory              = sourcePath('../build');
+const buildDirectory       = sourcePath('../build');
 const serverBuildDirectory = sourcePath(buildDirectory, 'server');
 const clientBuildDirectory = sourcePath(buildDirectory, 'client');
 const serverBuildFile      = sourcePath(serverBuildDirectory, 'main.bundle.cjs'); //TODO extract filename
 
 
 // Config
-const configDirectory             = sourcePath('config');
+const configDirectory      = sourcePath('config');
 const dotenvFile           = sourcePath(configDirectory,      '.env');
 const babelConfigFile      = sourcePath(configDirectory, 'babel.config.cjs');
+const typescriptConfigFile = sourcePath(configDirectory, '../../tsconfig.json');
 
 // Config Build
 const dotenvBuildDirectory = sourcePath(serverBuildDirectory);
@@ -54,6 +55,7 @@ module.exports = {
 	serverBuildFile,
 	dotenvFile,
 	babelConfigFile,
+	typescriptConfigFile,
 	dotenvBuildDirectory,
 	dotenvBuildFile,
 	UIMainFileName,

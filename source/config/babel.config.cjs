@@ -16,6 +16,10 @@ module.exports =  function config(api) {
 				allowDeclareFields: true,
 			}],
 		],
+		plugins: [
+			'@babel/plugin-proposal-class-properties',
+			'@babel/plugin-proposal-private-methods',
+		],
 		sourceMaps: true,
 	};
 };

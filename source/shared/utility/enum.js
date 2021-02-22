@@ -1,3 +1,5 @@
+//TODO Make typescript enum helper for the equivalent methods here.
+
 //TODO How to prevent non-valid enum values from being referenced? If Enum.notInEnum is referenced, it resolves to undefined, which would equal all the other invalid enum key values.
 
 import define      from './object/define.js';

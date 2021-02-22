@@ -1,4 +1,7 @@
-const {babelConfigFile} = require('./project-paths.cjs');
+const {
+	babelConfigFile,
+	typescriptConfigFile,
+} = require('./project-paths.cjs');
 
 //TODO Convert to module.
 
@@ -27,13 +30,14 @@ const rules = {
 		'no-delete-var': [on],
 		//R builtinGlobals triggers for all properties of 'window', some of which are very generic like 'name'.
 		//R There are also many common uses for shadowing that won't cause issues but cannot be exempt from this rule.
-		'no-shadow':     [off],
 		// 'no-shadow':     [on, {
 		// 	//TODO //?
 		// 	builtinGlobals: true,
 		// 	hoist:          'functions',
 		// 	allow:          [],
 		// }],
+		'no-shadow':                    [off],
+		'@typescript-eslint/no-shadow': [off],
 		'no-shadow-restricted-names': [on],
 		'no-undef':                   [on],
 		//G If triggered by a de-structured array, values can be ignored with commas: const [x, , y] = foo;
@@ -43,10 +47,25 @@ const rules = {
 			ignoreRestSiblings: true,
 			caughtErrors:       'none',
 		}],
+		'@typescript-eslint/no-unused-vars': [on, {
+			vars:               'all',
+			args:               'after-used',
+			ignoreRestSiblings: true,
+			caughtErrors:       'none',
+		}],
 		'no-use-before-define': [on, {
+			functions: false, // Functions are hoisted.
+			classes:   true,  // Classes are not hoisted.
+			variables: true,  // var is hoisted but const and let are not.
+		}],
+		'@typescript-eslint/no-use-before-define': [on, {
 			functions: false,
 			classes:   true,
 			variables: true,
+			//TODO Not sure if these are hoisted:
+			enums:     true,
+			typedefs:  true,
+			ignoreTypeReferences: false,
 		}],
 		identifiers: {
 			'camelcase': [on, {
@@ -75,6 +94,10 @@ const rules = {
 		declarations: {
 			'no-redeclare': [on, {
 				builtinGlobals: true,
+			}],
+			'@typescript-eslint/no-redeclare': [on, {
+				builtinGlobals: true,
+				ignoreDeclarationMerge: false,
 			}],
 			'no-case-declarations': [on],
 			'one-var':              [on, 'never'],
@@ -154,9 +177,16 @@ const rules = {
 		},
 		number: {
 			'no-floating-decimal': [on],
-			'no-magic-numbers':    [on, {
+			'no-magic-numbers': [on, {
 				ignore: [-1, 0, 1],
 				ignoreArrayIndexes: true,
+			}],
+			'@typescript-eslint/no-magic-numbers': [on, {
+				ignore: [-1, 0, 1],
+				ignoreArrayIndexes:            true,
+				ignoreEnums:                   true,
+				ignoreNumericLiteralTypes:     true,
+				ignoreReadonlyClassProperties: false,
 			}],
 			'no-octal':                [on],
 			'prefer-numeric-literals': [on],
@@ -313,13 +343,15 @@ const rules = {
 			// Relates to 'operator-linebreak' rule.
 			'dot-location': [on, 'property'],
 			// Easily noticeable. Can be used for consistency with other accessor statements.
-			'dot-notation': [off],
+			'dot-notation':                    [off],
+			'@typescript-eslint/dot-notation': [off],
 		},
 		computedProperty: {
 			'no-useless-computed-key': [on],
 		},
 		comma: {
-			'comma-dangle':  [on, 'always-multiline'],
+			'comma-dangle':                    [on, 'always-multiline'],
+			'@typescript-eslint/comma-dangle': [on, 'always-multiline'],
 			'comma-spacing': [on, {
 				before: false,
 				after:  true,
@@ -346,7 +378,8 @@ const rules = {
 		//? Feasibility?
 		'func-style':               [off],
 		'newline-per-chained-call': [off],
-		'no-empty-function':        [off],
+		'no-empty-function':                    [off],
+		'@typescript-eslint/no-empty-function': [off],
 		// Re-introducing 'this' to a function that had bind removed will cause more issues than removing bind from a function without 'this'.
 		'no-extra-bind':            [off],
 		'default-param-last':       [off],
@@ -368,6 +401,7 @@ const rules = {
 			'no-await-in-loop':             [on], //?
 			'require-atomic-updates':       [on],
 			'no-return-await':              [on],
+			'@typescript-eslint/return-await': [on, 'never'],
 			//? Feasible?
 			'prefer-promise-reject-errors': [on],
 			'require-await':                [off],
@@ -477,8 +511,9 @@ const rules = {
 			'function-call-argument-newline':  [on, 'consistent'],
 			'function-paren-newline':          [on, 'multiline-arguments'],
 			'lines-around-comment':            [off],
-			'lines-between-class-members':     [off],
 			'padding-line-between-statements': [off],
+			'lines-between-class-members':                    [off],
+			'@typescript-eslint/lines-between-class-members': [off],
 			brackets:                          {
 				'array-bracket-newline': [on, 'consistent'],
 				'array-element-newline': [on, 'consistent'],
@@ -607,26 +642,50 @@ const rules = {
 	},
 };
 
-function selectRules(nestedRules, selection = '*') {
+function selectRules(nestedRules, selection = '*', language = 'js') {
 	const selectAll = selection === '*';
 	const selectedRules = {};
 	for (const key in nestedRules) {
 		const value = nestedRules[key];
-		const isTarget = selectAll || key === selection;
+		const isSelected = selectAll || key === selection;
 		const isRuleGroup = typeof value === 'object' && !Array.isArray(value);
 		if (isRuleGroup) {
 			let deeperSelectedRules;
-			if (isTarget) {
+			if (isSelected) {
 				// If the group is targeted, select all rules and sub-groups under the group.
-				deeperSelectedRules = selectRules(value, '*');
+				deeperSelectedRules = selectRules(value, '*', language);
 			} else {
 				// If the group is not targeted, go deeper with the selection.
-				deeperSelectedRules = selectRules(value, selection);
+				deeperSelectedRules = selectRules(value, selection, language);
 			}
 			Object.assign(selectedRules, deeperSelectedRules);
-		} else if (isTarget) {
-			// If the rule is targeted, add the rule to the list;
-			selectedRules[key] = value;
+		} else if (isSelected) {
+			// If the rule is selected and meets the language requirements, add it to the list.
+			
+			const isTSRule                    = /^@typescript-eslint\//u.test(key);
+			const tsAlternative = `@typescript-eslint/${key}`;
+			const hasTSAlternative = tsAlternative in nestedRules;
+			
+			//R //! Rules cannot simply be omitted because when used with override the underlying rules will still be applied.
+			if(language === 'js') {
+				if (isTSRule) {
+					// In JS, turn off TS rules.
+					selectedRules[key] = [off];
+				} else {
+					selectedRules[key] = value;
+				}
+			} else if (language === 'ts') {
+				if (isTSRule) {
+					selectedRules[key] = value;
+				} else {
+					if (hasTSAlternative) {
+						// In TS, turn off JS rules if they have a TS alternative.
+						selectedRules[key] = [off];
+					} else {
+						selectedRules[key] = value;
+					}
+				}
+			}
 		}
 	}
 	return selectedRules;
@@ -648,5 +707,43 @@ module.exports = {
 		es2020:  true, // Automatically sets parserOptions.ecmaVersion to 11
 		node:    true, //TODO Consider splitting lint rules into client and server. This would catch accidental cross over errors.
 	},
-	rules: selectRules(rules),
+	rules: selectRules(rules, '*', 'js'),
+	ignorePatterns: ['**/*.js', '**/*.cjs', '**/*.vue'],
+	overrides: [{
+		// @babel-eslint/parser cannot handle some Typescript syntax (Enums, Interfaces) even if using @babel/plugin-transform-typescript. Therefore @typescript-eslint/parser is used instead.
+		//! This means that Typescript files are linted based on a transpilation from tsc rather than babel.
+		files: ['**/*.ts'],
+		plugins: ['@typescript-eslint'],
+		parser: '@typescript-eslint/parser',
+		parserOptions: {
+			project: typescriptConfigFile,
+		},
+		rules: {
+			// Typescript Rules
+			//L https://github.com/typescript-eslint/typescript-eslint/blob/master/packages/eslint-plugin/README.md#supported-rules
+
+
+			// Extensions
+			// Some rules require further extension to properly report on Typescript files.
+			//L https://github.com/typescript-eslint/typescript-eslint/blob/master/packages/eslint-plugin/README.md#extension-rules
+			// 'no-unused-vars': [off],
+			// '@typescript-eslint/no-unused-vars': rules.variables['no-unused-vars'],
+			...selectRules(rules, '*', 'ts'),
+		},
+	}],
 };
+
+//R Probably best not to set any options that cannot be set in .js files.
+
+/**
+ * Known Typescript extension rules with extra options:
+ * comma-dangle
+ * dot-notation
+ * lines-between-class-members
+ * no-empty-function
+ * no-magic-numbers
+ * no-redeclare
+ * no-shadow
+ * no-use-before-define
+ * no-return-await
+ */
