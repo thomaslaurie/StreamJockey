@@ -3,8 +3,9 @@
 		"noEmit": true,
 		"skipLibCheck": true,
 		
-		"lib": ["ESNext", "DOM"],
+		"strict": true,
 		"noImplicitAny": false,
+		"lib": ["ESNext", "DOM"],
 		"target": "ESNext"
 	},
 	"include": ["source/**/*"],

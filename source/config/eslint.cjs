@@ -1,11 +1,5 @@
-const {
-	babelConfigFile,
-	typescriptConfigFile,
-} = require('./project-paths.cjs');
-
-//TODO Convert to module.
-
-/*  //G When using a custom location for the config file:
+/*  
+	//G When using a custom location for the config file:
 	The eslint CLI must be called from the command line with the '--config' option:
 		--config ./source/config/.eslintrc.cjs
 	The VSCode ESLint extension must set the eslint.options.configFile option:
@@ -14,16 +8,32 @@ const {
 		}
 	and for Typescript linting, the eslint.validate option:
 		"eslint.validate": ["javascript", "typescript"]
-*/
+		
+	//G Organize by generic theme.
+	//G //TODO Organize by groups of similar rules. ie. Brace and bracket spacing would go in the same group rather than separate object and array groups.
 
-const off = 'off';
-const on = 'warn';
+	//G For TS extension rules, don't set any extra non-ts specific options. This keeps the rules consistent between languages.
+	//G Typescript extension rules with extra options are marked with //EO
+	
+	//L eslint rules: https://eslint.org/docs/rules/
+	//L @typescript-eslint rules: https://github.com/typescript-eslint/typescript-eslint/tree/master/packages/eslint-plugin#supported-rules
+	
+	//TODO Convert to module.
+	
+	//TODO Create test that ensures all typescript rules have the same option as their JS alternative.
+	
+	//TODO Can typescript rules that don't require type information be used on javascript? Check that all the extended rules require types.
+*/
 
 /* eslint-disable quote-props */
 
-//G Organize by generic theme.
-//G //TODO Organize by groups of similar rules. ie. Brace and bracket spacing would go in the same group rather than separate object and array groups.
+const {
+	babelConfigFile,
+	typescriptConfigFile,
+} = require('./project-paths.cjs');
 
+const off = 'off';
+const on = 'warn';
 
 const rules = {
 	variables: {
@@ -37,7 +47,7 @@ const rules = {
 		// 	allow:          [],
 		// }],
 		'no-shadow':                    [off],
-		'@typescript-eslint/no-shadow': [off],
+		'@typescript-eslint/no-shadow': [off], //EO
 		'no-shadow-restricted-names': [on],
 		'no-undef':                   [on],
 		//G If triggered by a de-structured array, values can be ignored with commas: const [x, , y] = foo;
@@ -47,7 +57,7 @@ const rules = {
 			ignoreRestSiblings: true,
 			caughtErrors:       'none',
 		}],
-		'@typescript-eslint/no-unused-vars': [on, {
+		'@typescript-eslint/no-unused-vars': [on, { //EO
 			vars:               'all',
 			args:               'after-used',
 			ignoreRestSiblings: true,
@@ -58,7 +68,7 @@ const rules = {
 			classes:   true,  // Classes are not hoisted.
 			variables: true,  // var is hoisted but const and let are not.
 		}],
-		'@typescript-eslint/no-use-before-define': [on, {
+		'@typescript-eslint/no-use-before-define': [on, { //EO
 			functions: false,
 			classes:   true,
 			variables: true,
@@ -90,12 +100,13 @@ const rules = {
 			'id-blacklist': [off],
 			'id-length':    [off],
 			'id-match':     [off],
+			'@typescript-eslint/naming-convention': [off], //TODO Consider
 		},
 		declarations: {
 			'no-redeclare': [on, {
 				builtinGlobals: true,
 			}],
-			'@typescript-eslint/no-redeclare': [on, {
+			'@typescript-eslint/no-redeclare': [on, { //EO
 				builtinGlobals: true,
 				ignoreDeclarationMerge: false,
 			}],
@@ -106,7 +117,8 @@ const rules = {
 				ignoreReadBeforeAssign: true,
 			}],
 			// Both are fine.
-			'init-declarations':            [off],
+			'init-declarations':                    [off],
+			'@typescript-eslint/init-declarations': [off],
 			'one-var-declaration-per-line': [off],
 			var:                            {
 				'no-var':           [on],
@@ -150,13 +162,16 @@ const rules = {
 			'no-octal-escape':   [on],
 			'no-useless-concat': [on],
 			'no-useless-escape': [on],
-			'quotes':            [on, 'single', {
+			'quotes': [on, 'single', {
+				avoidEscape:           true,
+				allowTemplateLiterals: true,
+			}],
+			'@typescript-eslint/quotes': [on, 'single', {
 				avoidEscape:           true,
 				allowTemplateLiterals: true,
 			}],
 			template: {
-				//G Meant to overridden if intentional.
-				'no-template-curly-in-string': [on],
+				'no-template-curly-in-string': [on], //G Meant to overridden if intentional.
 				'template-tag-spacing':        [on, 'never'],
 				'template-curly-spacing':      [on, 'never'],
 			},
@@ -181,7 +196,7 @@ const rules = {
 				ignore: [-1, 0, 1],
 				ignoreArrayIndexes: true,
 			}],
-			'@typescript-eslint/no-magic-numbers': [on, {
+			'@typescript-eslint/no-magic-numbers': [on, { //EO
 				ignore: [-1, 0, 1],
 				ignoreArrayIndexes:            true,
 				ignoreEnums:                   true,
@@ -190,6 +205,8 @@ const rules = {
 			}],
 			'no-octal':                [on],
 			'prefer-numeric-literals': [on],
+			'no-loss-of-precision': [on],
+			'@typescript-eslint/no-loss-of-precision': [on],
 		},
 		object: {
 			'no-dupe-keys':     [on],
@@ -205,12 +222,11 @@ const rules = {
 		},
 	},
 	operators: {
-		// Relates to 'dot-location'.
-		'operator-linebreak': [on, 'before'],
+		'operator-linebreak': [on, 'before'], // Relates to 'dot-location'.
 		'no-bitwise':         [on],
 		'no-sequences':       [on],
-		// This rule is only useful for avoiding ASI problems. Since semi-colons is mandatory, this isn't needed.
-		'no-plusplus':        [off],
+		'no-plusplus':        [off], // This rule is only useful for avoiding ASI problems. Since semi-colons is mandatory, this isn't needed.
+		'@typescript-eslint/no-dynamic-delete': [on],
 		logic:                {
 			'no-extra-boolean-cast': [on],
 			'no-unsafe-negation':    [on],
@@ -224,6 +240,7 @@ const rules = {
 				exceptRange: true,
 			}],
 			'no-eq-null': [off],
+			'@typescript-eslint/no-unnecessary-boolean-literal-compare': [on],
 		},
 		binary: {
 			'no-mixed-operators': [on, {
@@ -231,6 +248,7 @@ const rules = {
 			}],
 			'operator-assignment':            [on, 'always'],
 			'prefer-exponentiation-operator': [on],
+			'@typescript-eslint/prefer-nullish-coalescing': [on],
 		},
 		ternary: {
 			'multiline-ternary':   [on, 'always-multiline'],
@@ -245,13 +263,19 @@ const rules = {
 			before: true,
 			after:  true,
 		}],
+		'@typescript-eslint/keyword-spacing': [on, {
+			before: true,
+			after:  true,
+		}],
 		'valid-typeof':     [on],
 		'no-void':          [on],
 		//? Feasible?
-		'no-throw-literal': [on],
+		'no-throw-literal':                    [on],
+		'@typescript-eslint/no-throw-literal': [on],
 		'no-debugger':      [on],
 		'consistent-this':  [off],
-		new:                {
+		'@typescript-eslint/no-this-alias': [on],
+		new: {
 			'no-new':          [on],
 			'no-new-func':     [on],
 			'no-new-wrappers': [on],
@@ -272,28 +296,31 @@ const rules = {
 		},
 		switchCase: {
 			'no-duplicate-case':    [on],
-			// Personal preference.
-			'no-fallthrough':       [on],
+			'no-fallthrough':       [on], // Personal preference.
 			'switch-colon-spacing': [on, {
 				before: false,
 				after:  true,
 			}],
-			// Switch without default is clear. Same as if without else
-			'default-case': [off],
+			'@typescript-eslint/switch-exhaustiveness-check': [on],
+			'default-case': [off], // Switch without default is clear. Same as if without else
 		},
 		tryCatch: {
 			'no-ex-assign':      [on],
 			'no-unsafe-finally': [on],
 			'no-useless-catch':  [on],
+			'@typescript-eslint/no-implicit-any-catch': [on, {
+				allowExplicitAny: false,
+			}],
 		},
 		loops: {
-			//? Feasible? How does this work with side effects?
-			'no-unmodified-loop-condition': [on],
-			'no-loop-func':                 [on],
-			'no-continue':                  [on],
-			'for-direction':                [on],
-			// Those using for-in should know how to use it.
-			'guard-for-in':                 [off],
+			'no-unmodified-loop-condition':       [on], //? Feasible? How does this work with side effects?
+			'no-loop-func':                       [on],
+			'@typescript-eslint/no-loop-func':    [on],
+			'no-continue':                        [on],
+			'for-direction':                      [on],
+			'guard-for-in':                       [off], // Those using for-in should know how to use it.
+			'@typescript-eslint/no-for-in-array': [on],
+			'@typescript-eslint/prefer-for-of':   [on],
 		},
 		labels: {
 			'no-labels':        [on],
@@ -312,11 +339,35 @@ const rules = {
 		'no-duplicate-imports': [on, {
 			includeExports: false,
 		}],
+		'@typescript-eslint/consistent-type-imports': [on, {
+			prefer: 'type-imports',
+		}],
+		'@typescript-eslint/no-duplicate-imports':   [on, {
+			includeExports: false,
+		}],
+		'@typescript-eslint/no-require-imports':     [on],
+		'@typescript-eslint/no-var-requires':        [on],
+		'@typescript-eslint/triple-slash-reference': [on, {
+			path:  'never',
+			types: 'never',
+			lib:   'never',
+		}],
 	},
 	syntax: {
+		'@typescript-eslint/member-delimiter-style': [on, {
+			multiline: {
+				delimiter: 'comma',
+				requireLast: true,
+			},
+			singleline: {
+				delimiter: 'comma',
+				requireLast: false,
+			},
+		}],
 		parentheses: {
 			// Parentheses help clarify code.
 			'no-extra-parens': [off],
+			'@typescript-eslint/no-extra-parens': [off],
 		},
 		blocks: {
 			'no-lone-blocks': [on],
@@ -324,13 +375,20 @@ const rules = {
 			'brace-style':    [on, '1tbs', {
 				allowSingleLine: true,
 			}],
+			'@typescript-eslint/brace-style': [on, '1tbs', {
+				allowSingleLine: true,
+			}],
 			// Has uses: overwrite methods, empty functions.
 			'no-empty': [off],
 		},
 		semicolons: {
 			'no-unexpected-multiline': [on],
-			'no-extra-semi':           [on],
-			'semi':                    [on, 'always', {
+			'no-extra-semi':                    [on],
+			'@typescript-eslint/no-extra-semi': [on],
+			'semi': [on, 'always', {
+				omitLastInOneLineBlock: true,
+			}],
+			'@typescript-eslint/semi': [on, 'always', {
 				omitLastInOneLineBlock: true,
 			}],
 			'semi-spacing': [on, {
@@ -344,15 +402,20 @@ const rules = {
 			'dot-location': [on, 'property'],
 			// Easily noticeable. Can be used for consistency with other accessor statements.
 			'dot-notation':                    [off],
-			'@typescript-eslint/dot-notation': [off],
+			'@typescript-eslint/dot-notation': [off], //EO
+			'@typescript-eslint/prefer-optional-chain': [on],
 		},
 		computedProperty: {
 			'no-useless-computed-key': [on],
 		},
 		comma: {
 			'comma-dangle':                    [on, 'always-multiline'],
-			'@typescript-eslint/comma-dangle': [on, 'always-multiline'],
+			'@typescript-eslint/comma-dangle': [on, 'always-multiline'], //EO
 			'comma-spacing': [on, {
+				before: false,
+				after:  true,
+			}],
+			'@typescript-eslint/comma-spacing': [on, {
 				before: false,
 				after:  true,
 			}],
@@ -360,32 +423,39 @@ const rules = {
 		},
 	},
 	functions: {
-		'no-dupe-args':          [on],
 		'no-inner-declarations': [on],
-		'consistent-return':     [on, {
+		'consistent-return': [on, {
 			treatUndefinedAsUnspecified: false,
 		}],
-		'no-caller':         [on],
-		'no-invalid-this':   [on],
+		'no-caller': [on],
+		'no-invalid-this':                    [on],
+		'@typescript-eslint/no-invalid-this': [on],
 		'no-useless-return': [on],
-		'wrap-iife':         [on, 'inside', {
+		'wrap-iife': [on, 'inside', {
 			functionPrototypeMethods: true,
 		}],
 		//? Feasibility?
-		'func-name-matching':       [on],
+		'func-name-matching': [on],
 		//? Feasibility?
-		'func-names':               [on, 'as-needed'],
-		//? Feasibility?
-		'func-style':               [off],
+		'func-names': [on, 'as-needed'],
+		'func-style': [off], //? Feasible?
 		'newline-per-chained-call': [off],
 		'no-empty-function':                    [off],
-		'@typescript-eslint/no-empty-function': [off],
+		'@typescript-eslint/no-empty-function': [off], //EO
 		// Re-introducing 'this' to a function that had bind removed will cause more issues than removing bind from a function without 'this'.
-		'no-extra-bind':            [off],
-		'default-param-last':       [off],
+		'no-extra-bind': [off],
 		// .call(null, ...) is useful for functions that shouldn't be referencing `this`. Also for consistency, all functions in a group may want to be invoked with .call() even if some don't need it.
-		'no-useless-call':          [off],
-		arrow:                      {
+		'no-useless-call': [off],
+		
+		signature: {	
+			'no-dupe-args': [on],
+			'@typescript-eslint/adjacent-overload-signatures': [on],
+			'@typescript-eslint/unified-signatures':           [on],
+			'default-param-last':                    [off],
+			'@typescript-eslint/default-param-last': [off],
+			'@typescript-eslint/prefer-readonly-parameter-types': [off], //R Probably not feasible.
+		},
+		arrow: {
 			'implicit-arrow-linebreak': [on, 'beside'],
 			// Only use parentheses if needed. This is similar to how two body styles are allowed.
 			'arrow-parens':             [on, 'as-needed'],
@@ -396,15 +466,19 @@ const rules = {
 			'arrow-body-style': [off],
 		},
 		async: {
-			// Use .then() or elevate logic to parent async function instead.
-			'no-async-promise-executor':    [on],
-			'no-await-in-loop':             [on], //?
+			'no-async-promise-executor':    [on], // Use .then() or elevate logic to parent async function instead.
+			'no-await-in-loop':             [on],
 			'require-atomic-updates':       [on],
 			'no-return-await':              [on],
-			'@typescript-eslint/return-await': [on, 'never'],
-			//? Feasible?
-			'prefer-promise-reject-errors': [on],
-			'require-await':                [off],
+			'@typescript-eslint/return-await': [on, 'never'], //EO
+			'prefer-promise-reject-errors': [on], //? Feasible?
+			'@typescript-eslint/await-thenable':         [on],
+			'@typescript-eslint/no-floating-promises':   [on], //? Feasible?
+			'@typescript-eslint/no-misused-promises':    [on],
+			'@typescript-eslint/promise-function-async': [on],
+			'require-await':                    [off],
+			'@typescript-eslint/require-await': [off],
+
 		},
 		generator: {
 			'generator-star-spacing': [on, {
@@ -424,17 +498,32 @@ const rules = {
 		},
 		classes: {
 			'no-class-assign':       [on],
-			'no-dupe-class-members': [on],
+			'no-dupe-class-members':                    [on],
+			'@typescript-eslint/no-dupe-class-members': [on],
+			'@typescript-eslint/class-literal-property-style': [off],
+			'@typescript-eslint/explicit-member-accessibility': [off],
+			'@typescript-eslint/no-extraneous-class': [on, {
+				allowConstructorOnly: false,
+				allowEmpty:           false,
+				allowStaticOnly:      false,
+				allowWithDecorator:   false,
+			}],
+			'@typescript-eslint/prefer-readonly': [on],
 		},
 		constructor: {
 			'no-constructor-return':  [on],
 			'no-this-before-super':   [on],
-			'no-useless-constructor': [on],
+			'no-useless-constructor':                    [on],
+			'@typescript-eslint/no-useless-constructor': [on],
+			'@typescript-eslint/no-parameter-properties': [off], //? How do private parameter properties interop with the ECMA # private syntax?
 		},
 		methods: {
 			'class-methods-use-this': [on],
+			'@typescript-eslint/method-signature-style': [on, 'property'],
+			'@typescript-eslint/unbound-method': [on, {
+				ignoreStatic: false,
+			}],
 		},
-
 	},
 	builtIn: {
 		'no-obj-calls':          [on],
@@ -444,7 +533,12 @@ const rules = {
 		'no-global-assign':      [on],
 		'no-implicit-coercion':  [on],
 		'no-eval':               [on],
-		'no-implied-eval':       [on],
+		'no-implied-eval':                       [on],
+		'@typescript-eslint/no-base-to-string':  [on],
+		'@typescript-eslint/no-implied-eval':    [on],
+		'@typescript-eslint/prefer-includes':    [on],
+		'@typescript-eslint/prefer-regexp-exec': [on],
+		'@typescript-eslint/prefer-string-starts-ends-with': [on],
 		'no-console':            [off],
 		'no-alert':              [off],
 		symbol:                  {
@@ -464,7 +558,12 @@ const rules = {
 				allowImplicit: true,
 				checkForEach:  true,
 			}],
-			'no-array-constructor': [on],
+			'no-array-constructor':                    [on],
+			'@typescript-eslint/no-array-constructor': [on],
+			'@typescript-eslint/prefer-reduce-type-parameter': [on],
+			'@typescript-eslint/require-array-sort-compare': [on, {
+				ignoreStringArrays: true,
+			}],
 		},
 		nonStandard: {
 			'no-iterator': [on],
@@ -473,6 +572,11 @@ const rules = {
 	general: {
 		'no-unused-expressions': [on, {
 			// Personal preference for all these options.
+			allowShortCircuit:    true,
+			allowTernary:         true,
+			allowTaggedTemplates: true,
+		}],
+		'@typescript-eslint/no-unused-expressions': [on, {
 			allowShortCircuit:    true,
 			allowTernary:         true,
 			allowTaggedTemplates: true,
@@ -487,9 +591,12 @@ const rules = {
 		'jsx-quotes':    [on, 'prefer-single'],
 	},
 	sorting: {
+		//R Rules turned off here because of semantic grouping.
 		'sort-imports': [off],
 		'sort-vars':    [off],
 		'sort-keys':    [off],
+		'@typescript-eslint/member-ordering': [off],
+		'@typescript-eslint/sort-type-union-intersection-members': [off],
 	},
 	whitespace: {
 		'no-irregular-whitespace': [on, {
@@ -513,7 +620,7 @@ const rules = {
 			'lines-around-comment':            [off],
 			'padding-line-between-statements': [off],
 			'lines-between-class-members':                    [off],
-			'@typescript-eslint/lines-between-class-members': [off],
+			'@typescript-eslint/lines-between-class-members': [off], //EO
 			brackets:                          {
 				'array-bracket-newline': [on, 'consistent'],
 				'array-element-newline': [on, 'consistent'],
@@ -532,8 +639,9 @@ const rules = {
 		},
 		indentation: {
 			// Interacts better with git tools and file joins.
-			'indent':                   [on, 'tab'],
-			'no-mixed-spaces-and-tabs': [on, 'smart-tabs'],
+			'indent':                    [on, 'tab'],
+			'@typescript-eslint/indent': [on, 'tab'],
+			'no-mixed-spaces-and-tabs':  [on, 'smart-tabs'],
 		},
 		spaces: {
 			'no-trailing-spaces': [on, {
@@ -546,18 +654,25 @@ const rules = {
 				anonymous:  'always',
 				asyncArrow: 'always',
 			}],
+			'@typescript-eslint/space-before-function-paren': [on, {
+				named:      'never',
+				anonymous:  'always',
+				asyncArrow: 'always',
+			}],
 			'arrow-spacing': [on, {
 				before: true,
 				after:  true,
 			}],
-			'func-call-spacing':   [on, 'never'],
+			'func-call-spacing':                    [on, 'never'],
+			'@typescript-eslint/func-call-spacing': [on, 'never'],
 			'space-before-blocks': [on, 'always'],
 			'rest-spread-spacing': [on, 'never'],
 			'space-unary-ops':     [on, {
 				words:    true,
 				nonwords: false,
 			}],
-			'space-infix-ops':              [on],
+			'space-infix-ops':                    [on],
+			'@typescript-eslint/space-infix-ops': [on],
 
 			'key-spacing': [on, {
 				beforeColon: false,
@@ -585,10 +700,11 @@ const rules = {
 			}],
 			'no-whitespace-before-property': [on],
 
-			'space-in-parens':           [on, 'never'],
-			'object-curly-spacing':      [on, 'never'],
-			'array-bracket-spacing':     [on, 'never'],
-			'computed-property-spacing': [on, 'never'],
+			'space-in-parens':                         [on, 'never'],
+			'object-curly-spacing':                    [on, 'never'],
+			'@typescript-eslint/object-curly-spacing': [on, 'never'],
+			'array-bracket-spacing':                   [on, 'never'],
+			'computed-property-spacing':               [on, 'never'],
 
 			'block-spacing':  [on, 'always'],
 			'spaced-comment': [on, 'always', {
@@ -606,14 +722,17 @@ const rules = {
 					'OLD',
 				],
 			}],
+			'@typescript-eslint/type-annotation-spacing': [on],
 
 			// Horizontal alignment used in many different places.
 			'no-multi-spaces': [off],
 		},
 	},
 	comments: {
-		// Not feasible as there are too many cases where a lowercase comment is valid (literals).
-		'capitalized-comments':  [off],
+		'@typescript-eslint/ban-ts-comment':         [on],
+		'@typescript-eslint/ban-tslint-comment':     [on],
+		'@typescript-eslint/prefer-ts-expect-error': [on],
+		'capitalized-comments':  [off], // Not feasible as there are too many cases where a lowercase comment is valid (literals).
 		'no-warning-comments':   [off],
 		'line-comment-position': [off],
 		'no-inline-comments':    [off],
@@ -638,6 +757,83 @@ const rules = {
 			'no-restricted-imports':    [off],
 			'no-restricted-exports':    [off],
 			'no-restricted-syntax':     [off],
+		},
+	},
+	types: {
+		'@typescript-eslint/array-type': [on, {
+			default: 'array',
+		}],
+		'@typescript-eslint/ban-types': [on], //L See default options: https://github.com/typescript-eslint/typescript-eslint/blob/master/packages/eslint-plugin/docs/rules/ban-types.md
+		'@typescript-eslint/consistent-indexed-object-style': [on, 'index-signature'],
+		'@typescript-eslint/consistent-type-assertions': [on, {
+			assertionStyle: 'as',
+			objectLiteralTypeAssertions: 'never',
+		}],
+		'@typescript-eslint/consistent-type-definitions': [on, 'interface'],
+		
+		'@typescript-eslint/no-confusing-void-expression': [on, {
+			ignoreArrowShorthand: false,
+			ignoreVoidOperator: false,
+		}],
+		'@typescript-eslint/no-inferrable-types': [on, {
+			ignoreParameters: false,
+			ignoreProperties: false,
+		}],
+		'@typescript-eslint/no-invalid-void-type': [on],
+		'@typescript-eslint/no-misused-new': [on],
+		'@typescript-eslint/no-unnecessary-condition': [on],
+		'@typescript-eslint/no-unnecessary-type-assertion': [on],
+		'@typescript-eslint/no-unnecessary-type-constraint': [on],
+		'@typescript-eslint/prefer-as-const': [on],
+		'@typescript-eslint/explicit-function-return-type': [off],
+		'@typescript-eslint/explicit-module-boundary-types': [off], //? //TODO
+		'@typescript-eslint/no-type-alias': [off], //? Useful?
+		'@typescript-eslint/no-unnecessary-type-arguments': [off], // Explicity is good.
+		'@typescript-eslint/prefer-function-type': [off], //TODO //?
+		'@typescript-eslint/typedef': [off],
+		restrictions: {
+			'@typescript-eslint/restrict-plus-operands': [on, {
+				checkCompoundAssignments: true,
+			}],
+			'@typescript-eslint/restrict-template-expressions': [on, {
+				allowNumber:  true,
+				allowBoolean: false,
+				allowAny:     false,
+				allowNullish: false,
+			}],
+			'@typescript-eslint/strict-boolean-expressions': [on],
+		},
+		any: {
+			'@typescript-eslint/no-explicit-any': [on, {
+				fixToUnknown: true,
+				ignoreRestArgs: false,
+			}],
+			'@typescript-eslint/no-unsafe-assignment':    [on],
+			'@typescript-eslint/no-unsafe-call':          [on],
+			'@typescript-eslint/no-unsafe-member-access': [on],
+			'@typescript-eslint/no-unsafe-return':        [on],
+		},
+		nonNull: {
+			'@typescript-eslint/no-non-null-assertion':               [on], //? Feasible?
+			'@typescript-eslint/no-confusing-non-null-assertion':     [on],
+			'@typescript-eslint/no-extra-non-null-assertion':         [on],
+			'@typescript-eslint/no-non-null-asserted-optional-chain': [on],
+			'@typescript-eslint/non-nullable-type-assertion-style':   [on], //? Possible conflict with no-non-null-assertion?
+		},
+	},
+	typescript: {
+		'@typescript-eslint/no-empty-interface': [on],
+		namespace: {
+			'@typescript-eslint/no-namespace': [on, {
+				allowDeclarations: false,
+				allowDefinitionFiles: false,
+			}],
+			'@typescript-eslint/no-unnecessary-qualifier': [on],
+			'@typescript-eslint/prefer-namespace-keyword': [on],
+		},
+		enum: {
+			'@typescript-eslint/prefer-enum-initializers': [on],
+			'@typescript-eslint/prefer-literal-enum-member': [on],
 		},
 	},
 };
@@ -732,18 +928,3 @@ module.exports = {
 		},
 	}],
 };
-
-//R Probably best not to set any options that cannot be set in .js files.
-
-/**
- * Known Typescript extension rules with extra options:
- * comma-dangle
- * dot-notation
- * lines-between-class-members
- * no-empty-function
- * no-magic-numbers
- * no-redeclare
- * no-shadow
- * no-use-before-define
- * no-return-await
- */
