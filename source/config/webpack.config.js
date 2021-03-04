@@ -85,6 +85,9 @@ const common = {
 	options: (env, argv) => ({
 		//L https://webpack.js.org/configuration/mode
 		mode: argv.mode,
+		resolve: {
+			extensions: ['.js', '.mjs', '.cjs', '.ts', '.json'],
+		},
 	}),
 	babelRule(targets) {
 		return {
