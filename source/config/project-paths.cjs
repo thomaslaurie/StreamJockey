@@ -4,6 +4,7 @@
 const sourcePath = require('../node-utility/source-path.cjs');
 
 // Source
+const sourceDirectory = sourcePath(); //TODO Maybe this isn't a good idea.
 const serverDirectory = sourcePath('server');
 const clientDirectory = sourcePath('client');
 const serverMainFile  = sourcePath(serverDirectory, 'main.js');
@@ -13,6 +14,7 @@ const clientMainFile  = sourcePath(clientDirectory, 'main.js');
 const buildDirectory       = sourcePath('../build');
 const serverBuildDirectory = sourcePath(buildDirectory, 'server');
 const clientBuildDirectory = sourcePath(buildDirectory, 'client');
+const testsBuildDirectory  = sourcePath(buildDirectory, 'tests');
 const serverBuildFile      = sourcePath(serverBuildDirectory, 'main.bundle.cjs'); //TODO extract filename
 
 
@@ -40,18 +42,27 @@ const CSSDirectory = sourcePath(UIDirectory, 'css');
 
 // Misc
 // Suffix for test files.
-const testSuffix = '.test.js';
+const testSuffixGlob = '.test.{js,cjs,mjs,ts}';
+const testSuffixRegexp = /\.test\.(?:js|cjs|mjs|ts)$/u;
 
-// Default glob used for Ava test selection.
-const defaultTestGlob = 'shared/utility';
+
+function toForwardSlash(path) {
+	return path.replace(/\\/g, '/');
+}
+function toBackSlash(path) {
+	return path.replace(/\//g, '\\');
+}
+
 
 module.exports = {
+	sourceDirectory,
 	serverDirectory,
 	clientDirectory,
 	serverMainFile,
 	clientMainFile,
 	serverBuildDirectory,
 	clientBuildDirectory,
+	testsBuildDirectory,
 	serverBuildFile,
 	dotenvFile,
 	babelConfigFile,
@@ -61,6 +72,9 @@ module.exports = {
 	UIMainFileName,
 	UIMainFile,
 	CSSDirectory,
-	testSuffix,
-	defaultTestGlob,
+	testSuffixGlob,
+	testSuffixRegexp,
+	
+	toForwardSlash,
+	toBackSlash,
 };

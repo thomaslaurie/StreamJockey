@@ -3,8 +3,9 @@
 	"type": "module",
 	"scripts": {
 		"build": "node source/scripts/build.js",
-		"build:client": "npm run build -- --client-only",
-		"build:server": "npm run build -- --server-only",
+		"build:client": "npm run build -- --client=compile --server=off --tests=off",
+		"build:server": "npm run build -- --client=off --server=compile --tests=off",
+		"build:tests": "npm run build -- --client=off --server=off --tests=compile",
 		"build:live": "npm run build -- --client=watch --server=refresh",
 		"test": "node source/scripts/test.js",
 		"lint": "npx eslint --config ./source/config/eslint.cjs --ignore-path ./source/config/.eslintignore \"source/**/*.{ts,js,cjs,vue}\"",
@@ -55,6 +56,7 @@
 		"dotenv-webpack": "^6.0.0",
 		"eslint": "^7.20.0",
 		"eslint-plugin-vue": "^7.4.0",
+		"globby": "^6.1.0",
 		"html-webpack-plugin": "^4.5.0",
 		"madge": "^3.12.0",
 		"minimist": "^1.2.5",
@@ -66,11 +68,8 @@
 		"vue-eslint-parser": "^7.3.0",
 		"vue-loader": "^16.1.2",
 		"vue-style-loader": "^4.1.2",
-		"webpack": "^5.11.1",
+		"webpack": "^5.24.4",
 		"webpack-node-externals": "^2.5.2"
-	},
-	"ava": {
-		"babel": true
 	},
 	"//": [
 		"Probably cannot upgrade socket.io until use() gets added back in. See: https://github.com/socketio/socket.io/issues/3678",

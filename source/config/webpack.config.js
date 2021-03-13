@@ -58,11 +58,14 @@ import VLP from 'vue-loader/dist/plugin.js';
 const {default: VueLoaderPlugin} = VLP; //? Not sure why this can't be imported as default.
 import nodeExternals from 'webpack-node-externals';
 import CopyPlugin from 'copy-webpack-plugin';
+import globby from 'globby';
 
 // INTERNAL
 import {
+	sourceDirectory,
 	serverBuildDirectory,
 	clientBuildDirectory,
+	testsBuildDirectory,
 	serverMainFile,
 	clientMainFile,
 	UIMainFile,
@@ -70,7 +73,10 @@ import {
 	dotenvFile,
 	dotenvBuildDirectory,
 	babelConfigFile,
+	testSuffixGlob,
+	toForwardSlash,
 } from './project-paths.cjs';
+import { testSuffixRegexp } from './project-paths.cjs';
 
 
 //   ██████╗ ██████╗ ███╗   ██╗███████╗██╗ ██████╗
@@ -229,7 +235,7 @@ export const serverOptions = (env, argv) => ({
 			// Modified the default pattern from SourceMapDevToolPlugin to include .cjs files.
 			// Original: /\.(m?js|css)($|\?)/i
 			//L Source code: https://github.com/webpack/webpack/blob/28bb0c59c0d5a8d2d1192b4c19217f7ed59785f9/lib/SourceMapDevToolPlugin.js#L141
-			test: /\.(?:[mc]?js|css)(?:$|\?)/iu,
+			test: /\.(?:[mc]?js|css)(?:$|\?)/iu, //TODO Include TS?
 		}),
 		{
 			/* custom node globals polyfill */
@@ -264,3 +270,71 @@ export const serverOptions = (env, argv) => ({
 		nodeExternals(),
 	],
 });
+
+//TODO Different test config for client/server?
+export const testsOptions = (env, argv) => ({
+	...common.options(env, argv),
+	target: 'node',
+	entry: getTestEntries(),
+	output: {
+		filename: '[name].test.cjs', //TODO Extract test?
+		chunkFilename: '[id].bar.cjs',
+		path: testsBuildDirectory,
+	}, 
+	module: {
+		rules: [common.babelRule({node: true})],
+	},
+	plugins: [
+		...common.plugins(env, argv),
+		//TODO Extract from serverOptions?
+		new webpack.SourceMapDevToolPlugin({
+			//R Webpack creates sourcemaps with the source content embedded in the files themselves, rather than pointing to the actual source files. This doesn't appear to be compatible with the idea of clicking URL directly from console-logged stack-traces, as the URL isn't valid from the perspective of the file-system.
+			//L This behavior is described here: https://github.com/webpack/webpack/issues/559, https://sourcemaps.info/spec.html
+			//G To override the default Webpack behavior and use non-self-contained source-maps, Webpack's custom prefix must be removed and the source URLs must point to the actual source files.
+
+			// Explicit 'filename' option forces non-inline source-maps.
+			//L Default from: https://stackoverflow.com/questions/52228650/configure-sourcemapdevtoolplugin-to-generate-source-map
+			filename: '[file].map[query]',
+			// Removes the 'webpack:///' prefix from the source URLs.
+			//? Not sure if 'fallbackModuleFilenameTemplate' is needed too?
+			moduleFilenameTemplate: '[absolute-resource-path]',
+			// Removes sourceContent from the source-maps.
+			noSources: true,
+
+			// Modified the default pattern from SourceMapDevToolPlugin to include .cjs files.
+			// Original: /\.(m?js|css)($|\?)/i
+			//L Source code: https://github.com/webpack/webpack/blob/28bb0c59c0d5a8d2d1192b4c19217f7ed59785f9/lib/SourceMapDevToolPlugin.js#L141
+			test: /\.(?:[mc]?js|css)(?:$|\?)/iu, //TODO Include TS?
+		}),
+	],
+	externals: [
+		// Don't bundle node_modules.
+		nodeExternals(),
+	],
+	optimization: {
+		minimize: false,
+		splitChunks: {
+			cacheGroups: {
+				initial: {
+					chunks: 'initial', //! Do not use anything but initial with the file name option. //L Webpack warns against it: https://webpack.js.org/plugins/split-chunks-plugin/#splitchunkscachegroupscachegroupfilename
+					filename: 'chunks/[name].chunk.cjs', // Overwrite the output.filename format so that .test.[ext] ava doesn't try test-run the chunk files.
+					minChunks: 1,
+					minSize: 0,
+				},
+			},
+		},
+	},
+	devtool: false,
+});
+
+// Gets a list of entries that will create a mirrored directory of individual test files.
+function getTestEntries () {
+	const posixSourceDirectory = toForwardSlash(sourceDirectory);
+	const testFiles = globby.sync(`${posixSourceDirectory}/**/*${testSuffixGlob}`);
+	const testEntries = {};
+	for (const file of testFiles) {
+		const fileName = file.replace(`${posixSourceDirectory}/`, '').replace(testSuffixRegexp, '');
+		testEntries[fileName] = file;
+	}
+	return testEntries;
+}

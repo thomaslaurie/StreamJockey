@@ -107,7 +107,7 @@ test('function runs for specified time', async t => { //! Flakey, x3
 	}, {
 		timeout,
 		onTimeout(lastTime) {
-			t.assert(lastTime - startTime3 <= timeout); //! Flakey
+			t.assert(lastTime - startTime3 <= timeout); //! Flakey. 3 Recorded Occurrences
 		},
 	});
 });

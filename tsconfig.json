@@ -1,18 +1,23 @@
 {
 	"compilerOptions": {
 		"noEmit": true,
-		"skipLibCheck": true,
+		"lib": ["ESNext", "DOM"],
+		"target": "ESNext",
 		
 		"strict": true,
 		"noImplicitAny": false,
-		"lib": ["ESNext", "DOM"],
-		"target": "ESNext"
+		
+		"moduleResolution": "node",
+		
+		"skipLibCheck": true,
+		"useDefineForClassFields": true
 	},
 	"include": ["source/**/*"],
 	"exclude": ["node_modules"],
 	"$schema": "https://json.schemastore.org/tsconfig",
 	"//": [
 		"tsconfig.json cannot be in the config folder because VSCode doesn't have a way to point to it. (Though Webpack does.)",
-		"checkJs creates too many type issues, so its been left turned off."
+		"checkJs creates too many type issues, so its been left turned off.",
+		"useDefineForClassFields allows calling non-this-referencing code before super() in a constructor with class fields. See ts(2376)"
 	]
 }

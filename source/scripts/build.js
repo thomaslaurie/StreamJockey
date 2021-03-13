@@ -1,10 +1,16 @@
+//TODO Make build modes: off, compile, watch, refresh, hot
+
 // EXTERNAL
 import webpack from 'webpack';
 
 // INTERNAL
 import asyncSpawn from '../node-utility/async-spawn.js';
 import getModule from '../node-utility/get-module.js';
-import {clientOptions, serverOptions} from '../config/webpack.config.js';
+import {
+	clientOptions,
+	serverOptions,
+	testsOptions,
+} from '../config/webpack.config.js';
 import {
 	serverBuildFile,
 	serverBuildDirectory,
@@ -26,18 +32,21 @@ import {
 			c: 'clean',
 			i: 'install',
 			p: 'production',
-			w: 'watch',
+			// w: 'watch', //TODO Watch flag universal, then have targets overwrite it if specified.
 		},
 		string: [
 			'client',
 			'server',
 			'start',
+			'tests',
 		],
 		default: {
 			// off, compile, watch
 			client: 'compile',
 			// off, compile, watch, refresh
 			server: 'compile',
+			// off, compile, watch
+			tests:  'off',
 			// path to server file
 			start: serverBuildFile,
 		},
@@ -51,14 +60,17 @@ import {
 		=  args.server === 'compile'
 		|| args.server === 'watch'
 		|| args.server === 'refresh';
-	const buildHere = buildClientHere || buildServerHere;
+	const buildTestsHere
+		=  args.tests === 'compile'
+		|| args.tests === 'watch';
+	const buildHere = buildClientHere || buildServerHere || buildTestsHere;
 	const watch = buildHere && (
 		   args.client === 'watch'
 		|| args.server === 'watch'
 		|| args.server === 'refresh'
+		|| args.tests  === 'watch'
 	);
-	const startServer = args.start !== '';
-
+	const startServer = args.start !== '' && args.server !== 'off';
 
 	// INSTALL
 	if (args.clean) {
@@ -73,6 +85,7 @@ import {
 	const config = [];
 	if (buildClientHere) config.push(clientOptions({}, {mode}));
 	if (buildServerHere) config.push(serverOptions({}, {mode}));
+	if (buildTestsHere)  config.push(testsOptions( {}, {mode}));
 
 	if (buildHere) {
 		const compiler = webpack(config);
