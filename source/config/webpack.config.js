@@ -111,6 +111,25 @@ const common = {
 		new webpack.ProgressPlugin(),
 	]),
 };
+const nodeSourceMapPlugin = (env, argv) => new webpack.SourceMapDevToolPlugin({
+	//R Webpack creates sourcemaps with the source content embedded in the files themselves, rather than pointing to the actual source files. This doesn't appear to be compatible with the idea of clicking URL directly from console-logged stack-traces, as the URL isn't valid from the perspective of the file-system.
+	//L This behavior is described here: https://github.com/webpack/webpack/issues/559, https://sourcemaps.info/spec.html
+	//G To override the default Webpack behavior and use non-self-contained source-maps, Webpack's custom prefix must be removed and the source URLs must point to the actual source files.
+
+	// Explicit 'filename' option forces non-inline source-maps.
+	//L Default from: https://stackoverflow.com/questions/52228650/configure-sourcemapdevtoolplugin-to-generate-source-map
+	filename: '[file].map[query]',
+	// Removes the 'webpack:///' prefix from the source URLs.
+	//? Not sure if 'fallbackModuleFilenameTemplate' is needed too?
+	moduleFilenameTemplate: '[absolute-resource-path]',
+	// Removes sourceContent from the source-maps.
+	noSources: true,
+
+	// Modified the default pattern from SourceMapDevToolPlugin to include .cjs files.
+	// Original: /\.(m?js|css)($|\?)/i
+	//L Source code: https://github.com/webpack/webpack/blob/28bb0c59c0d5a8d2d1192b4c19217f7ed59785f9/lib/SourceMapDevToolPlugin.js#L141
+	test: /\.(?:[mc]?js|css)(?:$|\?)/iu, //TODO Include TS?
+});
 
 // TARGETS
 
@@ -218,25 +237,7 @@ export const serverOptions = (env, argv) => ({
 				{from: dotenvFile, to: dotenvBuildDirectory},
 			],
 		}),
-		new webpack.SourceMapDevToolPlugin({
-			//R Webpack creates sourcemaps with the source content embedded in the files themselves, rather than pointing to the actual source files. This doesn't appear to be compatible with the idea of clicking URL directly from console-logged stack-traces, as the URL isn't valid from the perspective of the file-system.
-			//L This behavior is described here: https://github.com/webpack/webpack/issues/559, https://sourcemaps.info/spec.html
-			//G To override the default Webpack behavior and use non-self-contained source-maps, Webpack's custom prefix must be removed and the source URLs must point to the actual source files.
-
-			// Explicit 'filename' option forces non-inline source-maps.
-			//L Default from: https://stackoverflow.com/questions/52228650/configure-sourcemapdevtoolplugin-to-generate-source-map
-			filename: '[file].map[query]',
-			// Removes the 'webpack:///' prefix from the source URLs.
-			//? Not sure if 'fallbackModuleFilenameTemplate' is needed too?
-			moduleFilenameTemplate: '[absolute-resource-path]',
-			// Removes sourceContent from the source-maps.
-			noSources: true,
-
-			// Modified the default pattern from SourceMapDevToolPlugin to include .cjs files.
-			// Original: /\.(m?js|css)($|\?)/i
-			//L Source code: https://github.com/webpack/webpack/blob/28bb0c59c0d5a8d2d1192b4c19217f7ed59785f9/lib/SourceMapDevToolPlugin.js#L141
-			test: /\.(?:[mc]?js|css)(?:$|\?)/iu, //TODO Include TS?
-		}),
+		nodeSourceMapPlugin(),
 		{
 			/* custom node globals polyfill */
 			//L From: https://github.com/webpack/webpack/issues/1599#issuecomment-550291610
@@ -278,7 +279,6 @@ export const testsOptions = (env, argv) => ({
 	entry: getTestEntries(),
 	output: {
 		filename: '[name].test.cjs', //TODO Extract test?
-		chunkFilename: '[id].bar.cjs',
 		path: testsBuildDirectory,
 	}, 
 	module: {
@@ -286,26 +286,7 @@ export const testsOptions = (env, argv) => ({
 	},
 	plugins: [
 		...common.plugins(env, argv),
-		//TODO Extract from serverOptions?
-		new webpack.SourceMapDevToolPlugin({
-			//R Webpack creates sourcemaps with the source content embedded in the files themselves, rather than pointing to the actual source files. This doesn't appear to be compatible with the idea of clicking URL directly from console-logged stack-traces, as the URL isn't valid from the perspective of the file-system.
-			//L This behavior is described here: https://github.com/webpack/webpack/issues/559, https://sourcemaps.info/spec.html
-			//G To override the default Webpack behavior and use non-self-contained source-maps, Webpack's custom prefix must be removed and the source URLs must point to the actual source files.
-
-			// Explicit 'filename' option forces non-inline source-maps.
-			//L Default from: https://stackoverflow.com/questions/52228650/configure-sourcemapdevtoolplugin-to-generate-source-map
-			filename: '[file].map[query]',
-			// Removes the 'webpack:///' prefix from the source URLs.
-			//? Not sure if 'fallbackModuleFilenameTemplate' is needed too?
-			moduleFilenameTemplate: '[absolute-resource-path]',
-			// Removes sourceContent from the source-maps.
-			noSources: true,
-
-			// Modified the default pattern from SourceMapDevToolPlugin to include .cjs files.
-			// Original: /\.(m?js|css)($|\?)/i
-			//L Source code: https://github.com/webpack/webpack/blob/28bb0c59c0d5a8d2d1192b4c19217f7ed59785f9/lib/SourceMapDevToolPlugin.js#L141
-			test: /\.(?:[mc]?js|css)(?:$|\?)/iu, //TODO Include TS?
-		}),
+		nodeSourceMapPlugin(),
 	],
 	externals: [
 		// Don't bundle node_modules.
