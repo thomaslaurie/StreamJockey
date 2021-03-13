@@ -1,5 +1,5 @@
 import test from 'ava';
-import CustomSet from './custom-set';
+import CustomSet from './custom-set.ts';
 
 test('empty set has nothing', async t =>  {
 	const set = new CustomSet();
@@ -10,7 +10,7 @@ test('empty set has nothing', async t =>  {
 
 test('set has undefined, delete undefined', async t => {
 	const set = new CustomSet();
-
+	
 	set.add(undefined);
 	t.false(set.has('foo'));
 	t.true(set.has(undefined));
