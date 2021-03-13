@@ -4,7 +4,7 @@
 const sourcePath = require('../node-utility/source-path.cjs');
 
 // Source
-const sourceDirectory = sourcePath(); //TODO Maybe this isn't a good idea.
+const sourceDirectory = sourcePath();
 const serverDirectory = sourcePath('server');
 const clientDirectory = sourcePath('client');
 const serverMainFile  = sourcePath(serverDirectory, 'main.js');
@@ -40,12 +40,12 @@ const UIMainFile     = sourcePath(UIDirectory, UIMainFileName);
 const CSSDirectory = sourcePath(UIDirectory, 'css');
 
 
-// Misc
-// Suffix for test files.
+// Tests
 const testSuffixGlob = '.test.{js,cjs,mjs,ts}';
 const testSuffixRegexp = /\.test\.(?:js|cjs|mjs|ts)$/u;
 
 
+// Utility Functions
 function toForwardSlash(path) {
 	return path.replace(/\\/g, '/');
 }

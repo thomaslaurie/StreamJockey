@@ -1,5 +1,3 @@
-//TODO Make build modes: off, compile, watch, refresh, hot
-
 // EXTERNAL
 import webpack from 'webpack';
 
@@ -16,9 +14,18 @@ import {
 	serverBuildDirectory,
 } from '../config/project-paths.cjs';
 
+
 (async () => {
 	// TIMER
 	const startTime = process.hrtime();
+	
+	const buildModes = {
+		off:     0,
+		compile: 1,
+		watch:   2,
+		refresh: 3,
+		hot:     4,
+	};
 
 	// OPTIONS
 	const parser = await getModule('minimist', 'devDependencies');
@@ -51,25 +58,24 @@ import {
 			start: serverBuildFile,
 		},
 	});
-
+	
 	// INTERPRET OPTIONS
-	const buildClientHere
-		=  args.client === 'compile'
-		|| args.client === 'watch';
-	const buildServerHere
-		=  args.server === 'compile'
-		|| args.server === 'watch'
-		|| args.server === 'refresh';
-	const buildTestsHere
-		=  args.tests === 'compile'
-		|| args.tests === 'watch';
-	const buildHere = buildClientHere || buildServerHere || buildTestsHere;
-	const watch = buildHere && (
-		   args.client === 'watch'
-		|| args.server === 'watch'
-		|| args.server === 'refresh'
-		|| args.tests  === 'watch'
+	const clientBuildMode = buildModes[args.client];
+	const serverBuildMode = buildModes[args.server];
+	const testsBuildMode  = buildModes[args.tests];
+	
+	const buildClientHere = buildModes.compile <= clientBuildMode && clientBuildMode <= buildModes.watch;
+	const buildServerHere = buildModes.compile <= serverBuildMode && serverBuildMode <= buildModes.refresh;
+	const buildTestsHere  = buildModes.compile <= testsBuildMode  && testsBuildMode  <= buildModes.watch;
+	
+	const buildAnyHere = buildClientHere || buildServerHere || buildTestsHere;
+	
+	const watchAnyHere = buildAnyHere && (
+		buildModes.watch <= clientBuildMode
+		|| buildModes.watch <= serverBuildMode
+		|| buildModes.watch <= testsBuildMode
 	);
+	
 	const startServer = args.start !== '' && args.server !== 'off';
 
 	// INSTALL
@@ -87,7 +93,7 @@ import {
 	if (buildServerHere) config.push(serverOptions({}, {mode}));
 	if (buildTestsHere)  config.push(testsOptions( {}, {mode}));
 
-	if (buildHere) {
+	if (buildAnyHere) {
 		const compiler = webpack(config);
 
 		// BUILD HANDLER
@@ -125,7 +131,7 @@ import {
 		};
 
 		// BUILD
-		if (watch) {
+		if (watchAnyHere) {
 			const watchOptions = {};
 			compiler.watch(watchOptions, compilerCallback);
 		} else {
