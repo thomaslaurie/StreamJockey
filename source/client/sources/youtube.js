@@ -2,7 +2,7 @@ import {
 	rules,
 	Deferred,
 	escapeRegExp,
-} from '../../shared/utility/index.js';
+} from '../../shared/utility/index.ts';
 import serverRequest from '../server-request.js';
 import {
 	Track,

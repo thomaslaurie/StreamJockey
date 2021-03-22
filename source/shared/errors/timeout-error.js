@@ -1,6 +1,6 @@
 import {
 	define,
-} from '../utility/index.js';
+} from '../utility/index.ts';
 import CustomError from './custom-error.js';
 
 export default class TimeoutError extends CustomError {

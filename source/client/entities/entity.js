@@ -8,7 +8,7 @@ import {
 	any,
 	pick,
 	define,
-} from '../../shared/utility/index.js';
+} from '../../shared/utility/index.ts';
 import {sharedRegistry} from '../../shared/class-registry.js';
 
 export default class Entity {

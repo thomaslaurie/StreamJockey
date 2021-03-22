@@ -1,7 +1,7 @@
 //TODO Add test for transferred validate/test functions. These should not cause any issues because they are bound to their instance.
 
 import test from 'ava';
-import boolCatch from '../bool-catch.js';
+import boolCatch from '../bool-catch.ts';
 import Rule from './rule.js';
 
 const string = new Rule({

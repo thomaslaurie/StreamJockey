@@ -3,7 +3,7 @@
 import {
 	define,
 	rules,
-} from '../utility/index.js';
+} from '../utility/index.ts';
 import {sharedRegistry} from '../class-registry.js';
 
 // CustomError is registered to communicate an error via socket connection. See live-data-client.js

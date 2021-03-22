@@ -1,6 +1,6 @@
 // Holds timestamp metadata for data to be transferred.
 
-import {define} from './utility/index.js';
+import {define} from './utility/index.ts';
 
 export default class MetadataContainer {
 	constructor(options = {}) {

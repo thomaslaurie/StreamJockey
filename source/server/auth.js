@@ -8,7 +8,7 @@
 // INTERNAL
 import {
 	keyCode,
-} from '../shared/utility/index.js';
+} from '../shared/utility/index.ts';
 
 export default {
 	requestTimeout: 300000, // 5 minutes

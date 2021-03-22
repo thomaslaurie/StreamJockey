@@ -2,7 +2,7 @@ import define         from '../object/define.js';
 import {forOwnKeysOf} from '../object/keys-of.js';
 import flexTest       from './flex-test.js';
 import Rule           from './rule.js';
-import * as rules     from './rules/index.js';
+import * as rules     from './rules/index.ts';
 
 class VirtualInterface extends Rule {
 	constructor(packs, options = {}) {

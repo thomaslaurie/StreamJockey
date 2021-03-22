@@ -4,7 +4,7 @@ import bcrypt from 'bcryptjs';
 // INTERNAL
 import {
 	rules, define,
-} from '../../shared/utility/index.js';
+} from '../../shared/utility/index.ts';
 import {
 	userParts,
 	userSharedRegistryId,

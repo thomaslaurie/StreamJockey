@@ -15,7 +15,7 @@ import {
 	escapeRegExp,
 	constants,
 	appendQueryParameters,
-} from '../shared/utility/index.js';
+} from '../shared/utility/index.ts';
 import {
 	safeStringify,
 } from '../shared/derived-utility/index.js';

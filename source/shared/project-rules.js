@@ -10,7 +10,7 @@ import {
 	Rule,
 	rules,
 	Enum,
-} from './utility/index.js';
+} from './utility/index.ts';
 
 export const id = new Rule({
 	validator(value) {

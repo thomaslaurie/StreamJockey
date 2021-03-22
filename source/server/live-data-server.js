@@ -32,7 +32,7 @@ import {
 } from '../shared/propagate.js';
 import {
 	define,
-} from '../shared/utility/index.js';
+} from '../shared/utility/index.ts';
 import {defaultSocketId} from '../shared/entityParts/user.js';
 import Warn from '../shared/warn.js';
 import {CustomError} from '../shared/errors/index.js';

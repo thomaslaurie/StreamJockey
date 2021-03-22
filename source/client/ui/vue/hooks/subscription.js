@@ -9,7 +9,7 @@
 
 import {computed, onUnmounted, readonly, ref, toRefs, unref, watch, watchEffect} from 'vue';
 import {useStore} from 'vuex';
-import {rules} from '../../../../shared/utility/index.js';
+import {rules} from '../../../../shared/utility/index.ts';
 import useAsyncData from './async-data.js';
 
 export default function useSubscription({

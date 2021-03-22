@@ -3,7 +3,7 @@
 //TODO add targets and cssClasses to each violation case too
 
 import {CustomError} from '../../shared/errors/index.js';
-import {define} from '../../shared/utility/index.js';
+import {define} from '../../shared/utility/index.ts';
 
 export default class PostgresError extends CustomError {
 	constructor({

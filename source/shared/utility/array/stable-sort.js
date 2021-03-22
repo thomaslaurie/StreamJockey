@@ -2,7 +2,7 @@
 //L https://stackoverflow.com/questions/1129216/sort-array-of-objects-by-string-property-value-in-javascript
 //L https://medium.com/@fsufitch/is-javascript-array-sort-stable-46b90822543f
 
-import {rules} from '../validation/index.js';
+import {rules} from '../validation/index.ts';
 
 export default function stableSort(array, compare = (a, b) => {
 	// low to high

@@ -1,6 +1,6 @@
 // Used to communicate to client that the server does not have the required tokens and that the client must authorize.
 
-import {define} from '../utility/index.js';
+import {define} from '../utility/index.ts';
 import {sharedRegistry} from '../class-registry.js';
 
 const sharedRegistryId = 'AuthRequired';

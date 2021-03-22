@@ -8,7 +8,7 @@ import {
 	rules,
 	define,
 	ClassParts,
-} from '../utility/index.js';
+} from '../utility/index.ts';
 import * as projectRules from '../project-rules.js';
 import {sharedRegistry} from '../class-registry.js';
 

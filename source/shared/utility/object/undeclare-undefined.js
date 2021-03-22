@@ -1,7 +1,7 @@
 // Copies spreadable properties of an object to a new object if they are not undefined.
 // Intended for use with object spread where declared-undefined-properties should be treated as undeclared-properties.
 
-import {rules} from '../validation/index.js';
+import {rules} from '../validation/index.ts';
 import {forSpreadableKeysOf} from './keys-of.js';
 
 export default function undeclareUndefined(object) {

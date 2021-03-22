@@ -4,7 +4,7 @@ import AsyncLoading from '../async/AsyncLoading.vue';
 
 import {computed} from 'vue';
 import {useRoute} from 'vue-router';
-import {one, rules} from '../../../../shared/utility/index.js';
+import {one, rules} from '../../../../shared/utility/index.ts';
 import {
 	Track,
 } from '../../../entities/index.js';

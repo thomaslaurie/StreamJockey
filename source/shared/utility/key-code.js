@@ -1,7 +1,7 @@
 import {
 	Rule,
 	rules,
-} from './validation/index.js';
+} from './validation/index.ts';
 import repeat from './repeat.js';
 
 const packRule = new Rule({

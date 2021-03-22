@@ -10,7 +10,7 @@ import {
 	getKeysOf,
 	encodeProperties,
 	appendQueryParameters,
-} from './utility/index.js';
+} from './utility/index.ts';
 import {
 	urlRule,
 	fetch,

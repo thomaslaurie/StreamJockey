@@ -14,7 +14,7 @@ import {
 	encodeProperties,
 	one,
 	rules,
-} from '../../shared/utility/index.js';
+} from '../../shared/utility/index.ts';
 import request from '../../shared/request.js';
 import Source from '../../server/source.js';
 import {

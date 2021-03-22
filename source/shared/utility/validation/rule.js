@@ -1,17 +1,14 @@
-//TODO consider changing the method name 'validateCast' it is not intuitive that this is the main casting function and that it returns a value. That or make validate return the passed values.
-//TODO consider adding the cast modifier onto the end of the validate/test functions like: rule.validate.cast() and rule.test.cast()
-//TODO ensure that validate and validateCast both return values
-
-
-//TODO rename to .validate(), .test(), .cast(), .testCast()
-
+/* TODO Casting ideas
+	Consider changing the method name 'validateCast' it is not intuitive that this is the main casting function and that it returns a value. That or make validate return the passed values.
+	Consider adding the cast modifier onto the end of the validate/test functions like: rule.validate.cast() and rule.test.cast()
+	Ensure that validate and validateCast both return values
+	Rename to .validate(), .test(), .cast(), .testCast()
+*/
 //TODO consider duplicating define here, so that define can use rules
-
-//TODO consider allowing a shorthand parameter, where a single function argument defaults to the validator.
 
 import define from '../object/define.js';
 import {formReferences, extractValues} from '../reference.js';
-import boolCatch from '../bool-catch.js';
+import boolCatch from '../bool-catch.ts';
 
 export class Rule {
 	constructor({
@@ -40,6 +37,7 @@ export class Rule {
 		caster = function () {},
 
 		//R Indexed reasons, placeholder reasons, etc. should not be used, its too complicated. Just create sub-rules for each failure type or store custom, identifiable errors directly on the rule by including more option properties.
+		//? Why not just use closure values?
 		...rest
 	}) {
 		const errors = [];

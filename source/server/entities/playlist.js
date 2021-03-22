@@ -1,6 +1,6 @@
 import {sharedRegistry} from '../../shared/class-registry.js';
 import {playlistParts, playlistSharedRegistryId} from '../../shared/entityParts/index.js';
-import {define} from '../../shared/utility/index.js';
+import {define} from '../../shared/utility/index.ts';
 import Entity from './entity.js';
 
 export default class Playlist extends Entity {

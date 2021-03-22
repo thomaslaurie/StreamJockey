@@ -5,7 +5,7 @@ import UserItems from '../user/user-items.vue';
 
 import {
 	any, forOwnKeysOf,
-} from '../../../../shared/utility/index.js';
+} from '../../../../shared/utility/index.ts';
 
 import {
 	User,

@@ -10,7 +10,7 @@ import {
 	getOwnKeysOf,
 	promiseStates,
 	wait,
-} from '../../../../shared/utility/index.js';
+} from '../../../../shared/utility/index.ts';
 
 
 // Watches a property and tests provided states for each update step.

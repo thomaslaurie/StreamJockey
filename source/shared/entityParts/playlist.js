@@ -9,7 +9,7 @@ import {
 	rules,
 	define,
 	ClassParts,
-} from '../utility/index.js';
+} from '../utility/index.ts';
 import {sharedRegistry} from '../class-registry.js';
 
 export const sharedRegistryId = 'Playlist';

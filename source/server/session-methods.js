@@ -7,7 +7,7 @@ import {
 } from './entities/index.js';
 import {
 	rules,
-} from '../shared/utility/index.js';
+} from '../shared/utility/index.ts';
 import PostgresError from './errors/postgres-error.js';
 import {
 	InvalidStateError,

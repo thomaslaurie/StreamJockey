@@ -1,7 +1,7 @@
 <script>
 import {
 	one,
-} from '../../../../../shared/utility/index.js';
+} from '../../../../../shared/utility/index.ts';
 import * as session from '../../../../session-methods.js';
 // import {mapState} from '../../../../client/vendor/vuex.esm.browser.js';
 

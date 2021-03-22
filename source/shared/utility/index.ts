@@ -4,14 +4,14 @@ export * from './object/index.js';
 export * from './string/index.js';
 export * from './time/index.js';
 export * from './uri/index.js';
-export * from './validation/index.js';
+export * from './validation/index';
 
 // LOCAL
-export {default as boolCatch}       from './bool-catch.js';
+export {default as boolCatch}       from './bool-catch';
 export {default as clamp}           from './clamp.js';
 export {default as ClassParts}      from './class-parts.js';
 export {default as combinations}    from './combinations.js';
-export {default as CustomSet}       from './custom-set.ts';
+export {default as CustomSet}       from './custom-set';
 export {default as Deferred}        from './deferred.js';
 export {default as Enum}            from './enum.js';
 export {default as formatMs}        from './format-ms.js';

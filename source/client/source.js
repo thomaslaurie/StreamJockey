@@ -10,7 +10,7 @@
 */
 
 import sourceParts from '../shared/source-parts.js';
-import {define} from '../shared/utility/index.js';
+import {define} from '../shared/utility/index.ts';
 
 export default class Source {
 	constructor(...args) {

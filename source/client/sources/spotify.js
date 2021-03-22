@@ -5,7 +5,7 @@ import {
 	wait,
 	repeat,
 	rules,
-} from '../../shared/utility/index.js';
+} from '../../shared/utility/index.ts';
 import request from '../../shared/request.js';
 import serverRequest from '../server-request.js';
 import {

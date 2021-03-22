@@ -13,7 +13,7 @@
 import {
 	rules,
 	define,
-} from './utility/index.js';
+} from './utility/index.ts';
 
 export default class ClassRegistry {
 	constructor(idKey) {

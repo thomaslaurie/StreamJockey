@@ -1,5 +1,5 @@
 import test from 'ava';
-import boolCatch from './bool-catch.js';
+import boolCatch from './bool-catch.ts';
 
 test('any return passes', t => {
 	t.assert(boolCatch(() => 'asdf'));

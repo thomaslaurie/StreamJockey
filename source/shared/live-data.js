@@ -4,7 +4,7 @@ import {
 	define,
 	rules,
 	ClassParts,
-} from './utility/index.js';
+} from './utility/index.ts';
 
 export class LiveTable {
 	constructor(options = {}) {

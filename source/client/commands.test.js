@@ -9,7 +9,7 @@
 //TODO Test interactions with current state. CommandQueue was erroring when immediately resolving a command.
 
 import test from 'ava';
-import {Deferred} from '../shared/utility/index.js';
+import {Deferred} from '../shared/utility/index.ts';
 import {
 	PlaybackState,
 	Toggle,

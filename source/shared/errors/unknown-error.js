@@ -6,7 +6,7 @@
 import {
 	forOwnKeysOf,
 	copyOwnProperty,
-} from '../utility/index.js';
+} from '../utility/index.ts';
 import {sharedRegistry} from '../class-registry.js';
 
 const sharedRegistryId = 'UnknownError';

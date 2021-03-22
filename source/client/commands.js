@@ -65,7 +65,7 @@ import {
 	Rule,
 	rules,
 	undeclareUndefined,
-} from '../shared/utility/index.js';
+} from '../shared/utility/index.ts';
 import {
 	InvalidStateError,
 } from '../shared/errors/index.js';

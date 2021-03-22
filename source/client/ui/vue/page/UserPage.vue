@@ -12,7 +12,7 @@ import {
 import * as session from '../../../session-methods.js';
 
 import {useSubscription} from '../hooks/index.js';
-import {one, rules} from '../../../../shared/utility/index.js';
+import {one, rules} from '../../../../shared/utility/index.ts';
 import {useStore} from 'vuex';
 
 export default {

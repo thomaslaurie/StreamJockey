@@ -2,7 +2,7 @@
 //L Modified from: https://developer.mozilla.org/en-US/docs/Web/API/HTMLScriptElement#Dynamically_importing_scripts
 //G Gotchas: https://www.danielcrabtree.com/blog/25/gotchas-with-dynamically-adding-script-tags-to-html
 
-import {Deferred} from '../../shared/utility/index.js';
+import {Deferred} from '../../shared/utility/index.ts';
 
 export default async function runHTMLScript(url) {
 	const scriptElement = document.createElement('script');

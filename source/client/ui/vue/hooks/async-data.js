@@ -9,7 +9,7 @@ import {
 	promiseStates,
 	rules,
 	setTimer,
-} from '../../../../shared/utility/index.js';
+} from '../../../../shared/utility/index.ts';
 
 /* //R Allowing non-function values to be passed and function-wrapped leads to complications:
 	What if a ref is passed?

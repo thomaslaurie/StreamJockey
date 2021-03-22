@@ -3,7 +3,7 @@ import {
 	getKeysOf,
 	pick,
 	ClassParts,
-} from '../utility/index.js';
+} from '../utility/index.ts';
 
 export default new ClassParts({
 	instance(options = {}) {

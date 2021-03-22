@@ -1,4 +1,4 @@
-import {rules} from './validation/index.js';
+import {rules} from './validation/index.ts';
 
 /**
  * Repeats a function until a condition is met or the call times-out or counts-out.

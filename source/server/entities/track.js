@@ -5,7 +5,7 @@ import {
 	any,
 	rules,
 	define,
-} from '../../shared/utility/index.js';
+} from '../../shared/utility/index.ts';
 import database, {pgp} from '../database/database.js';
 import Source from '../../server/source.js';
 import {

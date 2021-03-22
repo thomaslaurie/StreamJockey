@@ -5,7 +5,7 @@
 
 import define from './object/define.js';
 import {SymbolInterface} from './validation/interface.js';
-import {rules} from './validation/index.js';
+import {rules} from './validation/index.ts';
 
 const wrappedPartInterface = new SymbolInterface({
 	marker: SymbolInterface.exists,

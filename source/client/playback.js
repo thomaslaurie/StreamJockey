@@ -20,7 +20,7 @@ import {
 	repeat,
 	rules,
 	define,
-} from '../shared/utility/index.js';
+} from '../shared/utility/index.ts';
 import {
 	CommandQueue,
 	PlaybackState,

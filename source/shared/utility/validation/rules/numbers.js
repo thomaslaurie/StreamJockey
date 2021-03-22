@@ -1,6 +1,3 @@
-//TODO Create a lint rule to warn against ".validateCast(reference.value);" inside casters. This doesn't pass the nested cast value back up to the parent cast function.
-//TODO Create tests for this.
-
 import Rule from '../rule.js';
 
 export const number = new Rule({
@@ -40,31 +37,11 @@ export const integer = new Rule({
 });
 
 //! Defining 0 as neither positive or negative.
-//L Don't worry about NaN: https://stackoverflow.com/a/26982925 (//!but be careful about negating comparisons)
-export const nonNegativeNumber = new Rule({
-	validator(value) {
-		number.validate(value);
-		if (value < 0) throw new Error('Number is negative.');
-	},
-	caster(reference) {
-		number.validateCast(reference);
-		// Cannot cast any further than a number.
-	},
-});
-export const nonPositiveNumber = new Rule({
-	validator(value) {
-		number.validate(value);
-		if (value > 0) throw new Error('Number is positive.');
-	},
-	caster(reference) {
-		number.validateCast(reference);
-		// Cannot cast any further than a number.
-	},
-});
+//R //L Using negated comparisons here to catch NaN: https://stackoverflow.com/a/26982925
 export const positiveNumber = new Rule({
 	validator(value) {
 		number.validate(value);
-		if (value <= 0) throw new Error('Number is not positive.');
+		if (!(value > 0)) throw new Error('Number is not positive.');
 	},
 	caster(reference) {
 		number.validateCast(reference);
@@ -74,7 +51,27 @@ export const positiveNumber = new Rule({
 export const negativeNumber = new Rule({
 	validator(value) {
 		number.validate(value);
-		if (value >= 0) throw new Error('Number is not negative.');
+		if (!(value < 0)) throw new Error('Number is not negative.');
+	},
+	caster(reference) {
+		number.validateCast(reference);
+		// Cannot cast any further than a number.
+	},
+});
+export const nonNegativeNumber = new Rule({
+	validator(value) {
+		number.validate(value);
+		if (!(value >= 0)) throw new Error('Number is not non-negative.');
+	},
+	caster(reference) {
+		number.validateCast(reference);
+		// Cannot cast any further than a number.
+	},
+});
+export const nonPositiveNumber = new Rule({
+	validator(value) {
+		number.validate(value);
+		if (!(value <= 0)) throw new Error('Number is not non-positive.');
 	},
 	caster(reference) {
 		number.validateCast(reference);
@@ -82,26 +79,6 @@ export const negativeNumber = new Rule({
 	},
 });
 
-export const nonNegativeInteger = new Rule({
-	validator(value) {
-		nonNegativeNumber.validate(value);
-		integer.validate(value);
-	},
-	caster(reference) {
-		nonNegativeNumber.validateCast(reference);
-		integer.validateCast(reference);
-	},
-});
-export const nonPositiveInteger = new Rule({
-	validator(value) {
-		nonPositiveNumber.validate(value);
-		integer.validate(value);
-	},
-	caster(reference) {
-		nonPositiveNumber.validateCast(reference);
-		integer.validateCast(reference);
-	},
-});
 export const positiveInteger = new Rule({
 	validator(value) {
 		positiveNumber.validate(value);
@@ -119,6 +96,26 @@ export const negativeInteger = new Rule({
 	},
 	caster(reference) {
 		negativeNumber.validateCast(reference);
+		integer.validateCast(reference);
+	},
+});
+export const nonNegativeInteger = new Rule({
+	validator(value) {
+		nonNegativeNumber.validate(value);
+		integer.validate(value);
+	},
+	caster(reference) {
+		nonNegativeNumber.validateCast(reference);
+		integer.validateCast(reference);
+	},
+});
+export const nonPositiveInteger = new Rule({
+	validator(value) {
+		nonPositiveNumber.validate(value);
+		integer.validate(value);
+	},
+	caster(reference) {
+		nonPositiveNumber.validateCast(reference);
 		integer.validateCast(reference);
 	},
 });

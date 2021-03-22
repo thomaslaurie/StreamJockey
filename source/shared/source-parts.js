@@ -4,7 +4,7 @@ import {
 	define,
 	ClassParts,
 	Rule,
-} from './utility/index.js';
+} from './utility/index.ts';
 
 export default new ClassParts({
 	instance(options = {}) {

@@ -10,7 +10,7 @@ import {
 } from '../../../../shared/live-data.js';
 import {
 	rules,
-} from '../../../../shared/utility/index.js';
+} from '../../../../shared/utility/index.ts';
 
 export default {
 	name: 'player-bar',

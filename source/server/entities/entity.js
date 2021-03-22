@@ -5,7 +5,7 @@ import {
 	any,
 	rules,
 	define,
-} from '../../shared/utility/index.js';
+} from '../../shared/utility/index.ts';
 import database from '../database/database.js';
 import {
 	entityParts,

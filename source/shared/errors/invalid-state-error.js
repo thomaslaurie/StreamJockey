@@ -1,6 +1,6 @@
 import {
 	define,
-} from '../utility/index.js';
+} from '../utility/index.ts';
 import CustomError from './custom-error.js';
 import {image} from '../derived-utility/index.js';
 

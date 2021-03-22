@@ -1,5 +1,5 @@
 import decodeProperties from './decode-properties.js';
-import {rules} from '../validation/index.js';
+import {rules} from '../validation/index.ts';
 
 export default function decodeList(encoded) {
 	// decodes a list of encoded objects with '-i' suffixed property keys

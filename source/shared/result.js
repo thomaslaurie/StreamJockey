@@ -5,7 +5,7 @@
 import {
 	define,
 	Rule,
-} from '../shared/utility/index.js';
+} from '../shared/utility/index.ts';
 
 const statusRule = new Rule({
 	validator(value) {

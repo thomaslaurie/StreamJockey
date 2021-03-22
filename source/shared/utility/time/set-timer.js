@@ -4,7 +4,7 @@
 	Doesn't accept callback arguments. //G Wrap the callback in an arrow function instead.
 */
 
-import {nonNegativeNumber, func} from '../validation/rules/index.js';
+import {nonNegativeNumber, func} from '../validation/rules/index.ts';
 import {MAX_32_BIT_INTEGER} from '../constants.js';
 
 /**

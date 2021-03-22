@@ -1,6 +1,6 @@
 import {
 	nonNaNNumber,
-} from './validation/rules/index.js';
+} from './validation/rules/index.ts';
 
 export default function clamp(input, min = -Infinity, max = Infinity) {
 	// Throw if input is not defined, do not default to 0.

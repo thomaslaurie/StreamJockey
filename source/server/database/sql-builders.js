@@ -1,4 +1,4 @@
-import {rules} from '../../shared/utility/index.js';
+import {rules} from '../../shared/utility/index.ts';
 import {pgp} from './database.js';
 
 export function buildValues(mappedEntity) {

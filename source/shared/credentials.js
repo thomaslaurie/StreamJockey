@@ -1,4 +1,4 @@
-import {define} from './utility/index.js';
+import {define} from './utility/index.ts';
 
 export default class Credentials {
 	constructor(options = {}) {

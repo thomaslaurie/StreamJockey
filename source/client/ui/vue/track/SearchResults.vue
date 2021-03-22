@@ -1,7 +1,7 @@
 <script>
 import {
 	rules,
-} from '../../../../shared/utility/index.js';
+} from '../../../../shared/utility/index.ts';
 import Source from '../../../../client/source.js';
 import TrackItems from '../track/track-items.vue';
 import {
