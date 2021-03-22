@@ -1,4 +1,4 @@
-import Rule from '../rule.js';
+import Rule from '../source/shared/utility/validation/rule.js';
 
 export const number = new Rule({
 	validator(value) {

@@ -340,7 +340,7 @@ const rules = {
 			includeExports: false,
 		}],
 		'@typescript-eslint/consistent-type-imports': [on, {
-			prefer: 'type-imports',
+			prefer: 'type-imports', // Its good to distinguish type imports because they can't be used exactly the same as regular imports. (No import * from, no default import.)
 		}],
 		'@typescript-eslint/no-duplicate-imports':   [on, {
 			includeExports: false,
@@ -475,7 +475,7 @@ const rules = {
 			'@typescript-eslint/await-thenable':         [on],
 			'@typescript-eslint/no-floating-promises':   [on], //? Feasible?
 			'@typescript-eslint/no-misused-promises':    [on],
-			'@typescript-eslint/promise-function-async': [on],
+			'@typescript-eslint/promise-function-async': [on], //R Although it might seem like this makes wrapper functions slightly less transparent. Its use is very valid. Functions that 'only' return promises but aren't labeled async can also throw errors, while async functions cannot. This is a subtle complexity that should be avoided.
 			'require-await':                    [off],
 			'@typescript-eslint/require-await': [off],
 
@@ -764,7 +764,7 @@ const rules = {
 			default: 'array',
 		}],
 		'@typescript-eslint/ban-types': [on], //L See default options: https://github.com/typescript-eslint/typescript-eslint/blob/master/packages/eslint-plugin/docs/rules/ban-types.md
-		'@typescript-eslint/consistent-indexed-object-style': [on, 'index-signature'],
+		'@typescript-eslint/consistent-indexed-object-style': [on, 'record'], // Not using 'index-signature' because the key type cannot be symbol. This is an active issue: //L https://github.com/microsoft/TypeScript/issues/1863
 		'@typescript-eslint/consistent-type-assertions': [on, {
 			assertionStyle: 'as',
 			objectLiteralTypeAssertions: 'never',
@@ -806,7 +806,7 @@ const rules = {
 		any: {
 			'@typescript-eslint/no-explicit-any': [on, {
 				fixToUnknown: true,
-				ignoreRestArgs: false,
+				ignoreRestArgs: true,
 			}],
 			'@typescript-eslint/no-unsafe-assignment':    [on],
 			'@typescript-eslint/no-unsafe-call':          [on],
@@ -818,7 +818,7 @@ const rules = {
 			'@typescript-eslint/no-confusing-non-null-assertion':     [on],
 			'@typescript-eslint/no-extra-non-null-assertion':         [on],
 			'@typescript-eslint/no-non-null-asserted-optional-chain': [on],
-			'@typescript-eslint/non-nullable-type-assertion-style':   [on], //? Possible conflict with no-non-null-assertion?
+			'@typescript-eslint/non-nullable-type-assertion-style':   [off], // Conflicts with no-non-null-assertion: on
 		},
 	},
 	typescript: {

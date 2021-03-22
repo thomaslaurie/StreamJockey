@@ -8,6 +8,7 @@ export  *                       from './arrays.js';
 export {default as boolean}     from './boolean.js';
 export  *                       from './functions.js';
 export {default as key}         from './key.js';
+export  *                       from './nominal';
 export {default as nullish}     from './nullish.js';
 export  *                       from './numbers';
 export  *                       from './strings.js';

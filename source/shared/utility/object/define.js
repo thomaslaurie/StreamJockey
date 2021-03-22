@@ -13,7 +13,8 @@ const ownKeys = function (object) {
 };
 
 // Define is a container for less verbose versions of Object.defineProperty()
-//G if modifications are required, write a different define function
+//G //! If using in Typescript classes, make sure to use the Definite Assignment Assertions to force Typescript to recognize the type as defined.
+//G If modifications are required, write a different define function
 /* //R
 	Initially thought it would be useful to have configurable (loose) constants and non-configurable variables. However:
 
