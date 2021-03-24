@@ -6,7 +6,7 @@
 		"build:client": "npm run build -- --client=compile --server=off --tests=off",
 		"build:server": "npm run build -- --client=off --server=compile --tests=off",
 		"build:tests": "npm run build -- --client=off --server=off --tests=compile",
-		"build:tests:watch": "npm run build --client=off --server=off --tests=watch",
+		"build:tests:watch": "npm run build -- --client=off --server=off --tests=watch",
 		"build:live": "npm run build -- --client=watch --server=refresh",
 		"test": "node source/scripts/test.js",
 		"lint": "npx eslint --config ./source/config/eslint.cjs --ignore-path ./source/config/.eslintignore \"source/**/*.{ts,js,cjs,vue}\"",
