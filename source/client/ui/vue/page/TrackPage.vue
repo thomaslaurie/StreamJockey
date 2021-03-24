@@ -21,7 +21,7 @@ export default {
 
 		const track = useSubscription({
 			entity: Track,
-			query: computed(() => ({id: rules.nonNegativeInteger.validateCast(route.params.id)[0]})),
+			query: computed(() => ({id: rules.nonNegativeInteger.validate(Number.parseInt(route.params.id, 10))})),
 			transform: data => one(data),
 		});
 

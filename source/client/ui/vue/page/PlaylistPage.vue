@@ -34,7 +34,7 @@ export default {
 
 		const playlist = useSubscription({
 			entity: Playlist,
-			query: computed(() => ({id: rules.nonNegativeInteger.validateCast(route.params.id)[0]})),
+			query: computed(() => ({id: rules.nonNegativeInteger.validate(Number.parseInt(route.params.id, 10))})),
 			transform: data => one(data),
 		});
 		const tracks = useSubscription({
