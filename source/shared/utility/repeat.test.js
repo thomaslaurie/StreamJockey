@@ -1,6 +1,7 @@
 import test from 'ava';
 import repeat from './repeat.js';
 import wait from './time/wait.js';
+import Deferred from './deferred.js';
 
 test('function runs at least once', async t => {
 	t.plan(3);
@@ -73,72 +74,58 @@ test('function runs for specified count', async t => {
 	});
 });
 
-/* TODO Find a non-flakey way to test this. Its proven very difficult.
+/*
+// TODO Find a non-flakey way to test this. Its proven very difficult.
 	for (let i = 1; i <= 500; i++) {
 		test(`function runs for specified time #${i}`, async t => { //! Flakey, x4
 			const timeout = 5;
 		
 			const deferred1 = new Deferred();
-			let startTime1 = null;
-			let   endTime1 = Infinity;
+			let endByTime1  = Infinity;
 			repeat(() => {
 				const time = Date.now();
 				
-				if (startTime1 === null) {
-					startTime1 = time;
+				// Set endByTime on first call.
+				if (endByTime1 === Infinity) {
+					endByTime1 = time + timeout;
 				}
 				
-				if (time > endTime1) {
-					t.fail(`assertion 1, ${time - endTime1}`);
+				if (time > endByTime1) {
+					t.fail(`assertion 1: ${time - endByTime1}`);
 				}
-				
-				if (startTime1 + timeout >= time) {
-					endTime1 = time;
-				}
-				
-				return time;
 			}, {
 				timeout,
-				onTimeout(lastTime) {
-					endTime1 = lastTime;
+				onTimeout() {
 					// Waits for the next macro-cycle, ensuring that all repeated calls finish.
 					setTimeout(() => {
 						deferred1.resolve();
 					}, 100);
 				},
 			});
-			
 			await deferred1;
 		
 			const deferred2 = new Deferred();
-			let startTime2 = null;
-			let   endTime2 = Infinity;
+			let endByTime2  = Infinity;
 			repeat.sync(() => {
 				const time = Date.now();
 				
-				if (startTime2 === null) {
-					startTime1 = time;
+				// Set endByTime on first call.
+				if (endByTime2 === Infinity) {
+					endByTime2 = time + timeout;
 				}
 				
-				if (time > endTime2) {
-					t.fail(`assertion 2, ${time - endTime2}`);
+				if (time > endByTime2) {
+					t.fail(`assertion 2: ${time - endByTime2}`);
 				}
-				
-				if (startTime2 + timeout >= time) {
-					endTime2 = time;
-				}
-				
-				return time;
 			}, {
 				timeout,
-				onTimeout(lastTime) {
-					endTime2 = lastTime;
+				onTimeout() {
+					// Waits for the next macro-cycle, ensuring that all repeated calls finish.
 					setTimeout(() => {
 						deferred2.resolve();
 					}, 100);
 				},
 			});
-			
 			await deferred2;
 		
 			// const deferred3 = new Deferred();
@@ -165,6 +152,7 @@ test('function runs for specified count', async t => {
 		});
 	}
 
+	/*
 	// Implementation that should fail if un-commented:
 	const timeLimit = time + timeout;
 	const countLimit = Math.floor(countout);
