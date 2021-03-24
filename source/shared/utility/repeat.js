@@ -3,6 +3,9 @@ import {rules} from './validation/index.ts';
 /**
  * Repeats a function until a condition is met or the call times-out or counts-out.
  * Guaranteed to call the function at least once.
+ * Returns the result of the last function call.
+ * 
+ * //! Returns the result of the last function call even if it finished after the timeout.
  *
  * @param {Function} func               - Function to repeat.
  * @param {Object}   options

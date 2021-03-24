@@ -72,45 +72,135 @@ test('function runs for specified count', async t => {
 		onCountout() {},
 	});
 });
-test('function runs for specified time', async t => { //! Flakey, x4
-	const timeout = 500;
 
-	let startTime1 = null;
-	repeat(() => {
-		// Record start time (after timer starts)
-		if (startTime1 === null) startTime1 = Date.now();
-		// Record end time (before timer ends)
-		return Date.now();
-	}, {
-		timeout,
-		onTimeout(lastTime) {
-			// Ensure the inner recorded range is less than the outer timeout range.
-			t.assert(lastTime - startTime1 <= timeout);
-		},
-	});
+/* TODO Find a non-flakey way to test this. Its proven very difficult.
+	for (let i = 1; i <= 500; i++) {
+		test(`function runs for specified time #${i}`, async t => { //! Flakey, x4
+			const timeout = 5;
+		
+			const deferred1 = new Deferred();
+			let startTime1 = null;
+			let   endTime1 = Infinity;
+			repeat(() => {
+				const time = Date.now();
+				
+				if (startTime1 === null) {
+					startTime1 = time;
+				}
+				
+				if (time > endTime1) {
+					t.fail(`assertion 1, ${time - endTime1}`);
+				}
+				
+				if (startTime1 + timeout >= time) {
+					endTime1 = time;
+				}
+				
+				return time;
+			}, {
+				timeout,
+				onTimeout(lastTime) {
+					endTime1 = lastTime;
+					// Waits for the next macro-cycle, ensuring that all repeated calls finish.
+					setTimeout(() => {
+						deferred1.resolve();
+					}, 100);
+				},
+			});
+			
+			await deferred1;
+		
+			const deferred2 = new Deferred();
+			let startTime2 = null;
+			let   endTime2 = Infinity;
+			repeat.sync(() => {
+				const time = Date.now();
+				
+				if (startTime2 === null) {
+					startTime1 = time;
+				}
+				
+				if (time > endTime2) {
+					t.fail(`assertion 2, ${time - endTime2}`);
+				}
+				
+				if (startTime2 + timeout >= time) {
+					endTime2 = time;
+				}
+				
+				return time;
+			}, {
+				timeout,
+				onTimeout(lastTime) {
+					endTime2 = lastTime;
+					setTimeout(() => {
+						deferred2.resolve();
+					}, 100);
+				},
+			});
+			
+			await deferred2;
+		
+			// const deferred3 = new Deferred();
+			// let startTime3 = null;
+			// let   endTime3 = null;
+			// await repeat.async(async () => {
+			// 	const time = Date.now();
+			// 	if (endTime3 !== null) t.fail('assertion 3');
+			// 	if (startTime3 === null) startTime3 = time;
+			// 	if (time >= startTime3 + timeout) endTime3 = time;
+			// }, {
+			// 	timeout,
+			// 	onTimeout() {
+			// 		wait(timeout * 2).then(() => {
+			// 			t.pass();
+			// 			deferred3.resolve();
+			// 		});
+			// 	},
+			// });
+			
+			// await deferred3;
+			
+			t.pass();
+		});
+	}
 
-	let startTime2 = null;
-	repeat.sync(() => {
-		if (startTime2 === null) startTime2 = Date.now();
-		return Date.now();
-	}, {
-		timeout,
-		onTimeout(lastTime) {
-			t.assert(lastTime - startTime2 <= timeout);
-		},
-	});
+	// Implementation that should fail if un-commented:
+	const timeLimit = time + timeout;
+	const countLimit = Math.floor(countout);
 
-	let startTime3 = null;
-	await repeat.async(async () => {
-		if (startTime3 === null) startTime3 = Date.now();
-		return Date.now();
-	}, {
-		timeout,
-		onTimeout(lastTime) {
-			t.assert(lastTime - startTime3 <= timeout); //! Flakey. 3 Recorded Occurrences
-		},
-	});
-});
+	// let delay = true;
+
+	while (true) {
+		result = func(result);
+
+		if (until(result)) break;
+
+		// Update
+		time = Date.now();
+		counter++;
+
+		if (time    >= timeLimit)  {
+			// if (delay) {
+			// 	delay = false;
+			// } else {
+				onTimeout(result);
+				break;
+			// }
+		}
+		if (counter >= countLimit) {
+			// if (delay) {
+			// 	delay = false;
+			// } else {
+				onCountout(result);
+				break;
+			// }
+		}
+	}
+
+	return result;
+*/
+
 test('async runs in series', async t => {
 	const start = Date.now();
 	await repeat.async(async () => {
