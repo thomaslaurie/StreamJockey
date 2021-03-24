@@ -17,7 +17,7 @@ export const id = new Rule({
 		rules.nonNegativeInteger.validate(value);
 	},
 	caster(reference) {
-		rules.nonNegativeInteger.validateCast(reference);
+		// rules.nonNegativeInteger.validateCast(reference);
 		// Cannot cast any further than a nonNegativeInteger.
 	},
 });
@@ -28,7 +28,7 @@ export const position = new Rule({
 		rules.nonNegativeInteger.validate(value);
 	},
 	caster(reference) {
-		rules.nonNegativeInteger.validateCast(reference);
+		// rules.nonNegativeInteger.validateCast(reference);
 		// Cannot cast any further than a nonNegativeInteger.
 	},
 });
